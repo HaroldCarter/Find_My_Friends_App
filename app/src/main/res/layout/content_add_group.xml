@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".AddGroupActivity"
+    tools:showIn="@layout/activity_add_group">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+
+        <RelativeLayout
+            android:id="@+id/addTitleRelative"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/dateAndTimeText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+
+            <EditText
+                android:id="@+id/UsernameTextFieldReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="0dp"
+                android:autofillHints=""
+                android:background="@drawable/dsg_square_entry_box_border"
+                android:drawableStart="@drawable/svg_person_black"
+                android:ems="10"
+                android:fontFamily="@font/roboto"
+                android:hint="@string/Add_title_suggestionAG"
+                android:inputType="textPersonName"
+                android:padding="5dp"
+                android:textColor="@color/colorPrimaryDark"
+                android:textColorHint="@color/colorPrimaryDark"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+
+        <TextView
+            android:id="@+id/dateAndTimeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:drawableStart="@drawable/svg_date_primary"
+            android:fontFamily="@font/roboto"
+            android:gravity="start"
+            android:text="@string/dataAndTimeStringAG"
+            android:textColor="@color/colorPrimary"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toTopOf="@+id/dateAndTimeRelativeAG"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/addTitleRelative" />
+
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/dateAndTimeRelativeAG"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/addLocationTextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dateAndTimeText"
+            >
+
+
+            <Spinner
+                android:id="@+id/dateSpinnerAG"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto"
+                android:prompt="@string/date_prompt_AG"
+                android:textColor="@color/colorPrimary"
+                android:textSize="20sp"
+                android:layout_marginEnd="50dp"
+                />
+
+            <Spinner
+                android:id="@+id/timeSpinnerAG"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto"
+                android:prompt="@string/time_prompt_AG"
+                android:textColor="@color/colorPrimary"
+                android:textSize="20sp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+        <TextView
+            android:id="@+id/addLocationTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:drawableStart="@drawable/svg_location_primary"
+            android:fontFamily="@font/roboto"
+            android:gravity="start"
+            android:text="@string/locationStringAG"
+            android:textColor="@color/colorPrimary"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toTopOf="@+id/addLocationRelativeAG"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dateAndTimeRelativeAG" />
+
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/addLocationRelativeAG"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/DescriptionOfGroupText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/addLocationTextView">
+
+            <Button
+                android:id="@+id/addLocationAG"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/dsg_textview_rounded_borded"
+                android:fontFamily="@font/roboto"
+                android:text="@string/addLocationTextAG"
+                android:textColor="@color/colorPrimary"
+                android:textSize="24sp"
+                />
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <TextView
+            android:id="@+id/DescriptionOfGroupText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:drawableStart="@drawable/svg_import_contacts_primary"
+            android:fontFamily="@font/roboto"
+            android:gravity="start"
+            android:text="@string/desc_titleAG"
+            android:textColor="@color/colorPrimary"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toTopOf="@+id/DescriptionOfGroupAG"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/addLocationRelativeAG" />
+
+
+        <EditText
+            android:id="@+id/DescriptionOfGroupAG"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:autofillHints=""
+            android:background="@drawable/dsg_square_entry_box_border"
+            android:ems="10"
+            android:fontFamily="@font/roboto"
+            android:hint="@string/desc_suggestionAG"
+            android:inputType="textPersonName"
+            android:padding="10dp"
+            android:scrollHorizontally="false"
+            android:singleLine="false"
+            android:textColor="@color/colorPrimaryDark"
+            android:textColorHint="@color/colorPrimaryDark"
+            android:textSize="20sp"
+            android:gravity="start"
+            app:layout_constraintBottom_toTopOf="@+id/addNewGroupButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/DescriptionOfGroupText" />
+
+
+        <Button
+            android:id="@+id/addNewGroupButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/dsg_textview_rounded_fill"
+            android:fontFamily="@font/roboto"
+            android:text="@string/createGroupTextAG"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/DescriptionOfGroupAG" />
+
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.core.widget.NestedScrollView>

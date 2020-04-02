@@ -26,6 +26,7 @@
     <string name="locationStringAG">Location</string>
     <string name="desc_titleAG">Description</string>
     <string name="desc_suggestionAG">Enter the description of the event here</string>
+    <string name="groupPhotoDescriptionAG">The designated photo for the group</string>
 
 
     <!--Nav Draw String resources-->
