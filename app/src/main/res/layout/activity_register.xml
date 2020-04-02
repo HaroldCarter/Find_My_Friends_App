@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".RegisterActivity"
+        android:background="@color/white">
+
+
+        <RelativeLayout
+            android:id="@+id/UserImageViewRelative"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            app:layout_constraintBottom_toTopOf="@id/usernameRelative"
+            app:layout_constraintTop_toTopOf="parent"
+
+            tools:layout_editor_absoluteX="1dp">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/backButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                app:srcCompat="@drawable/svg_back_arrow_primary" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/addUsersPhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/UserProfilePhotoReg"
+                android:layout_alignBottom="@+id/UserProfilePhotoReg"
+                android:background="@color/white"
+                android:clickable="true"
+                app:srcCompat="@drawable/svg_add_white" />
+
+
+            <ImageView
+                android:id="@+id/UserProfilePhotoReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/Profile_photo_content_description"
+                android:scaleType="centerCrop"
+                android:src="@drawable/default_image"
+                tools:srcCompat="@tools:sample/avatars" />
+        </RelativeLayout>
+
+
+        <RelativeLayout
+            android:id="@+id/usernameRelative"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/passwordRelative"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/UserImageViewRelative">
+
+
+            <TextView
+                android:id="@+id/UsernameTextView"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/dsg_square_entry_box"
+                android:fontFamily="@font/roboto"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/Username_string"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+
+                />
+
+            <EditText
+                android:id="@+id/UsernameTextFieldReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="0dp"
+                android:layout_toEndOf="@+id/UsernameTextView"
+                android:autofillHints=""
+                android:drawableStart="@drawable/svg_person_black"
+                android:background="@drawable/dsg_square_entry_box_border"
+                android:ems="10"
+                android:fontFamily="@font/roboto"
+                android:hint="@string/Username_suggestion_string"
+                android:inputType="textPersonName"
+                android:padding="5dp"
+                android:textColorHint="@color/colorPrimaryDark"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/passwordRelative"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/confirmPasswordRelative"
+            app:layout_constraintTop_toBottomOf="@+id/usernameRelative"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            >
+
+
+            <TextView
+                android:id="@+id/passwordTextViewReg"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/dsg_square_entry_box"
+                android:fontFamily="@font/roboto"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/Password_String"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+
+                />
+
+            <EditText
+                android:id="@+id/passwordTextFieldReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="0dp"
+                android:layout_toEndOf="@+id/passwordTextViewReg"
+                android:autofillHints=""
+                android:drawableStart="@drawable/svg_lock_black"
+                android:background="@drawable/dsg_square_entry_box_border"
+                android:ems="10"
+                android:fontFamily="@font/roboto"
+                android:hint="@string/Password_hint_string"
+                android:inputType="textPassword"
+                android:padding="5dp"
+                android:textColorHint="@color/colorPrimaryDark"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+
+
+        <RelativeLayout
+            android:id="@+id/confirmPasswordRelative"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/emailRelative"
+            app:layout_constraintTop_toBottomOf="@+id/passwordRelative"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            >
+
+
+            <TextView
+                android:id="@+id/confirmPasswordTextViewReg"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/dsg_square_entry_box"
+                android:fontFamily="@font/roboto"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/Password_confirmation_string"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+
+                />
+
+            <EditText
+                android:id="@+id/confirmPasswordTextFieldReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="0dp"
+                android:drawableStart="@drawable/svg_lock_black"
+                android:layout_toEndOf="@+id/confirmPasswordTextViewReg"
+                android:autofillHints=""
+                android:background="@drawable/dsg_square_entry_box_border"
+                android:ems="10"
+                android:fontFamily="@font/roboto"
+                android:hint="@string/Password_hint_string"
+                android:inputType="textPassword"
+                android:padding="5dp"
+                android:textColorHint="@color/colorPrimaryDark"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/emailRelative"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/confirmEmailRelative"
+            app:layout_constraintTop_toBottomOf="@+id/confirmPasswordRelative"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            >
+
+
+            <TextView
+                android:id="@+id/emailRelativeTextViewReg"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/dsg_square_entry_box"
+                android:fontFamily="@font/roboto"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/Email_string"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+
+                />
+
+            <EditText
+                android:id="@+id/emailRelativeTextFieldReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="0dp"
+                android:drawableStart="@drawable/svg_lock_black"
+                android:layout_toEndOf="@+id/emailRelativeTextViewReg"
+                android:autofillHints=""
+                android:background="@drawable/dsg_square_entry_box_border"
+                android:ems="10"
+                android:fontFamily="@font/roboto"
+                android:hint="@string/email_suggestion_string"
+                android:inputType="textEmailAddress"
+                android:padding="5dp"
+                android:textColorHint="@color/colorPrimaryDark"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/confirmEmailRelative"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/registerUserButton"
+            app:layout_constraintTop_toBottomOf="@+id/emailRelative"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            >
+
+
+            <TextView
+                android:id="@+id/confirmEmailRelativeTextViewReg"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/dsg_square_entry_box"
+                android:fontFamily="@font/roboto"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="@string/Confirm_email_string"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+
+                />
+
+            <EditText
+                android:id="@+id/confirmEmailRelativeTextFieldReg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="0dp"
+                android:drawableStart="@drawable/svg_lock_black"
+                android:layout_toEndOf="@+id/confirmEmailRelativeTextViewReg"
+                android:autofillHints=""
+                android:background="@drawable/dsg_square_entry_box_border"
+                android:ems="10"
+                android:fontFamily="@font/roboto"
+                android:hint="@string/confirm_email_suggestion_string"
+                android:inputType="textEmailAddress"
+                android:padding="5dp"
+                android:textColorHint="@color/colorPrimaryDark"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+
+        <Button
+            android:id="@+id/registerUserButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/dsg_textview_rounded_fill"
+            android:fontFamily="@font/roboto_bold"
+            android:text="@string/Register_button_string"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/confirmEmailRelative" />
+
+        <ProgressBar
+            android:id="@+id/progressBarReg"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/confirmEmailRelative"
+            app:layout_constraintEnd_toEndOf="@+id/UserImageViewRelative"
+            app:layout_constraintStart_toStartOf="@+id/UserImageViewRelative"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

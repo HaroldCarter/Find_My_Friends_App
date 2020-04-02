@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity"
+    android:background="@color/white"
+    >
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:id="@+id/titleBackgroundColor"
+        android:background="@color/colorPrimary"/>
+
+
+    <TextView
+        android:id="@+id/LoginPageTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/roboto_bold"
+        android:text="@string/Login_page_string"
+        android:textColor="@color/white"
+        android:textSize="42sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.100000024" />
+
+
+    <EditText
+        android:id="@+id/loginUsernameTextField"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:autofillHints=""
+        android:background="@drawable/dsg_textview_rounded_borded"
+        android:drawableStart="@drawable/svg_person_black"
+        android:ems="10"
+        android:fontFamily="@font/roboto"
+        android:hint="@string/Username_suggestion_string"
+        android:inputType="textPersonName"
+        android:padding="5dp"
+        android:textColorHint="@color/colorPrimaryDark"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleBackgroundColor"
+        app:layout_constraintVertical_bias="0.15" />
+
+
+    <EditText
+        android:padding="5dp"
+        android:id="@+id/loginPasswordTextField"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/dsg_textview_rounded_borded"
+        android:drawableStart="@drawable/svg_lock_black"
+        android:textColorHint="@color/colorPrimaryDark"
+        android:textColor="@color/colorPrimaryDark"
+        android:ems="10"
+        android:fontFamily="@font/roboto"
+        android:hint="@string/Password_hint_string"
+        android:inputType="textPassword"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginUsernameTextField"
+        app:layout_constraintVertical_bias="0.05" />
+
+    <Button
+        android:id="@+id/logInButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/roboto"
+        android:background="@drawable/dsg_textview_rounded_fill"
+        android:textColor="@color/white"
+        android:text="@string/Log_in_string"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginPasswordTextField"
+        app:layout_constraintVertical_bias="0.20999998" />
+
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/roboto"
+        android:background="@drawable/dsg_textview_rounded_border"
+        android:textColor="@color/colorPrimary"
+        android:text="@string/Register_button_string"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/logInButton"
+        app:layout_constraintVertical_bias="0.05" />
+</androidx.constraintlayout.widget.ConstraintLayout>
