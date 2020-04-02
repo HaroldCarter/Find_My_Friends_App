@@ -7,10 +7,57 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
-    <string name="menu_home">Home</string>
+    <string name="menu_home">Map Overview</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="menu_tools">Tools</string>
     <string name="menu_share">Share</string>
     <string name="menu_send">Send</string>
+
+
+    <!-- Add  Group String resources -->
+    <string name="Profile_photo_content_descriptionAG">a profile photo of yourself</string>
+    <string name="Add_title_suggestionAG">Add a title</string>
+    <string name="date_prompt_AG">Date</string>
+    <string name="time_prompt_AG">Time</string>
+    <string name="addLocationTextAG">Set location</string>
+    <string name="createGroupTextAG">Create group</string>
+    <string name="dataAndTimeStringAG">Date &amp; Time</string>
+    <string name="locationStringAG">Location</string>
+    <string name="desc_titleAG">Description</string>
+    <string name="desc_suggestionAG">Enter the description of the event here</string>
+
+
+    <!--Nav Draw String resources-->
+    <string name="menu_current_groups">CURRENT GROUPS</string>
+    <string name="menu_my_groups">MY GROUPS</string>
+    <string name="menu_settings">SETTINGS</string>
+    <string name="menu_search">SEARCH</string>
+    <string name="menu_group_requests">GROUP REQUESTS</string>
+    <string name="menu_map_overview">MAP OVERVIEW</string>
+
+
+    <!-- Login String resources-->
+    <string name="Reg_string_title">Registration Page</string>
+    <string name="Password_String">Password</string>
+    <string name="Username_string">Username</string>
+    <string name="Username_suggestion_string">Username</string>
+    <string name="Password_confirmation_string">Confirm Password</string>
+    <string name="Already_registered_string">Already a Registered user? Click here to log in</string>
+    <string name="Back_string">Back</string>
+    <string name="Log_in_string">Log in</string>
+    <string name="Password_hint_string">Password</string>
+    <string name="Confrim_password_string">Confirm Password</string>
+    <string name="Login_page_string">Find My Friends</string>
+    <string name="Register_button_string">Sign Up</string>
+    <string name="Email_string">Email</string>
+    <string name="Confirm_email_string">Confirm Email</string>
+    <string name="email_suggestion_string">Enter email address here</string>
+    <string name="confirm_email_suggestion_string">Confirm email address</string>
+    <string name="Register_string">Register</string>
+    <string name="authentication_string">Authentication was a success</string>
+    <string name="logout_button_string">Log out?</string>
+    <string name="Profile_photo_content_description">a profile photo of yourself</string>
+
+
 </resources>
