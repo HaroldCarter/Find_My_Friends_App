@@ -1,4 +1,4 @@
-package com.example.find_my_friends.ui.gallery;
+package com.example.find_my_friends.ui.map_overview;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,17 +14,17 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.find_my_friends.R;
 
-public class GalleryFragment extends Fragment {
+public class MapOverviewFragment extends Fragment {
 
-    private GalleryViewModel galleryViewModel;
+    private MapOverviewViewModel mapOverviewViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        galleryViewModel =
-                ViewModelProviders.of(this).get(GalleryViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_gallery, container, false);
+        mapOverviewViewModel =
+                ViewModelProviders.of(this).get(MapOverviewViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_map_overview, container, false);
         final TextView textView = root.findViewById(R.id.text_gallery);
-        galleryViewModel.getText().observe(this, new Observer<String>() {
+        mapOverviewViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 textView.setText(s);
