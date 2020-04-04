@@ -52,13 +52,6 @@ public class MapOverviewFragment extends Fragment {
         //check the state of the mode of transport so the UI can be updated to match the instanced data (REAL TIME DATABASE REQUIRED HERE)
         //each page that uses the REAL time database will required a DAO/Viewmodel, so that the activity is not clouding this document.
 
-        final TextView textView = root.findViewById(R.id.text_gallery);
-        mapOverviewViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
 
 
         FloatingActionButton addGroupPhotoFAB = (FloatingActionButton) root.findViewById(R.id.add_group_fab_map_overview);

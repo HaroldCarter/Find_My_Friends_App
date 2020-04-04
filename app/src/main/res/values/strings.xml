@@ -60,6 +60,7 @@
     <string name="logout_button_string">Log out?</string>
     <string name="Profile_photo_content_description">a profile photo of yourself</string>
     <string name="title_activity_maps">Map</string>
+    <string name="map_overview_title">Map Overview</string>
 
 
 </resources>
