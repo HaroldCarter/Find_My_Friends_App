@@ -22,47 +22,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
-            android:layout_height="220dp"
-            android:layout_gravity="bottom|start"
-            android:background="@drawable/dsg_textview_rounded_fill">
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/mode_of_transport_fab_map_overview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/fab_margin"
-                android:layout_marginStart="36dp"
-                android:layout_marginBottom="24dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:srcCompat="@drawable/svg_walk_icon_white" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/floatingActionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                app:layout_constraintBottom_toTopOf="@+id/mode_of_transport_fab_map_overview"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:srcCompat="@drawable/svg_car_white" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/floatingActionButton2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                app:layout_constraintBottom_toTopOf="@+id/floatingActionButton"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:srcCompat="@drawable/svg_bike_white" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/search_group_fab_map_overview"
             android:layout_width="wrap_content"
@@ -95,6 +54,48 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             app:srcCompat="@drawable/svg_add_white"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/mode_of_transport_fab_map_overview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_gravity="bottom|start"
+            app:srcCompat="@drawable/svg_walk_icon_white" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/floating_action_menu_map_overview"
+            android:layout_width="80dp"
+            android:layout_height="220dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/dsg_textview_rounded_fill">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/action_menu_FAB1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="75dp"
+                android:clickable="true"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:srcCompat="@drawable/svg_bike_white" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/action_menu_FAB2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:clickable="true"
+                android:visibility="visible"
+                app:layout_constraintBottom_toTopOf="@+id/action_menu_FAB1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:srcCompat="@drawable/svg_car_white" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     </FrameLayout>

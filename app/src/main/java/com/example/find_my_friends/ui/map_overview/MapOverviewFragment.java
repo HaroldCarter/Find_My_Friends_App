@@ -3,7 +3,6 @@ package com.example.find_my_friends.ui.map_overview;
 import android.content.Intent;
 
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +10,8 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
@@ -29,12 +28,29 @@ public class MapOverviewFragment extends Fragment {
 
     private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
+    private boolean modeTransportMenuVisibility = false;
+    private int modeTransportState = 0; //0 walking, 1 driving, 2 biking.
+    private ConstraintLayout floatingMenuBackground;
+    private FloatingActionButton modeTransportFAB;
+    private FloatingActionButton actionMenuFAB1;
+    private FloatingActionButton actionMenuFAB2;
+    private View root;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         mapOverviewViewModel =
                 ViewModelProviders.of(this).get(MapOverviewViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_map_overview, container, false);
+        root = inflater.inflate(R.layout.fragment_map_overview, container, false);
+        floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
+        actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
+        actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
+
+        //set to hide for the default and then override this later once data has been checked
+        hideMenu();
+
+        //check the state of vis reloaded from the bundle data (so state can be restored)
+        //check the state of the mode of transport so the UI can be updated to match the instanced data (REAL TIME DATABASE REQUIRED HERE)
+        //each page that uses the REAL time database will required a DAO/Viewmodel, so that the activity is not clouding this document.
 
         final TextView textView = root.findViewById(R.id.text_gallery);
         mapOverviewViewModel.getText().observe(this, new Observer<String>() {
@@ -67,15 +83,16 @@ public class MapOverviewFragment extends Fragment {
         });
 
 
+
         final FloatingActionButton gpsToggleFAB = (FloatingActionButton) root.findViewById(R.id.location_toggle_map_overview);
         gpsToggleFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
-                if(gpsToggle){
+                if (gpsToggle) {
                     gpsToggleFAB.setImageAlpha(50);
                     gpsToggle = false;
-                }else{
+                } else {
                     gpsToggleFAB.setImageAlpha(255);
                     gpsToggle = true;
                 }
@@ -83,6 +100,115 @@ public class MapOverviewFragment extends Fragment {
             }
         });
 
+        modeTransportFAB = (FloatingActionButton) root.findViewById(R.id.mode_of_transport_fab_map_overview);
+        handleModeTransportSelection();
+        checkStateOfTransport();
         return root;
+    }
+
+
+    private void handleModeTransportSelection() {
+        modeTransportFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
+                if (modeTransportMenuVisibility) {
+                    hideMenu();
+                } else {
+                    showMenu();
+                }
+
+            }
+        });
+
+    }
+
+    private void checkStateOfTransport() {
+        actionMenuFAB1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switch (modeTransportState) {
+                    case 1:
+                        //car selected previously
+                        modeTransportState = 0;
+                        break;
+                    case 2:
+                        //bike selected previously
+                        modeTransportState = 0;
+                        break;
+                    default:
+                        //walking selected previously
+                        modeTransportState = 2;
+                        break;
+
+                }
+                updateMenu();
+            }
+        });
+        actionMenuFAB2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switch (modeTransportState) {
+                    case 1:
+                        //car selected previously
+                        modeTransportState = 2;
+                        break;
+                    case 2:
+                        //bike selected previously
+                        modeTransportState = 1;
+                        break;
+                    default:
+                        //walking selected previously
+                        modeTransportState = 1;
+                        break;
+
+                }
+                updateMenu();
+            }
+        });
+    }
+
+    private void updateMenu() {
+        if (getActivity() != null) {
+            switch (modeTransportState) {
+                case 1:
+                    //car selected
+                    modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
+                    actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
+                    actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
+                    break;
+                case 2:
+                    //bike selected
+                    modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
+                    actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
+                    actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
+                    break;
+                default:
+                    //walking selected
+                    modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
+                    actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
+                    actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
+                    break;
+
+            }
+            hideMenu();
+        } else {
+            Snackbar.make(root, "Main activity has terminated, app will crash.", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
+    }
+
+    private void hideMenu() {
+        actionMenuFAB1.hide();
+        actionMenuFAB2.hide();
+        floatingMenuBackground.setVisibility(View.INVISIBLE);
+        modeTransportMenuVisibility = false;
+    }
+
+    private void showMenu() {
+        actionMenuFAB1.show();
+        actionMenuFAB2.show();
+        floatingMenuBackground.setVisibility(View.VISIBLE);
+        modeTransportMenuVisibility = true;
     }
 }

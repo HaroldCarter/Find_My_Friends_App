@@ -5,29 +5,25 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/nav_map_overview"
             android:icon="@drawable/svg_map_white"
             android:title="@string/menu_map_overview" />
         <item
-            android:id="@+id/nav_home"
+            android:id="@+id/nav_current_groups"
             android:icon="@drawable/svg_location_white"
             android:title="@string/menu_current_groups" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_my_groups"
             android:icon="@drawable/svg_location_white"
             android:title="@string/menu_my_groups" />
         <item
-            android:id="@+id/nav_tools"
-            android:icon="@drawable/svg_settings_white"
-            android:title="@string/menu_settings" />
-        <item
-            android:id="@+id/nav_share"
-            android:icon="@drawable/svg_person_black"
+            android:id="@+id/nav_group_requests"
+            android:icon="@drawable/svg_person_white"
             android:title="@string/menu_group_requests" />
         <item
-            android:id="@+id/nav_send"
-            android:icon="@drawable/ic_menu_send"
-            android:title="@string/menu_send" />
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/svg_settings_white"
+            android:title="@string/menu_settings" />
     </group>
 
 

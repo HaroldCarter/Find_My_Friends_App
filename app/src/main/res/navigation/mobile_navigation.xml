@@ -3,42 +3,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_gallery">
+    app:startDestination="@+id/nav_map_overview">
 
     <fragment
-        android:id="@+id/nav_gallery"
+        android:id="@+id/nav_map_overview"
         android:name="com.example.find_my_friends.ui.map_overview.MapOverviewFragment"
-        android:label="@string/menu_gallery"
+        android:label="@string/menu_map_overview"
         tools:layout="@layout/fragment_map_overview" />
 
     <fragment
-        android:id="@+id/nav_home"
+        android:id="@+id/nav_current_groups"
         android:name="com.example.find_my_friends.ui.home.HomeFragment"
-        android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        android:label="@string/menu_current_groups"
+        tools:layout="@layout/fragment_current_groups" />
 
 
     <fragment
-        android:id="@+id/nav_slideshow"
+        android:id="@+id/nav_my_groups"
         android:name="com.example.find_my_friends.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:label="@string/menu_my_groups"
+        tools:layout="@layout/fragment_my_groups" />
 
     <fragment
-        android:id="@+id/nav_tools"
-        android:name="com.example.find_my_friends.ui.tools.ToolsFragment"
-        android:label="@string/menu_tools"
-        tools:layout="@layout/fragment_tools" />
-
-    <fragment
-        android:id="@+id/nav_share"
+        android:id="@+id/nav_group_requests"
         android:name="com.example.find_my_friends.ui.share.ShareFragment"
-        android:label="@string/menu_share"
-        tools:layout="@layout/fragment_share" />
+        android:label="@string/menu_group_requests"
+        tools:layout="@layout/fragment_group_requests" />
 
     <fragment
-        android:id="@+id/nav_send"
-        android:name="com.example.find_my_friends.ui.send.SendFragment"
-        android:label="@string/menu_send"
-        tools:layout="@layout/fragment_send" />
+        android:id="@+id/nav_settings"
+        android:name="com.example.find_my_friends.ui.tools.ToolsFragment"
+        android:label="@string/menu_settings"
+        tools:layout="@layout/fragment_settings" />
+
+
 </navigation>
