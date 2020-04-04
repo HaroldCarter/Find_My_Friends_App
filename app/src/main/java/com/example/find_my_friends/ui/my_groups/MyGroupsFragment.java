@@ -1,4 +1,4 @@
-package com.example.find_my_friends.ui.slideshow;
+package com.example.find_my_friends.ui.my_groups;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,17 +14,17 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.find_my_friends.R;
 
-public class SlideshowFragment extends Fragment {
+public class MyGroupsFragment extends Fragment {
 
-    private SlideshowViewModel slideshowViewModel;
+    private MyGroupsViewModel myGroupsViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        slideshowViewModel =
-                ViewModelProviders.of(this).get(SlideshowViewModel.class);
+        myGroupsViewModel =
+                ViewModelProviders.of(this).get(MyGroupsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_my_groups, container, false);
         final TextView textView = root.findViewById(R.id.text_slideshow);
-        slideshowViewModel.getText().observe(this, new Observer<String>() {
+        myGroupsViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 textView.setText(s);

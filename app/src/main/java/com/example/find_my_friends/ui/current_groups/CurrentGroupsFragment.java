@@ -1,4 +1,4 @@
-package com.example.find_my_friends.ui.share;
+package com.example.find_my_friends.ui.current_groups;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,17 +14,17 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.find_my_friends.R;
 
-public class ShareFragment extends Fragment {
+public class CurrentGroupsFragment extends Fragment {
 
-    private ShareViewModel shareViewModel;
+    private CurrentGroupsViewModel currentGroupsViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        shareViewModel =
-                ViewModelProviders.of(this).get(ShareViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_group_requests, container, false);
-        final TextView textView = root.findViewById(R.id.text_share);
-        shareViewModel.getText().observe(this, new Observer<String>() {
+        currentGroupsViewModel =
+                ViewModelProviders.of(this).get(CurrentGroupsViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_current_groups, container, false);
+        final TextView textView = root.findViewById(R.id.text_home);
+        currentGroupsViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 textView.setText(s);
