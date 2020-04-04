@@ -27,7 +27,7 @@
         >
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/group_creator_profile_photo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/dsg_circular_shape"
