@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".AddGroupActivity"
     tools:showIn="@layout/activity_add_group">
@@ -78,21 +78,19 @@
             app:layout_constraintBottom_toTopOf="@+id/addLocationTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/dateAndTimeText"
-            >
+            app:layout_constraintTop_toBottomOf="@+id/dateAndTimeText">
 
 
             <Spinner
                 android:id="@+id/dateSpinnerAG"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_marginEnd="50dp"
                 android:layout_weight="1"
                 android:fontFamily="@font/roboto"
                 android:prompt="@string/date_prompt_AG"
                 android:textColor="@color/colorPrimary"
-                android:textSize="20sp"
-                android:layout_marginEnd="50dp"
-                />
+                android:textSize="20sp" />
 
             <Spinner
                 android:id="@+id/timeSpinnerAG"
@@ -146,8 +144,7 @@
                 android:fontFamily="@font/roboto"
                 android:text="@string/addLocationTextAG"
                 android:textColor="@color/colorPrimary"
-                android:textSize="24sp"
-                />
+                android:textSize="24sp" />
 
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -181,6 +178,7 @@
             android:background="@drawable/dsg_square_entry_box_border"
             android:ems="10"
             android:fontFamily="@font/roboto"
+            android:gravity="start"
             android:hint="@string/desc_suggestionAG"
             android:inputType="textPersonName"
             android:padding="10dp"
@@ -189,7 +187,6 @@
             android:textColor="@color/colorPrimaryDark"
             android:textColorHint="@color/colorPrimaryDark"
             android:textSize="20sp"
-            android:gravity="start"
             app:layout_constraintBottom_toTopOf="@+id/addNewGroupButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -214,8 +211,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/DescriptionOfGroupAG" />
-
-
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

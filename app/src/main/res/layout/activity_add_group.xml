@@ -31,6 +31,7 @@
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
+
             <ImageView
                 android:id="@+id/GroupPhotoAG"
                 android:layout_width="match_parent"
