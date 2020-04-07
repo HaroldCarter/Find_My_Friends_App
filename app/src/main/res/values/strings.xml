@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Find My Friends</string>
+    <string name="google_maps_key">AIzaSyAnq3ElD0-CmqI5K8-lX3n1seE9H02ZXxk</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
