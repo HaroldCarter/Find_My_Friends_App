@@ -20,11 +20,21 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.find_my_friends.AddGroupActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.android.material.snackbar.Snackbar;
 
-public class MapOverviewFragment extends Fragment {
+import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
+
+public class MapOverviewFragment extends Fragment implements OnMapReadyCallback {
 
     private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
@@ -35,6 +45,8 @@ public class MapOverviewFragment extends Fragment {
     private FloatingActionButton actionMenuFAB1;
     private FloatingActionButton actionMenuFAB2;
     private View root;
+    private MapView mapView;
+    private LatLng currentLocation = new LatLng(0, 0);
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -44,14 +56,21 @@ public class MapOverviewFragment extends Fragment {
         floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
         actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
         actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
+        mapView = root.findViewById(R.id.map_view_overview);
 
+        Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        mapView.onCreate(mapViewBundle);
+
+        mapView.getMapAsync(this);
         //set to hide for the default and then override this later once data has been checked
         hideMenu();
 
         //check the state of vis reloaded from the bundle data (so state can be restored)
         //check the state of the mode of transport so the UI can be updated to match the instanced data (REAL TIME DATABASE REQUIRED HERE)
         //each page that uses the REAL time database will required a DAO/Viewmodel, so that the activity is not clouding this document.
-
 
 
         FloatingActionButton addGroupPhotoFAB = (FloatingActionButton) root.findViewById(R.id.add_group_fab_map_overview);
@@ -76,7 +95,6 @@ public class MapOverviewFragment extends Fragment {
         });
 
 
-
         final FloatingActionButton gpsToggleFAB = (FloatingActionButton) root.findViewById(R.id.location_toggle_map_overview);
         gpsToggleFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,9 +114,67 @@ public class MapOverviewFragment extends Fragment {
         modeTransportFAB = (FloatingActionButton) root.findViewById(R.id.mode_of_transport_fab_map_overview);
         handleModeTransportSelection();
         checkStateOfTransport();
+
         return root;
     }
 
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        googleMap.addMarker(new MarkerOptions().position(currentLocation).title("marker"));
+
+        //setting up the style of the map
+        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
+        googleMap.setMapStyle(style);
+    }
+
+    @Override
+    public void onStart() {
+        mapView.onStart();
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        mapView.onResume();
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        mapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        mapView.onStop();
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        mapView.onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+        if (mapViewBundle == null) {
+            mapViewBundle = new Bundle();
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
+        }
+        mapView.onSaveInstanceState(mapViewBundle);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
 
     private void handleModeTransportSelection() {
         modeTransportFAB.setOnClickListener(new View.OnClickListener() {

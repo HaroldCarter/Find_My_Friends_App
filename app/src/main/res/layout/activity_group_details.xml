@@ -86,6 +86,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="75dp"
                     android:background="@drawable/dsg_square_entry_box"
+                    android:padding="5dp"
                     android:fontFamily="@font/roboto"
                     android:text="@string/group_details_request_join"
                     android:textColor="@color/white"
