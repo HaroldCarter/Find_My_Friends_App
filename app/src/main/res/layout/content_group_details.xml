@@ -8,37 +8,27 @@
     android:layout_height="wrap_content"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".GroupDetailsActivity"
+    android:background="@color/LightGray"
     tools:showIn="@layout/activity_group_details">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/LightGray"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         >
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:contentDescription="@string/group_details_group_photo_desc"
-            android:scaleType="centerCrop"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/default_image" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/group_details_content_table"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="30dp"
-            android:layout_marginTop="180dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="30dp"
+            android:elevation="6dp"
             android:background="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/imageView">
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/group_details_time_date_title"

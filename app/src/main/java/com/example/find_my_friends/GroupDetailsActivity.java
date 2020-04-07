@@ -5,6 +5,7 @@ import android.os.Bundle;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -17,6 +18,19 @@ public class GroupDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
 
+        Toolbar toolbar = findViewById(R.id.toolbarGD);
+        setSupportActionBar(toolbar);
+        ActionBar supportBar = getSupportActionBar();
+
+        if(supportBar != null) {
+            getSupportActionBar().setTitle("");
+            getSupportActionBar().setIcon(R.drawable.svg_back_arrow_primary);
+        }
+
+
+
     }
+
+
 
 }

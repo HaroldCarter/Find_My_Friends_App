@@ -29,18 +29,21 @@
             android:value="@string/google_maps_key" />
         -->
         <activity android:name=".LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name=".RegisterActivity"></activity>
         <activity android:name=".AddGroupActivity"></activity>
-        <activity android:name=".GroupDetailsActivity"></activity>
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"></activity>
+
+        <activity android:name=".GroupDetailsActivity" android:parentActivityName=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <meta-data
             android:name="preloaded_fonts"
