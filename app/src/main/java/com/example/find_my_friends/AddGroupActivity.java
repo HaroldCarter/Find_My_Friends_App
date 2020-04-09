@@ -1,15 +1,35 @@
 package com.example.find_my_friends;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.DatePicker;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.TimePicker;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.DialogFragment;
 
+import com.example.find_my_friends.util.DatePickerFragment;
+import com.example.find_my_friends.util.TimePickerFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-public class AddGroupActivity extends AppCompatActivity {
+import java.text.DateFormat;
+
+import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
+import static com.example.find_my_friends.util.Constants.TIMEPICKER_TAG_KEY;
+
+public class AddGroupActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+    private final Calendar groupCalender = Calendar.getInstance();
+    private TextView dateSpinnerAG;
+    private TextView timeSpinnerAG;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +48,28 @@ public class AddGroupActivity extends AppCompatActivity {
 
         FloatingActionButton addBackFAB = (FloatingActionButton) findViewById(R.id.AddGroupBackFBAG);
 
+        dateSpinnerAG = (TextView) findViewById(R.id.dateSpinnerAG);
+        timeSpinnerAG = (TextView) findViewById(R.id.timeSpinnerAG);
+
+
+
+        dateSpinnerAG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment datePicker = new DatePickerFragment();
+                datePicker.show(getSupportFragmentManager(),DATEPICKER_TAG_KEY);
+            }
+        });
+
+
+        timeSpinnerAG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment timePicker = new TimePickerFragment();
+                timePicker.show(getSupportFragmentManager(), TIMEPICKER_TAG_KEY);
+            }
+        });
+
         addBackFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -37,5 +79,26 @@ public class AddGroupActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+        groupCalender.set(Calendar.YEAR, year);
+        groupCalender.set(Calendar.MONTH, month);
+        groupCalender.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        String setDate = DateFormat.getDateInstance().format(groupCalender.getTime());
+        dateSpinnerAG.setText(setDate);
+
+
+
+    }
+
+    @Override
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        groupCalender.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        groupCalender.set(Calendar.MINUTE, minute);
+        String setTime = hourOfDay + ":" + minute;
+        timeSpinnerAG.setText(setTime);
     }
 }

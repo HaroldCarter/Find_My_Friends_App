@@ -122,7 +122,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         googleMap.addMarker(new MarkerOptions().position(currentLocation).title("marker"));
-
+        googleMap.getUiSettings().setCompassEnabled(false);
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
         //setting up the style of the map
         MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
         googleMap.setMapStyle(style);
