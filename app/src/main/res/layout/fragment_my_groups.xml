@@ -4,6 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <include layout="@layout/menu_bar" android:id="@+id/my_groups_menubar"/>
+
     <TextView
         android:id="@+id/text_slideshow"
         android:layout_width="match_parent"
