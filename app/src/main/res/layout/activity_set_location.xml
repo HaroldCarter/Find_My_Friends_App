@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SetLocationActivity">
+
+    <Button
+        android:id="@+id/setLocationButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="80dp"
+        android:fontFamily="@font/roboto"
+        android:background="@drawable/dsg_textview_rounded_fill"
+        android:textColor="@color/white"
+        android:text="@string/set_location_button_Text"
+        android:textSize="20sp"
+        android:layout_gravity="bottom|center"
+        app:layout_constraintVertical_bias="0.05"
+        android:layout_marginBottom="5dp"
+        />
+
+    <ImageView
+        android:id="@+id/set_location_dropped_pin"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="25dp"
+        android:layout_gravity="center"
+        android:background="@drawable/svg_location_white"
+        android:contentDescription="@string/nav_header_desc"
+        />
+
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/set_location_back_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@drawable/svg_back_arrow_white"
+        />
+
+
+
+</fragment>

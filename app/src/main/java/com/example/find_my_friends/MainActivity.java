@@ -4,13 +4,19 @@ import android.os.Bundle;
 
 import android.view.View;
 
+import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -18,17 +24,36 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.net.Uri;
+
+
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
     private Button logoutButton;
+    private FirebaseAuth firebaseAuth;
+    public FirebaseUser firebaseUser;
+    private ImageView profilePhoto;
+    private TextView usernameTextview;
+    private TextView emailTextview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        firebaseUser = firebaseAuth.getCurrentUser();
+
+
+
+
 
         drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -41,11 +66,40 @@ public class MainActivity extends AppCompatActivity {
                 .setDrawerLayout(drawer)
                 .build();
 
+
+
         handleLogoutBTN();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         //no longer required as no app bar is in use.
         //NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+
+
+
+        profilePhoto =  navigationView.getHeaderView(0).findViewById(R.id.nav_draw_profile_photo);
+        usernameTextview = navigationView.getHeaderView(0).findViewById(R.id.nav_draw_user_name);
+        emailTextview = navigationView.getHeaderView(0).findViewById(R.id.nav_draw_user_email);
+
+        if(firebaseUser != null) {
+            //usernameTextview.setText(firebaseUser.getDisplayName());
+            //can't find the resource in the navigation header? then work on getting the image, setting the image in the reg, amongst their username.
+            String temp = firebaseUser.getEmail();
+            emailTextview.setText(temp);
+            usernameTextview.setText(firebaseUser.getDisplayName());
+            //now we need to update the profile photo somehow, and update this every time the database changes. and further research into real time databases
+            FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+            //StorageReference  storageReference = firebaseStorage.getReference().child(firebaseUser.getPhotoUrl());
+            //Picasso.get().load("http://i.imgur.com/DvpvklR.png").into(imageView);
+            Uri uri = firebaseUser.getPhotoUrl();
+            if(firebaseUser.getPhotoUrl()!= null) {
+                String string = firebaseUser.getPhotoUrl().toString();
+                Glide.with(this).load(firebaseUser.getPhotoUrl()).into(profilePhoto);
+            }
+
+
+            //profilePhoto
+        }
     }
 
     private void handleLogoutBTN(){
@@ -53,7 +107,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //log out here (remove authentication of the user)
-
+                //remove authentication.
+                firebaseAuth.signOut();
                 finish();
             }
         });

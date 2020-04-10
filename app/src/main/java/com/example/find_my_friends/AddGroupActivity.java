@@ -2,11 +2,13 @@ package com.example.find_my_friends;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -30,7 +32,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private final Calendar groupCalender = Calendar.getInstance();
     private TextView dateSpinnerAG;
     private TextView timeSpinnerAG;
-
+    private Button addLocationButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +53,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         dateSpinnerAG = (TextView) findViewById(R.id.dateSpinnerAG);
         timeSpinnerAG = (TextView) findViewById(R.id.timeSpinnerAG);
 
-
+        addLocationButton = (Button) findViewById(R.id.addLocationAG);
 
         dateSpinnerAG.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +78,13 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
                 //maybe save the group information ?
                 finish();
+            }
+        });
+
+        addLocationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), SetLocationActivity.class));
             }
         });
 

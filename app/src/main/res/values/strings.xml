@@ -74,6 +74,9 @@
     <string name="group_details_location_text_field_default">332 Seal Street, Liverpool</string>
     <string name="group_details_desc_default">Pre-drinks Bring your own stuff, dont set fire to the cat and dont throw up on the couch again. \n    no human Jenga! we dont want a repeat of last time</string>
     <string name="group_details_desc_title">Description</string>
+    <string name="title_activity_set_location">Map</string>
 
+
+    <string name="set_location_button_Text">Set Location</string>
 
 </resources>
