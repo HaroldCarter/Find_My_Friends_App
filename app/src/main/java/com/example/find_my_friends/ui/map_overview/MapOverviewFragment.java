@@ -1,8 +1,13 @@
 package com.example.find_my_friends.ui.map_overview;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,16 +22,24 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.find_my_friends.AddGroupActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
+import com.example.find_my_friends.util.PermissionUtils;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 
 public class MapOverviewFragment extends Fragment implements OnMapReadyCallback {
@@ -41,10 +54,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     private FloatingActionButton actionMenuFAB2;
     private View root;
     private MapView mapView;
+    private GoogleMap mMap;
     private LatLng currentLocation = new LatLng(0, 0);
+    private Location mCurrentLocation;
+    private FusedLocationProviderClient fusedLocationClient;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
         mapOverviewViewModel =
                 ViewModelProviders.of(this).get(MapOverviewViewModel.class);
         root = inflater.inflate(R.layout.fragment_map_overview, container, false);
@@ -59,15 +77,42 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
         }
         mapView.onCreate(mapViewBundle);
 
-        mapView.getMapAsync(this);
+
+
         //set to hide for the default and then override this later once data has been checked
         hideMenu();
+        //handle checking if we have approved location services.
+        if(PermissionUtils.checkLocationPermission(getActivity())){
+            fetchLastLocation();
+        }else{
+            PermissionUtils.requestLocationPermission(getActivity());
+        }
 
-        //check the state of vis reloaded from the bundle data (so state can be restored)
-        //check the state of the mode of transport so the UI can be updated to match the instanced data (REAL TIME DATABASE REQUIRED HERE)
-        //each page that uses the REAL time database will required a DAO/Viewmodel, so that the activity is not clouding this document.
+
+        //createLocationRequest();
+        handleNavDrawFAB();
+        handleGPSToggleFAB();
+        handleAddGroupFAB();
+
+        modeTransportFAB = (FloatingActionButton) root.findViewById(R.id.mode_of_transport_fab_map_overview);
+        handleModeTransportSelection();
+        checkStateOfTransport();
+
+        return root;
+    }
+
+    private void handleNavDrawFAB() {
+        FloatingActionButton navigationDrawFAB = (FloatingActionButton) root.findViewById(R.id.nav_draw_fab_map_overview);
+        navigationDrawFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity) getActivity()).openDrawer();
+            }
+        });
+    }
 
 
+    private void handleAddGroupFAB() {
         FloatingActionButton addGroupPhotoFAB = (FloatingActionButton) root.findViewById(R.id.add_group_fab_map_overview);
         addGroupPhotoFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,19 +122,13 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
                 } else {
                     Snackbar.make(view, "Main activity has terminated, app will crash.", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
+
                 }
             }
         });
+    }
 
-        FloatingActionButton navigationDrawFAB = (FloatingActionButton) root.findViewById(R.id.nav_draw_fab_map_overview);
-        navigationDrawFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MainActivity) getActivity()).openDrawer();
-            }
-        });
-
-
+    private void handleGPSToggleFAB() {
         final FloatingActionButton gpsToggleFAB = (FloatingActionButton) root.findViewById(R.id.location_toggle_map_overview);
         gpsToggleFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,23 +145,81 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
             }
         });
 
-        modeTransportFAB = (FloatingActionButton) root.findViewById(R.id.mode_of_transport_fab_map_overview);
-        handleModeTransportSelection();
-        checkStateOfTransport();
-
-        return root;
     }
 
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        googleMap.addMarker(new MarkerOptions().position(currentLocation).title("marker"));
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+            return;
+        }
+        if (!PermissionUtils.checkLocationPermission(getActivity())) {
+            //this permission is critical to the application, not having it will crash search functions and cause alot of issues, therefore forcing the user to accept it is the only option.
+            PermissionUtils.requestLocationPermission(getActivity());
+        } else {
+            fetchLastLocation();
+        }
+    }
+
+
+    private void fetchLastLocation(){
+        if(!PermissionUtils.checkLocationPermission(getActivity())){
+            return;
+        }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    currentLocation = new LatLng(location.getLatitude(),location.getLongitude());
+                    mapView.getMapAsync(MapOverviewFragment.this);
+                }
+            }
+        });
+    }
+
+    protected void createLocationRequest() {
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    /*
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (requestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    private void startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(locationRequest,
+                locationCallback,
+                Looper.getMainLooper());
+    }
+     */
+
+
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        mMap = googleMap;
+        googleMap.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
         googleMap.getUiSettings().setCompassEnabled(false);
         googleMap.getUiSettings().setZoomControlsEnabled(false);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(currentLocation));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 5));
         //setting up the style of the map
         MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
         googleMap.setMapStyle(style);
+
+
+
+
+
+
     }
 
     @Override

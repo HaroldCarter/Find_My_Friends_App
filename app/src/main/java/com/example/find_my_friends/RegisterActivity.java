@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -94,29 +95,18 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void configureAddPhotoButton() {
+        final Activity activity = this;
         FloatingActionButton addPhotoBTN = (FloatingActionButton) findViewById(R.id.addUsersPhoto);
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
                     //if running newer than marsh then permissions need to be requested, currently set to minimum API 28 M is 23 but liable to change.
-                    if (ContextCompat.checkSelfPermission(contextOfApp, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                    PermissionUtils.requestReadExternalPermission(activity);
 
-                        if (ActivityCompat.shouldShowRequestPermissionRationale(contextOfApp,
-                                Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                            Toast.makeText(RegisterActivity.this, "Permission is required to load profile photos",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-
-                        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_GALLERY_ACCESS);
-                    } else {
-                        //permission was already granted, therefore just launch the intent.
+                    if(PermissionUtils.checkReadExternalPermission(activity)) {
                         loadPhoto();
                     }
-                } else {
-                    //permission is not required because the application is over Marshmellow (when premission granting was introduced).
-                    loadPhoto();
-                }
 
             }
         });
@@ -128,13 +118,11 @@ public class RegisterActivity extends AppCompatActivity {
         //switch case statement may be needed to be expanded in future, bad practice to do this with if.
         switch (requestCode) {
             case REQUEST_GALLERY_ACCESS: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(RegisterActivity.this, "Permission to storage granted",
                             Toast.LENGTH_SHORT).show();
                     loadPhoto();
                 } else {
-                    //permission denied, cancel the functionality of loading the image.
                     Toast.makeText(RegisterActivity.this, "Permission was denied",
                             Toast.LENGTH_SHORT).show();
                 }
@@ -156,7 +144,6 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "error when decoding image, use JPEG or PNG",
                             Toast.LENGTH_LONG).show();
                     profilePhotoBitmap = null;
-
                 }
             } else {
                 Toast.makeText(RegisterActivity.this, "path to image is corrupt, or no path no longer exists",

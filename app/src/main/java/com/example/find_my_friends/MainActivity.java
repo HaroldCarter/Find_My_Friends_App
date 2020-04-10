@@ -102,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
     private void handleLogoutBTN(){
         logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
