@@ -111,6 +111,8 @@ public class PermissionUtils {
         return false;
     }
 
+    /* example code not to be used as depreciated however useful if issues occur
+
     public static boolean shouldAskForPermission(Activity activity, String permission) {
         if (useRunTimePermissions()) {
             return !hasPermission(activity, permission) &&
@@ -141,5 +143,7 @@ public class PermissionUtils {
                 .putBoolean(permission, true)
                 .apply();
     }
+
+     */
 }
 

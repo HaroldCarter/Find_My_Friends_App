@@ -8,5 +8,7 @@ public class Constants {
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 123;
     public static final int REQUEST_GALLERY_ACCESS = 1000;
     public int GPS_UPDATE_RATE = 10000;
+    public static final int RESULT_LOADED_IMAGE = 1;
+    public static final int RESULT_LOCATION_REQUEST = 2;
 
 }

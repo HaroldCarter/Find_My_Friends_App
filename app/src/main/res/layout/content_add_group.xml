@@ -30,7 +30,7 @@
 
 
             <EditText
-                android:id="@+id/UsernameTextFieldReg"
+                android:id="@+id/TitleTextViewAG"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_centerHorizontal="true"
@@ -150,7 +150,9 @@
                 android:fontFamily="@font/roboto"
                 android:text="@string/addLocationTextAG"
                 android:textColor="@color/colorPrimary"
-                android:textSize="24sp" />
+                android:textSize="18sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
 
 
         </androidx.appcompat.widget.LinearLayoutCompat>

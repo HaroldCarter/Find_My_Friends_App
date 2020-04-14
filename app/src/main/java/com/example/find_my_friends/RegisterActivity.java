@@ -38,6 +38,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
+import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -62,7 +63,6 @@ public class RegisterActivity extends AppCompatActivity {
     ImageView rProfilePhoto;
 
     ProgressBar rProgressBar;
-    static final int RESULT_LOADED_IMAGE = 1;
     static final String TAG = "Register Activity : ";
     Bitmap profilePhotoBitmap = null;
     Activity contextOfApp;

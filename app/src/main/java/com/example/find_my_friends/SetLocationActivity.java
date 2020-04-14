@@ -3,13 +3,16 @@ package com.example.find_my_friends;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.example.find_my_friends.ui.map_overview.MapOverviewFragment;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -23,14 +26,21 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
+
 import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 
 public class SetLocationActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    final private String TAG = "SetLocationActivity : ";
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private LatLng currentLocation = new LatLng(0,0);
     private FloatingActionButton backBTN;
+    private Button setLocationBTN;
     private SupportMapFragment mapFragment;
     private ImageView droppedPinIMG;
 
@@ -51,16 +61,55 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
 
         droppedPinIMG = findViewById(R.id.set_location_dropped_pin);
         droppedPinIMG.setVisibility(View.INVISIBLE);
+        backBTN = findViewById(R.id.set_location_back_button);
+        setLocationBTN = findViewById(R.id.setLocationButton);
 
 
-        backBTN = (FloatingActionButton)findViewById(R.id.set_location_back_button);
-        backBTN.setOnClickListener(new View.OnClickListener() {
+        handleBackBTN();
+        handleSetLocationBTN();
+
+
+
+    }
+
+    private void handleSetLocationBTN(){
+        setLocationBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent data = new Intent();
+                data.putExtra("Lat",mMap.getCameraPosition().target.latitude);
+                data.putExtra("Lng",mMap.getCameraPosition().target.longitude);
+
+                Geocoder geocoder;
+                List<Address> addresses ;
+                geocoder = new Geocoder(SetLocationActivity.this, Locale.getDefault());
+
+                try {
+                    addresses = geocoder.getFromLocation(mMap.getCameraPosition().target.latitude, mMap.getCameraPosition().target.longitude, 1);
+                }catch(IOException e){
+                    Log.e(TAG, "onClick: Error when trying to get the address, no address provided");
+                    addresses = null;
+                }
+
+
+                Bundle args = new Bundle();
+                args.putSerializable("arrayList",(Serializable)addresses);
+                data.putExtra("BUNDLE", args);
+
+                setResult(RESULT_OK,data);
                 finish();
             }
         });
+    }
 
+    private void handleBackBTN(){
+        backBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setResult(RESULT_CANCELED,null);
+                finish();
+            }
+        });
     }
 
 
