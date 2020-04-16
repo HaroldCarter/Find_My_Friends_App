@@ -177,6 +177,6 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="DistanceTitleSG">Distance</string>
-    <string name="DateTimeSG"><![CDATA[Date &amp; Time]]></string>
+    <string name="DateTimeSG">Date &amp; Time</string>
 
 </resources>

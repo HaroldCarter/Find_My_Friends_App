@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.find_my_friends.AddGroupActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
+import com.example.find_my_friends.SearchGroupsActivity;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
@@ -52,6 +53,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     private FloatingActionButton modeTransportFAB;
     private FloatingActionButton actionMenuFAB1;
     private FloatingActionButton actionMenuFAB2;
+    private FloatingActionButton searchFAB;
     private View root;
     private MapView mapView;
     private GoogleMap mMap;
@@ -69,7 +71,10 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
         floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
         actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
         actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
+        searchFAB = root.findViewById(R.id.search_group_fab_map_overview);
         mapView = root.findViewById(R.id.map_view_overview);
+
+
 
         Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
@@ -93,12 +98,22 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
         handleNavDrawFAB();
         handleGPSToggleFAB();
         handleAddGroupFAB();
+        handleSearchFAB();
 
         modeTransportFAB = (FloatingActionButton) root.findViewById(R.id.mode_of_transport_fab_map_overview);
         handleModeTransportSelection();
         checkStateOfTransport();
 
         return root;
+    }
+
+    private void handleSearchFAB(){
+        searchFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getContext(), SearchGroupsActivity.class));
+            }
+        });
     }
 
     private void handleNavDrawFAB() {

@@ -22,7 +22,6 @@ import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.groupUtil.Group;
-import com.example.find_my_friends.groupUtil.GroupList;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.example.find_my_friends.util.TimePickerFragment;
@@ -33,12 +32,14 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
 import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
@@ -49,7 +50,6 @@ import static com.example.find_my_friends.util.Constants.TIMEPICKER_TAG_KEY;
 //the class badly needs to have the oncreate and one destroy correctly implemented.
 public class AddGroupActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private static String TAG = "AddGroupActivity :";
-    private GroupList groupList;
     private Group groupToAdd;
     private TextView titleTextViewAG;
     private TextView desTextViewAG;
@@ -60,11 +60,13 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private FloatingActionButton addBackFAB;
     private FloatingActionButton addGroupPhotoFAB;
     private ImageView groupPhoto;
+    private boolean uploadStatus = false;
     //private  mCompressor;
 
 
     private FirebaseStorage storageRef;
     private FirebaseUser mUser;
+    private FirebaseFirestore db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +78,9 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
         //mCompressor = new FileCompressor(this);
         groupToAdd = new Group();
-        groupToAdd.groupCreatorUser = mUser;
+        groupToAdd.groupCreatorUserID = mUser.getUid();
+
+        db = FirebaseFirestore.getInstance();
 
         groupPhoto = findViewById(R.id.GroupPhotoAG);
         dateSpinnerAG = findViewById(R.id.dateSpinnerAG);
@@ -132,11 +136,12 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 .addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
-                        Toast.makeText(AddGroupActivity.this, uri.toString(),
+                        Toast.makeText(AddGroupActivity.this, "Photo uploaded",
                                 Toast.LENGTH_LONG).show();
                         Log.d(TAG, uri.toString());
-                        groupToAdd.groupPhotoURI = uri;
+                        groupToAdd.groupPhotoURI = uri.toString();
                         loadGroupPhoto();
+                        uploadStatus = true;
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -252,7 +257,12 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
                 groupToAdd.appendMember(mUser);
 
-                if(groupToAdd.groupPhotoURI == null){
+
+                if(!uploadStatus){
+                    Snackbar.make(addGroupButton, "Please wait for the photo to be uploaded", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+                else if(groupToAdd.groupPhotoURI == null){
                     Snackbar.make(addGroupButton, "Please upload a group Photo", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
@@ -269,7 +279,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 }
                 else{
                     //add the group to the database.
-                    finish();
+                    if(groupToAdd.uploadGroup(db))
+                    {
+                        finish();
+                    }else{
+                        Snackbar.make(addGroupPhotoFAB, "Creation of group failed, check data and try again.", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+
                 }
 
 
@@ -279,6 +296,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     }
 
     private void handleAddGroupPhotoFAB(){
+        uploadStatus = false;
         addGroupPhotoFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -296,18 +314,20 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        groupToAdd.groupCalendar.set(Calendar.YEAR, year);
-        groupToAdd.groupCalendar.set(Calendar.MONTH, month);
-        groupToAdd.groupCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        String setDate = DateFormat.getDateInstance().format(groupToAdd.groupCalendar.getTime());
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        String setDate = DateFormat.getDateInstance().format(calendar.getTime());
+        groupToAdd.groupMeetDate = setDate;
         dateSpinnerAG.setText(setDate);
     }
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        groupToAdd.groupCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-        groupToAdd.groupCalendar.set(Calendar.MINUTE, minute);
         String setTime = hourOfDay + ":" + minute;
+        groupToAdd.groupMeetTime = setTime;
         timeSpinnerAG.setText(setTime);
     }
 }

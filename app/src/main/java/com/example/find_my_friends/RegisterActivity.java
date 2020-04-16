@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -69,6 +71,9 @@ public class RegisterActivity extends AppCompatActivity {
     static final String TAG = "Register Activity : ";
     Bitmap profilePhotoBitmap = null;
     Activity contextOfApp;
+    private Uri photoURI;
+
+    private boolean uploadStatus = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,19 +100,21 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void loadPhoto() {
-        Intent mediaSelectionIntent = new Intent(Intent.ACTION_PICK);
+        Intent mediaSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
         mediaSelectionIntent.setType("image/*");
+        String[] mimeTypes = {"image/jpeg", "image/png"};
+        mediaSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES,mimeTypes);
         startActivityForResult(mediaSelectionIntent, RESULT_LOADED_IMAGE);
     }
 
     private void configureAddPhotoButton() {
-        final Activity activity = this;
+        uploadStatus = false;
 
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    PermissionUtils.requestReadExternalPermission(activity);
-                    if(PermissionUtils.checkReadExternalPermission(activity)) {
+                    PermissionUtils.requestReadExternalPermission(RegisterActivity.this);
+                    if(PermissionUtils.checkReadExternalPermission(RegisterActivity.this)) {
                         loadPhoto();
                     }
 
@@ -136,16 +143,13 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == RESULT_LOADED_IMAGE) {
-            if (data.getData() != null) {
+            if (data.getData() != null && mAuth.getCurrentUser() != null) {
                 ImageDecoder.Source source = ImageDecoder.createSource(this.getContentResolver(), data.getData());
-                try {
-                    profilePhotoBitmap = ImageDecoder.decodeBitmap(source);
-                    rProfilePhoto.setImageBitmap(profilePhotoBitmap);
-                } catch (IOException e) {
-                    Toast.makeText(RegisterActivity.this, "error when decoding image, use JPEG or PNG",
-                            Toast.LENGTH_LONG).show();
-                    profilePhotoBitmap = null;
-                }
+                Uri imageURI = data.getData();
+                String uploadPath = "images/users/userphoto" + mAuth.getCurrentUser().getUid();
+                uploadPhoto(imageURI, uploadPath);
+
+
             } else {
                 Toast.makeText(RegisterActivity.this, "path to image is corrupt, or no path no longer exists",
                         Toast.LENGTH_LONG).show();
@@ -163,56 +167,58 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void uploadImage(Bitmap profileBitmap) {
-        if (mAuth.getCurrentUser() != null) {
-            mStorageRef = FirebaseStorage.getInstance().getReference();
-            //computationally expensive but done on request not looping.
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            profileBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-            mStorageRef = mStorageRef.child("Images")
-                    .child(mAuth.getUid() + ".jpeg");
-            mStorageRef.putBytes(byteArrayOutputStream.toByteArray()).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    getImageUri();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
+    private void uploadPhoto(Uri imageURI, String uploadPath){
+        if(imageURI != null && imageURI.getPath() != null) {
+            final StorageReference storageReference =  FirebaseStorage.getInstance().getReference().child(uploadPath);
+            UploadTask uploadTask = storageReference.putFile(imageURI);
+            uploadTask.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Log.e(TAG, "onFailure: ", e.getCause());
                     Toast.makeText(RegisterActivity.this, e.toString(),
                             Toast.LENGTH_LONG).show();
                 }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    //get the download Uri and set it to the groups
+                    getDownloadURI(storageReference);
+                }
             });
-        } else {
-            Toast.makeText(RegisterActivity.this, "User is not Authenticated at time of uploading profile photo",
-                    Toast.LENGTH_LONG).show();
         }
     }
 
-    private void getImageUri() {
-
-        mStorageRef.getDownloadUrl()
-        .addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                Toast.makeText(RegisterActivity.this, uri.toString(),
-                        Toast.LENGTH_LONG).show();
-                Log.d(TAG, uri.toString());
-                setUserProfileUri(uri);
-            }
-        })
-        .addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                if (mAuth.getCurrentUser() != null) {
-                    Log.e(TAG, "Failed to locate resource index for profile photo of user " + mAuth.getCurrentUser().getUid());
-                } else {
-                    Log.e(TAG, "Failed to locate resource index user because user reference is null");
-                }
-            }
-        });
+    private void getDownloadURI(StorageReference storageReference){
+        storageReference.getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        Toast.makeText(RegisterActivity.this, "Photo uploaded",
+                                Toast.LENGTH_LONG).show();
+                        Log.d(TAG, uri.toString());
+                        photoURI = uri;
+                        loadGroupPhoto();
+                        uploadStatus = true;
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(RegisterActivity.this, "Linking the selected photo failed, photo did not upload correctly (connection interrupted)",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
     }
+
+    private void loadGroupPhoto(){
+        if(photoURI != null) {
+            Glide.with(this).load(photoURI).into(rProfilePhoto);
+
+        }
+    }
+
+
+
 
     private void setUserProfileUri(Uri profilePhotoUri) {
         UserProfileChangeRequest updateRequest = new UserProfileChangeRequest.Builder().setPhotoUri(profilePhotoUri).build();
@@ -241,11 +247,9 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean checkUserData(){
         rProgressBar.setVisibility(View.VISIBLE);
         boolean validData = true;
-
-
         //check that the photo is present.
-        if(profilePhotoBitmap == null){
-            Snackbar.make(regBTN, "please upload a profile photo", Snackbar.LENGTH_LONG)
+        if(!uploadStatus){
+            Snackbar.make(regBTN, "please upload a profile photo or wait for the selected to upload", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
             validData =  false;
         }
@@ -344,7 +348,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 Toast.makeText(RegisterActivity.this, "Registration Successful",
                                         Toast.LENGTH_SHORT).show();
                                 //upload the profile photo
-                                uploadImage(profilePhotoBitmap);
+                                setUserProfileUri(photoURI);
                             } else { //failed on updating user profile
                                 Toast.makeText(RegisterActivity.this, "Setting Username Failed",
                                         Toast.LENGTH_SHORT).show();

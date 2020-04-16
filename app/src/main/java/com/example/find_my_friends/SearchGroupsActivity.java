@@ -9,14 +9,27 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.View;
+import android.widget.Button;
 
 public class SearchGroupsActivity extends AppCompatActivity {
+    private Button backBTN;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_groups);
+        backBTN = findViewById(R.id.BackButtonSearchPage);
+        handleBackBTN();
 
+    }
+
+    private void handleBackBTN(){
+        backBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
 }
