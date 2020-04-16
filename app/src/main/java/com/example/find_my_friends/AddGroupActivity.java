@@ -73,6 +73,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
         storageRef = FirebaseStorage.getInstance();
         mUser = FirebaseAuth.getInstance().getCurrentUser();
+
         //mCompressor = new FileCompressor(this);
         groupToAdd = new Group();
         groupToAdd.groupCreatorUser = mUser;
@@ -176,6 +177,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 Bundle args = data.getBundleExtra("BUNDLE");
                 ArrayList<Address> addresses = null;
                 if(args != null) {
+                    //unknown how to check this type of cast (isInstance doesn't work), however i am specifically controlling the type contained in this bundle therefore this complaint is not rel
                     addresses = (ArrayList<Address>) args.getSerializable("arrayList");
                 }
                 if(addresses != null){
@@ -247,6 +249,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 //set the onscreen display to the data on
                 groupToAdd.groupTitle = titleTextViewAG.getText().toString();
                 groupToAdd.groupDesc = desTextViewAG.getText().toString();
+                //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
+                groupToAdd.appendMember(mUser);
 
                 if(groupToAdd.groupPhotoURI == null){
                     Snackbar.make(addGroupButton, "Please upload a group Photo", Snackbar.LENGTH_LONG)

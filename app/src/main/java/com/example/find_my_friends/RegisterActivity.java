@@ -1,13 +1,11 @@
 package com.example.find_my_friends;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,18 +19,19 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -42,7 +41,8 @@ import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * an example class to register users to a firebase database, this should be separated out into different classes, so that the code can be reused for the settings page later in the development
@@ -58,9 +58,12 @@ public class RegisterActivity extends AppCompatActivity {
     EditText rUsername, rEmail, rPassword, rConfirmPassword, rConfirmEmail;
     FirebaseAuth mAuth;
     StorageReference mStorageRef;
-
+    FirebaseFirestore db;
+    Button regBTN;
 
     ImageView rProfilePhoto;
+    FloatingActionButton addPhotoBTN;
+    FloatingActionButton backBTN;
 
     ProgressBar rProgressBar;
     static final String TAG = "Register Activity : ";
@@ -71,15 +74,18 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-
-        rProfilePhoto = (ImageView) findViewById(R.id.UserProfilePhotoReg);
-        rUsername = (EditText) findViewById(R.id.UsernameTextFieldReg);
-        rEmail = (EditText) findViewById(R.id.emailRelativeTextFieldReg);
-        rPassword = (EditText) findViewById(R.id.passwordTextFieldReg);
-        rConfirmPassword = (EditText) findViewById(R.id.confirmPasswordTextFieldReg);
-        rConfirmEmail = (EditText) findViewById(R.id.confirmEmailRelativeTextFieldReg);
-        rProgressBar = (ProgressBar) findViewById(R.id.progressBarReg);
+        db = FirebaseFirestore.getInstance();
+        regBTN = findViewById(R.id.registerUserButton);
+        rProfilePhoto =  findViewById(R.id.UserProfilePhotoReg);
+        rUsername =  findViewById(R.id.UsernameTextFieldReg);
+        rEmail =  findViewById(R.id.emailRelativeTextFieldReg);
+        rPassword =  findViewById(R.id.passwordTextFieldReg);
+        rConfirmPassword =  findViewById(R.id.confirmPasswordTextFieldReg);
+        rConfirmEmail =  findViewById(R.id.confirmEmailRelativeTextFieldReg);
+        rProgressBar =  findViewById(R.id.progressBarReg);
+        addPhotoBTN =  findViewById(R.id.addUsersPhoto);
         mAuth = FirebaseAuth.getInstance();
+        backBTN =  findViewById(R.id.backButton);
         mStorageRef = FirebaseStorage.getInstance().getReference();
         contextOfApp = this;
         configureBackButton();
@@ -96,14 +102,11 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void configureAddPhotoButton() {
         final Activity activity = this;
-        FloatingActionButton addPhotoBTN = (FloatingActionButton) findViewById(R.id.addUsersPhoto);
+
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                    //if running newer than marsh then permissions need to be requested, currently set to minimum API 28 M is 23 but liable to change.
                     PermissionUtils.requestReadExternalPermission(activity);
-
                     if(PermissionUtils.checkReadExternalPermission(activity)) {
                         loadPhoto();
                     }
@@ -115,7 +118,6 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        //switch case statement may be needed to be expanded in future, bad practice to do this with if.
         switch (requestCode) {
             case REQUEST_GALLERY_ACCESS: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -126,7 +128,6 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(RegisterActivity.this, "Permission was denied",
                             Toast.LENGTH_SHORT).show();
                 }
-                return;
             }
         }
     }
@@ -154,7 +155,6 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void configureBackButton() {
-        FloatingActionButton backBTN = (FloatingActionButton) findViewById(R.id.backButton);
         backBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -216,108 +216,172 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void setUserProfileUri(Uri profilePhotoUri) {
         UserProfileChangeRequest updateRequest = new UserProfileChangeRequest.Builder().setPhotoUri(profilePhotoUri).build();
-        mAuth.getCurrentUser().updateProfile(updateRequest).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Toast.makeText(RegisterActivity.this, "profile Photo linked to user",
-                        Toast.LENGTH_LONG).show();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "new profile Photo Failed to link to user + " + e.toString());
-                Toast.makeText(RegisterActivity.this, "new profile Photo Failed to link to user",
-                        Toast.LENGTH_LONG).show();
-            }
-        });
+        if(mAuth.getCurrentUser() != null) {
+            mAuth.getCurrentUser().updateProfile(updateRequest).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Toast.makeText(RegisterActivity.this, "profile Photo linked to user",
+                            Toast.LENGTH_LONG).show();
+                    storeUserInfoOnFireStore(mAuth.getCurrentUser());
+                    launchMainActivity();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "new profile Photo Failed to link to user + " + e.toString());
+                    Toast.makeText(RegisterActivity.this, "new profile Photo Failed to link to user",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+
+        }
     }
 
+
+    private boolean checkUserData(){
+        rProgressBar.setVisibility(View.VISIBLE);
+        boolean validData = true;
+
+
+        //check that the photo is present.
+        if(profilePhotoBitmap == null){
+            Snackbar.make(regBTN, "please upload a profile photo", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            validData =  false;
+        }
+
+        //checks the username isn't empty
+        if(TextUtils.isEmpty(rUsername.getText())){
+            rUsername.setError("please enter a username");
+            validData =  false;
+        }
+
+        //checks that the passwords match.
+        if ((!rPassword.getText().toString().equals(rConfirmPassword.getText().toString()))){
+            rConfirmPassword.setError("please check your password match");
+            validData =  false;
+        }
+
+        //checks the password is of an appropriate length
+        if(rPassword.getText().toString().length() < 5){
+            rPassword.setError("please make sure your password is over 5 characters");
+            validData =  false;
+        }
+
+        //checks that the email is a populated and that it matches the email pattern matcher
+        if ((TextUtils.isEmpty(rEmail.getText().toString())) ||  (!Patterns.EMAIL_ADDRESS.matcher(rEmail.getText().toString()).matches())) {
+            rEmail.setError("please enter a valid email address");
+            validData =  false;
+        }
+
+        //checks that the emails match
+        if (!rEmail.getText().toString().equals(rConfirmEmail.getText().toString())){
+            rConfirmEmail.setError("please check your emails match");
+            validData = false;
+        }
+
+
+
+
+        return validData;
+    }
     //function needs revising, left in current state till functionaltiy is completed, then refactor.
     private void configureRegButton() {
+        //found that if you clicked quick enough  this function could somehow be toggled before mAuth was set up, strange error that isn't logical from the perspective of my code, assuming its an async task.
         if (mAuth != null) {
-            Button regBTN = (Button) findViewById(R.id.registerUserButton);
             regBTN.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     rProgressBar.setVisibility(View.VISIBLE);
-                    String email = rEmail.getText().toString();
-                    final String username = rUsername.getText().toString();
-                    String password = rPassword.getText().toString();
-                    String confirmPassword = rConfirmPassword.getText().toString();
-                    String confirmEmail = rConfirmEmail.getText().toString();
-                    if (TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        //checks the email is a valid address
-                        rEmail.setError("please enter a valid email address");
+                    if(checkUserData()){
+                        signUpUser(rEmail.getText().toString() , rPassword.getText().toString(),rUsername.getText().toString());
+                    }else{
+                        rProgressBar.setVisibility(View.INVISIBLE);
                     }
-                    if (profilePhotoBitmap != null) {
-                        if (email.equals(confirmEmail)) {
-                            if (password.equals(confirmPassword) && !TextUtils.isEmpty(password)) {
-                                //if the passwords match and are not empty
-                                if (password.length() > 5) {
-                                    //the password and email both meet requirements, therefore register the user.
 
 
-                                    mAuth.createUserWithEmailAndPassword(email, password)
-                                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                                    if (task.isSuccessful()) {
-                                                        Toast.makeText(RegisterActivity.this, "Authentication Succeeded.",
-                                                                Toast.LENGTH_SHORT).show();
-                                                        uploadImage(profilePhotoBitmap);
-                                                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
-                                                                .setDisplayName(username)
-                                                                .build();
-
-                                                        mAuth.getCurrentUser().updateProfile(profileUpdate)
-                                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                           @Override
-                                                                                           public void onComplete(Task<Void> task) {
-                                                                                               if (task.isSuccessful()) { //success on updating user profile
-                                                                                                   Toast.makeText(RegisterActivity.this, "Registration Successful",
-                                                                                                           Toast.LENGTH_SHORT).show();
-                                                                                                   startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                                                                                                   finish();
-                                                                                               } else { //failed on updating user profile
-                                                                                                   Toast.makeText(RegisterActivity.this, "Setting Username Failed",
-                                                                                                           Toast.LENGTH_SHORT).show();
-                                                                                               }
-                                                                                           }
-                                                                                       });
-                                                        //the user might not actually be authenticated. Check this.
-
-
-                                                    } else {
-                                                        Toast.makeText(RegisterActivity.this, "Authentication failed.",
-                                                                Toast.LENGTH_SHORT).show();
-                                                    }
-                                                }
-                                            });
-
-                                } else {
-                                    //checks if the password is of correct length.
-                                    Toast.makeText(RegisterActivity.this, "Password needs to be longer than 5 characters",
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                            } else {
-                                //display a toast popup saying the passwords do not match.
-                                Toast.makeText(RegisterActivity.this, "Passwords Do not match consider revising.",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            Toast.makeText(RegisterActivity.this, "Emails do not match, consider revising",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-
-                    } else {
-                        Toast.makeText(RegisterActivity.this, "Profile photo is required",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    rProgressBar.setVisibility(View.INVISIBLE);
                 }
             });
-
-
         }
     }
+
+    private void signUpUser(final String email, final String password, final String username){
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful() && mAuth.getCurrentUser()!= null) {
+                            Toast.makeText(RegisterActivity.this, "Authentication Succeeded.",
+                                    Toast.LENGTH_SHORT).show();
+
+                            updateUserInfo(username);
+
+                        } else {
+                            Toast.makeText(RegisterActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void launchMainActivity(){
+        rProgressBar.setVisibility(View.INVISIBLE);
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        finish();
+    }
+
+    private void updateUserInfo(final String username){
+        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                .setDisplayName(username)
+                .build();
+
+        if(mAuth.getCurrentUser() != null) {
+            mAuth.getCurrentUser().updateProfile(profileUpdate)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) { //success on updating user profile
+                                Toast.makeText(RegisterActivity.this, "Registration Successful",
+                                        Toast.LENGTH_SHORT).show();
+                                //upload the profile photo
+                                uploadImage(profilePhotoBitmap);
+                            } else { //failed on updating user profile
+                                Toast.makeText(RegisterActivity.this, "Setting Username Failed",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+        }else{
+            rProgressBar.setVisibility(View.INVISIBLE);
+            //registering failed the user should be deleted, however this is not possible and should only be added once the delete function has been written.
+        }
+    }
+
+
+    private void storeUserInfoOnFireStore(FirebaseUser firebaseUser){
+            Map<String, Object> user = new HashMap<>();
+            user.put("UID", firebaseUser.getUid());
+            user.put("UserEmailAddress", firebaseUser.getEmail());
+            user.put("UserPhotoURL", firebaseUser.getPhotoUrl().toString());
+            user.put("Username", firebaseUser.getDisplayName());
+
+            db.collection("Users").document(firebaseUser.getUid())
+                .set(user, SetOptions.merge())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "profile uploaded to fireStore successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error writing profile to the fireStore", e);
+                    }
+                });
+
+
+    }
 }
+
+

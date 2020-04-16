@@ -5,6 +5,8 @@ import android.icu.util.Calendar;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.ArrayList;
+
 
 public class Group {
     public Long groupID;
@@ -14,9 +16,10 @@ public class Group {
     public Calendar groupCalendar;//can get both the date and time.
     public LatLng groupLocation;
     public FirebaseUser groupCreatorUser;
+    public ArrayList<FirebaseUser> membersOfGroup;
 
 
-    public Group(Long groupID, Uri groupPhotoURI, String groupTitle, String groupDesc, Calendar groupCalendar, LatLng groupLocation, FirebaseUser groupCreatorUser) {
+    public Group(Long groupID, Uri groupPhotoURI, String groupTitle, String groupDesc, Calendar groupCalendar, LatLng groupLocation, FirebaseUser groupCreatorUser, ArrayList<FirebaseUser> membersOfGroup) {
         this.groupID = groupID;
         this.groupPhotoURI = groupPhotoURI;
         this.groupTitle = groupTitle;
@@ -24,6 +27,7 @@ public class Group {
         this.groupLocation = groupLocation;
         this.groupDesc = groupDesc;
         this.groupCreatorUser = groupCreatorUser;
+        this.membersOfGroup = membersOfGroup;
     }
 
 
@@ -35,7 +39,32 @@ public class Group {
         this.groupCalendar = Calendar.getInstance();//set by default to the current date and time.
         this.groupLocation = new LatLng(0,0);
         this.groupCreatorUser = null;
+        this.membersOfGroup = null;
+
         //do not call updategroup uploading nulls is not a good idea.
+    }
+
+    //for appending users to a group.
+    public void appendMember(FirebaseUser user){
+        if(this.membersOfGroup == null) {
+            //if this is the first member of the group being added.
+            this.membersOfGroup = new ArrayList<FirebaseUser>();
+            this.membersOfGroup.add(user);
+        }
+        else{
+            this.membersOfGroup.add(user);
+        }
+    }
+
+
+    //for removing a user from a group
+    public boolean removeMember(FirebaseUser user){
+        if(this.membersOfGroup != null){
+                return this.membersOfGroup.remove(user);
+        }
+        else{
+            return false;
+        }
     }
 
 
