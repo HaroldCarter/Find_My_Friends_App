@@ -1,62 +1,48 @@
 package com.example.find_my_friends.groupUtil;
 
-import android.net.Uri;
-import android.icu.util.Calendar;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 
 public class Group {
-    private String TAG = "Group Class :";
-    public String groupID;
-    public String groupPhotoURI;
-    public String groupTitle;
-    public String groupDesc;
-    public String groupMeetDate;
-    public String groupMeetTime;
-    public LatLng groupLocation;
-    public String groupCreatorUserID;
-    public List<String> membersOfGroupIDS;
+    //private String TAG = "Group Class :";
+    private String groupID;
+    private String groupPhotoURI;
+    private String groupTitle;
+    private String groupDesc;
+    private String groupMeetDate;
+    private String groupMeetTime;
+    //private GeoPoint groupLocation;
+    private double groupLatitude;
+    private double groupLongitude;
+    private String groupCreatorUserID;
+    private ArrayList<String> membersOfGroupIDS;
 
 
-    public Group(String groupID, Uri groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, LatLng groupLocation, String groupCreatorUser, ArrayList<String> membersOfGroupIDS) {
+    public Group(String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, ArrayList<String> membersOfGroupIDS) {
         this.groupID = groupID;
-        this.groupPhotoURI = groupPhotoURI.toString();
+        this.groupPhotoURI = groupPhotoURI;
         this.groupTitle = groupTitle;
+        this.groupDesc = groupDesc;
         this.groupMeetDate = groupMeetDate;
         this.groupMeetTime = groupMeetTime;
-        this.groupLocation = groupLocation;
-        this.groupDesc = groupDesc;
-        this.groupCreatorUserID = groupCreatorUser;
+        this.groupLatitude = groupLatitude;
+        this.groupLongitude = groupLongitude;
+        this.groupCreatorUserID = groupCreatorUserID;
         this.membersOfGroupIDS = membersOfGroupIDS;
     }
 
-
     public Group(){
-        this.groupID = UUID.randomUUID().toString();
-        this.groupPhotoURI = null;
-        this.groupTitle = "Title not set";
-        this.groupDesc = "Description not set";
-        this.groupLocation = new LatLng(0,0);
-        this.groupCreatorUserID = null;
-        this.membersOfGroupIDS = new ArrayList<String>();
-
-        //do not call updategroup uploading nulls is not a good idea.
     }
 
     //for appending users to a group.
@@ -95,13 +81,13 @@ public class Group {
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            Log.d(TAG, "group uploaded to fireStore successfully");
+                            Log.d("Group Class :", "group uploaded to fireStore successfully");
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.w(TAG, "Error writing group to the fireStore", e);
+                            Log.w("Group Class :", "Error writing group to the fireStore", e);
                         }
                     });
             return true;
@@ -110,8 +96,101 @@ public class Group {
 
     }
 
+    //required for firestore to correctly link, not used by my program.
 
 
+    public String getGroupID() {
+        return groupID;
+    }
+
+    public void setGroupID(String groupID) {
+        this.groupID = groupID;
+    }
+
+    public String getGroupPhotoURI() {
+        return groupPhotoURI;
+    }
+
+    public void setGroupPhotoURI(String groupPhotoURI) {
+        this.groupPhotoURI = groupPhotoURI;
+    }
+
+    public String getGroupTitle() {
+        return groupTitle;
+    }
+
+    public void setGroupTitle(String groupTitle) {
+        this.groupTitle = groupTitle;
+    }
+
+    public String getGroupDesc() {
+        return groupDesc;
+    }
+
+    public void setGroupDesc(String groupDesc) {
+        this.groupDesc = groupDesc;
+    }
+
+    public String getGroupMeetDate() {
+        return groupMeetDate;
+    }
+
+    public void setGroupMeetDate(String groupMeetDate) {
+        this.groupMeetDate = groupMeetDate;
+    }
+
+    public String getGroupMeetTime() {
+        return groupMeetTime;
+    }
+
+    public void setGroupMeetTime(String groupMeetTime) {
+        this.groupMeetTime = groupMeetTime;
+    }
+
+    public double getGroupLatitude() {
+        return groupLatitude;
+    }
+
+    public void setGroupLatitude(double groupLatitude) {
+        this.groupLatitude = groupLatitude;
+    }
+
+    public double getGroupLongitude() {
+        return groupLongitude;
+    }
+
+    public void setGroupLongitude(double groupLongitude) {
+        this.groupLongitude = groupLongitude;
+    }
+/*
+
+    public GeoPoint getGroupLocation() {
+        return groupLocation;
+    }
+
+
+    public void setGroupLocation(GeoPoint groupLocation) {
+        this.groupLocation = groupLocation;
+    }
+
+     */
+
+
+    public String getGroupCreatorUserID() {
+        return groupCreatorUserID;
+    }
+
+    public void setGroupCreatorUserID(String groupCreatorUserID) {
+        this.groupCreatorUserID = groupCreatorUserID;
+    }
+
+    public ArrayList<String> getMembersOfGroupIDS() {
+        return membersOfGroupIDS;
+    }
+
+    public void setMembersOfGroupIDS(ArrayList<String> membersOfGroupIDS) {
+        this.membersOfGroupIDS = membersOfGroupIDS;
+    }
 }
 
 

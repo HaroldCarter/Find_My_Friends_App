@@ -25,7 +25,6 @@ import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.example.find_my_friends.util.TimePickerFragment;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -33,6 +32,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -67,6 +67,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private FirebaseStorage storageRef;
     private FirebaseUser mUser;
     private FirebaseFirestore db;
+    private boolean locationSet = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +79,10 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
         //mCompressor = new FileCompressor(this);
         groupToAdd = new Group();
-        groupToAdd.groupCreatorUserID = mUser.getUid();
+        if(mUser != null){
+            groupToAdd.setGroupCreatorUserID(mUser.getUid());
+        }
+
 
         db = FirebaseFirestore.getInstance();
 
@@ -139,7 +143,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                         Toast.makeText(AddGroupActivity.this, "Photo uploaded",
                                 Toast.LENGTH_LONG).show();
                         Log.d(TAG, uri.toString());
-                        groupToAdd.groupPhotoURI = uri.toString();
+                        groupToAdd.setGroupPhotoURI(uri.toString());
                         loadGroupPhoto();
                         uploadStatus = true;
                     }
@@ -154,8 +158,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     }
 
     private void loadGroupPhoto(){
-        if(groupToAdd.groupPhotoURI != null) {
-            Glide.with(this).load(groupToAdd.groupPhotoURI).into(groupPhoto);
+        if(groupToAdd.getGroupPhotoURI() != null) {
+            Glide.with(this).load(groupToAdd.getGroupPhotoURI()).into(groupPhoto);
         }
     }
 
@@ -166,7 +170,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         if (resultCode == RESULT_OK && requestCode == RESULT_LOADED_IMAGE) {
             if (data.getData() != null) {
                 Uri imageURI = data.getData();
-                String uploadPath = "images/groups/groupPhoto" + groupToAdd.groupID;
+                String uploadPath = "images/groups/groupPhoto" + groupToAdd.getGroupID();
                 uploadPhoto(imageURI, uploadPath);
             } else {
                 Toast.makeText(this, "path to image is corrupt, or no path no longer exists",
@@ -175,9 +179,12 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         }
         if(resultCode == RESULT_OK && requestCode == RESULT_LOCATION_REQUEST){
             if(data != null){
-                double lat = data.getDoubleExtra("Lat", 0.0);
-                double lng = data.getDoubleExtra("Lng", 0.0);
-                groupToAdd.groupLocation = new LatLng(lat, lng);
+                //double lat = data.getDoubleExtra("Lat", 0.0);
+                //double lng = data.getDoubleExtra("Lng", 0.0);
+                locationSet = true;
+                groupToAdd.setGroupLatitude(data.getDoubleExtra("Lat", 0.0));
+                groupToAdd.setGroupLongitude(data.getDoubleExtra("Lng", 0.0));
+               // groupToAdd.setGroupLocation(new GeoPoint(lat, lng));
                 //maybe update the button text to show the nearest address?
                 Bundle args = data.getBundleExtra("BUNDLE");
                 ArrayList<Address> addresses = null;
@@ -252,8 +259,9 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
             @Override
             public void onClick(View v) {
                 //set the onscreen display to the data on
-                groupToAdd.groupTitle = titleTextViewAG.getText().toString();
-                groupToAdd.groupDesc = desTextViewAG.getText().toString();
+                groupToAdd.setGroupID(UUID.randomUUID().toString());
+                groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
+                groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
                 //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
                 groupToAdd.appendMember(mUser);
 
@@ -262,18 +270,20 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     Snackbar.make(addGroupButton, "Please wait for the photo to be uploaded", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
-                else if(groupToAdd.groupPhotoURI == null){
+                else if(groupToAdd.getGroupPhotoURI() == null){
                     Snackbar.make(addGroupButton, "Please upload a group Photo", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
-                else if(groupToAdd.groupLocation.equals(new LatLng(0,0))){
+
+                else if(!locationSet){
                     Snackbar.make(addGroupPhotoFAB, "Please set a location of the group", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
-                else if(groupToAdd.groupTitle.equals("")){
+
+                else if(groupToAdd.getGroupTitle().equals("")){
                     Snackbar.make(addGroupPhotoFAB, "Please Give the group a title", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
-                }else if(groupToAdd.groupDesc.equals("")){
+                }else if(groupToAdd.getGroupDesc().equals("")){
                     Snackbar.make(addGroupPhotoFAB, "Please Give the group a Description", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
@@ -320,14 +330,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         calendar.set(Calendar.MONTH, month);
         calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         String setDate = DateFormat.getDateInstance().format(calendar.getTime());
-        groupToAdd.groupMeetDate = setDate;
+        groupToAdd.setGroupMeetDate(setDate);
         dateSpinnerAG.setText(setDate);
     }
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         String setTime = hourOfDay + ":" + minute;
-        groupToAdd.groupMeetTime = setTime;
+        groupToAdd.setGroupMeetTime(setTime);
         timeSpinnerAG.setText(setTime);
     }
 }

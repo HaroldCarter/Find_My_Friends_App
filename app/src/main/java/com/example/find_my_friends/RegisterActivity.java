@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.find_my_friends.userUtil.User;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -41,10 +42,7 @@ import com.google.firebase.storage.UploadTask;
 import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
 import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 /**
  * an example class to register users to a firebase database, this should be separated out into different classes, so that the code can be reused for the settings page later in the development
@@ -72,7 +70,6 @@ public class RegisterActivity extends AppCompatActivity {
     Bitmap profilePhotoBitmap = null;
     Activity contextOfApp;
     private Uri photoURI;
-
     private boolean uploadStatus = false;
 
     @Override
@@ -81,16 +78,16 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
         db = FirebaseFirestore.getInstance();
         regBTN = findViewById(R.id.registerUserButton);
-        rProfilePhoto =  findViewById(R.id.UserProfilePhotoReg);
-        rUsername =  findViewById(R.id.UsernameTextFieldReg);
-        rEmail =  findViewById(R.id.emailRelativeTextFieldReg);
-        rPassword =  findViewById(R.id.passwordTextFieldReg);
-        rConfirmPassword =  findViewById(R.id.confirmPasswordTextFieldReg);
-        rConfirmEmail =  findViewById(R.id.confirmEmailRelativeTextFieldReg);
-        rProgressBar =  findViewById(R.id.progressBarReg);
-        addPhotoBTN =  findViewById(R.id.addUsersPhoto);
+        rProfilePhoto = findViewById(R.id.UserProfilePhotoReg);
+        rUsername = findViewById(R.id.UsernameTextFieldReg);
+        rEmail = findViewById(R.id.emailRelativeTextFieldReg);
+        rPassword = findViewById(R.id.passwordTextFieldReg);
+        rConfirmPassword = findViewById(R.id.confirmPasswordTextFieldReg);
+        rConfirmEmail = findViewById(R.id.confirmEmailRelativeTextFieldReg);
+        rProgressBar = findViewById(R.id.progressBarReg);
+        addPhotoBTN = findViewById(R.id.addUsersPhoto);
         mAuth = FirebaseAuth.getInstance();
-        backBTN =  findViewById(R.id.backButton);
+        backBTN = findViewById(R.id.backButton);
         mStorageRef = FirebaseStorage.getInstance().getReference();
         contextOfApp = this;
         configureBackButton();
@@ -103,7 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
         Intent mediaSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
         mediaSelectionIntent.setType("image/*");
         String[] mimeTypes = {"image/jpeg", "image/png"};
-        mediaSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES,mimeTypes);
+        mediaSelectionIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         startActivityForResult(mediaSelectionIntent, RESULT_LOADED_IMAGE);
     }
 
@@ -113,10 +110,10 @@ public class RegisterActivity extends AppCompatActivity {
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    PermissionUtils.requestReadExternalPermission(RegisterActivity.this);
-                    if(PermissionUtils.checkReadExternalPermission(RegisterActivity.this)) {
-                        loadPhoto();
-                    }
+                PermissionUtils.requestReadExternalPermission(RegisterActivity.this);
+                if (PermissionUtils.checkReadExternalPermission(RegisterActivity.this)) {
+                    loadPhoto();
+                }
 
             }
         });
@@ -139,26 +136,53 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+
+    private void handleGettingURIFromData(Intent data) {
+        if (data.getData() != null) { //&& mAuth.getCurrentUser() != null) {
+            ImageDecoder.Source source = ImageDecoder.createSource(this.getContentResolver(), data.getData());
+            Uri imageURI = data.getData();
+            String uploadPath = "images/users/userphoto" + UUID.randomUUID().toString();
+            uploadPhoto(imageURI, uploadPath);
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == RESULT_LOADED_IMAGE) {
-            if (data.getData() != null && mAuth.getCurrentUser() != null) {
-                ImageDecoder.Source source = ImageDecoder.createSource(this.getContentResolver(), data.getData());
-                Uri imageURI = data.getData();
-                String uploadPath = "images/users/userphoto" + mAuth.getCurrentUser().getUid();
-                uploadPhoto(imageURI, uploadPath);
-
-
+            if (mAuth.getCurrentUser() == null) {
+                final Intent dataFinal = data;
+                mAuth.signInAnonymously().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        handleGettingURIFromData(dataFinal);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(RegisterActivity.this,  "server error, new users are no possible to be created at this time",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
             } else {
-                Toast.makeText(RegisterActivity.this, "path to image is corrupt, or no path no longer exists",
-                        Toast.LENGTH_LONG).show();
-                profilePhotoBitmap = null;
+                //the user is already logged in, this could be annon or still logged in somehow, we cannot assume ether so must allow them to attempt to continue making an accoutn
+                //later lines catch this error and tell the user they're trying to sign up with an account already in use.
+                handleGettingURIFromData(data);
             }
+
+
+        } else {
+            Toast.makeText(RegisterActivity.this, "path to image is corrupt, or no path no longer exists",
+                    Toast.LENGTH_LONG).show();
+            profilePhotoBitmap = null;
         }
     }
 
+
     private void configureBackButton() {
+        mAuth.signOut();
+        //incase they are anon signed in, otherwise when they load the page it will automatically sign them in to a non-existant account (allows for rogue groups to be made).
         backBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -167,9 +191,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void uploadPhoto(Uri imageURI, String uploadPath){
-        if(imageURI != null && imageURI.getPath() != null) {
-            final StorageReference storageReference =  FirebaseStorage.getInstance().getReference().child(uploadPath);
+    private void uploadPhoto(Uri imageURI, String uploadPath) {
+        if (imageURI != null && imageURI.getPath() != null) {
+            final StorageReference storageReference = FirebaseStorage.getInstance().getReference().child(uploadPath);
             UploadTask uploadTask = storageReference.putFile(imageURI);
             uploadTask.addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -188,7 +212,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    private void getDownloadURI(StorageReference storageReference){
+    private void getDownloadURI(StorageReference storageReference) {
         storageReference.getDownloadUrl()
                 .addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
@@ -210,19 +234,17 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void loadGroupPhoto(){
-        if(photoURI != null) {
+    private void loadGroupPhoto() {
+        if (photoURI != null) {
             Glide.with(this).load(photoURI).into(rProfilePhoto);
 
         }
     }
 
 
-
-
     private void setUserProfileUri(Uri profilePhotoUri) {
         UserProfileChangeRequest updateRequest = new UserProfileChangeRequest.Builder().setPhotoUri(profilePhotoUri).build();
-        if(mAuth.getCurrentUser() != null) {
+        if (mAuth.getCurrentUser() != null) {
             mAuth.getCurrentUser().updateProfile(updateRequest).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
@@ -244,51 +266,50 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-    private boolean checkUserData(){
+    private boolean checkUserData() {
         rProgressBar.setVisibility(View.VISIBLE);
         boolean validData = true;
         //check that the photo is present.
-        if(!uploadStatus){
+        if (!uploadStatus) {
             Snackbar.make(regBTN, "please upload a profile photo or wait for the selected to upload", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
-            validData =  false;
+            validData = false;
         }
 
         //checks the username isn't empty
-        if(TextUtils.isEmpty(rUsername.getText())){
+        if (TextUtils.isEmpty(rUsername.getText())) {
             rUsername.setError("please enter a username");
-            validData =  false;
+            validData = false;
         }
 
         //checks that the passwords match.
-        if ((!rPassword.getText().toString().equals(rConfirmPassword.getText().toString()))){
+        if ((!rPassword.getText().toString().equals(rConfirmPassword.getText().toString()))) {
             rConfirmPassword.setError("please check your password match");
-            validData =  false;
+            validData = false;
         }
 
         //checks the password is of an appropriate length
-        if(rPassword.getText().toString().length() < 5){
+        if (rPassword.getText().toString().length() < 5) {
             rPassword.setError("please make sure your password is over 5 characters");
-            validData =  false;
+            validData = false;
         }
 
         //checks that the email is a populated and that it matches the email pattern matcher
-        if ((TextUtils.isEmpty(rEmail.getText().toString())) ||  (!Patterns.EMAIL_ADDRESS.matcher(rEmail.getText().toString()).matches())) {
+        if ((TextUtils.isEmpty(rEmail.getText().toString())) || (!Patterns.EMAIL_ADDRESS.matcher(rEmail.getText().toString()).matches())) {
             rEmail.setError("please enter a valid email address");
-            validData =  false;
+            validData = false;
         }
 
         //checks that the emails match
-        if (!rEmail.getText().toString().equals(rConfirmEmail.getText().toString())){
+        if (!rEmail.getText().toString().equals(rConfirmEmail.getText().toString())) {
             rConfirmEmail.setError("please check your emails match");
             validData = false;
         }
 
 
-
-
         return validData;
     }
+
     //function needs revising, left in current state till functionaltiy is completed, then refactor.
     private void configureRegButton() {
         //found that if you clicked quick enough  this function could somehow be toggled before mAuth was set up, strange error that isn't logical from the perspective of my code, assuming its an async task.
@@ -297,9 +318,9 @@ public class RegisterActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     rProgressBar.setVisibility(View.VISIBLE);
-                    if(checkUserData()){
-                        signUpUser(rEmail.getText().toString() , rPassword.getText().toString(),rUsername.getText().toString());
-                    }else{
+                    if (checkUserData()) {
+                        signUpUser(rEmail.getText().toString(), rPassword.getText().toString(), rUsername.getText().toString());
+                    } else {
                         rProgressBar.setVisibility(View.INVISIBLE);
                     }
 
@@ -309,12 +330,12 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    private void signUpUser(final String email, final String password, final String username){
+    private void signUpUser(final String email, final String password, final String username) {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful() && mAuth.getCurrentUser()!= null) {
+                        if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                             Toast.makeText(RegisterActivity.this, "Authentication Succeeded.",
                                     Toast.LENGTH_SHORT).show();
 
@@ -328,18 +349,18 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void launchMainActivity(){
+    private void launchMainActivity() {
         rProgressBar.setVisibility(View.INVISIBLE);
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
         finish();
     }
 
-    private void updateUserInfo(final String username){
+    private void updateUserInfo(final String username) {
         UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                 .setDisplayName(username)
                 .build();
 
-        if(mAuth.getCurrentUser() != null) {
+        if (mAuth.getCurrentUser() != null) {
             mAuth.getCurrentUser().updateProfile(profileUpdate)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -355,21 +376,21 @@ public class RegisterActivity extends AppCompatActivity {
                             }
                         }
                     });
-        }else{
+        } else {
             rProgressBar.setVisibility(View.INVISIBLE);
             //registering failed the user should be deleted, however this is not possible and should only be added once the delete function has been written.
         }
     }
 
 
-    private void storeUserInfoOnFireStore(FirebaseUser firebaseUser){
-            Map<String, Object> user = new HashMap<>();
-            user.put("UID", firebaseUser.getUid());
-            user.put("UserEmailAddress", firebaseUser.getEmail());
-            user.put("UserPhotoURL", firebaseUser.getPhotoUrl().toString());
-            user.put("Username", firebaseUser.getDisplayName());
+    private void storeUserInfoOnFireStore(FirebaseUser firebaseUser) {
+        User user = new User();
+        user.setUID(firebaseUser.getUid());
+        user.setUserEmailAddress(firebaseUser.getEmail());
+        user.setUserPhotoURL(firebaseUser.getPhotoUrl().toString());
+        user.setUsername(firebaseUser.getDisplayName());
 
-            db.collection("Users").document(firebaseUser.getUid())
+        db.collection("Users").document(firebaseUser.getUid())
                 .set(user, SetOptions.merge())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override

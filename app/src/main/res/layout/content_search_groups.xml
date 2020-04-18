@@ -9,6 +9,7 @@
     tools:showIn="@layout/activity_search_groups">
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/SearchGroupRecycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </androidx.core.widget.NestedScrollView>

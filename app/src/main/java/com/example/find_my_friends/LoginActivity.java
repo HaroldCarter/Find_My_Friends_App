@@ -31,10 +31,20 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_login);
         mAuth = FirebaseAuth.getInstance();
+
+        if(mAuth.getCurrentUser() != null){
+            Toast.makeText(LoginActivity.this, "User Already Authenticated",
+                    Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        }
+
         configureRegisterButton();
         configureLoginButton();
+
+
     }
 
     public void configureRegisterButton() {
@@ -64,15 +74,23 @@ public class LoginActivity extends AppCompatActivity {
                     String email = mEmail.getText().toString();
                     String password = mPassword.getText().toString();
 
-                    if(TextUtils.isEmpty(email)&& Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+                    boolean validInput = true;
+
+
+
+                    if(TextUtils.isEmpty(email) ||  !Patterns.EMAIL_ADDRESS.matcher(email).matches()){
                         //prompt to enter a valid email
                         mEmail.setError("please enter a valid email");
-                        return;
+                        validInput = false;
                     }
 
                     if(password.length() < 5) {
                         //prompt to enter a valid password
                         mPassword.setError("please enter a valid password");
+                        validInput = false;
+                    }
+
+                    if(!validInput){
                         return;
                     }
                    
