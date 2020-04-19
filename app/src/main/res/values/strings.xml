@@ -178,5 +178,8 @@
     </string>
     <string name="DistanceTitleSG">Distance</string>
     <string name="DateTimeSG">Date &amp; Time</string>
+    <string name="date_filter_default_textSG">any date</string>
+    <string name="time_filter_default_textSG">any time</string>
+    <string name="group_details_members_title">Current Members</string>
 
 </resources>

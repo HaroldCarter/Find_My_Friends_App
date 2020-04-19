@@ -19,6 +19,8 @@ import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -34,6 +36,8 @@ public class MyGroupsFragment extends Fragment {
     private RecyclerView recyclerView;
     private MyGroupsViewModel myGroupsViewModel;
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private FirebaseUser mUser = mAuth.getCurrentUser();
     private CollectionReference groupsRef;
     private GroupOverviewAdapter groupOverviewAdapter;
     private LinearLayoutManager linearLayoutManager;
@@ -94,7 +98,7 @@ public class MyGroupsFragment extends Fragment {
 
     //none of the recylcerView setups actually display anything, guide uses V7 app compat recycler and cards im using android x for both, probably that.
     private void setupRecyclerView(){
-        Query query = groupsRef.orderBy("groupTitle");
+        Query query = groupsRef.whereEqualTo("groupCreatorUserID", mUser.getUid());
         FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
         groupOverviewAdapter = new GroupOverviewAdapter(options);
         recyclerView.setLayoutManager(linearLayoutManager);

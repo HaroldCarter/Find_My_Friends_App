@@ -1,5 +1,6 @@
 package com.example.find_my_friends.recyclerAdapters;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,15 +13,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.find_my_friends.GroupDetailsActivity;
+import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
 
 import com.example.find_my_friends.userUtil.User;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -29,6 +29,7 @@ import java.io.File;
 public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupOverviewAdapter.GroupOverviewHolder> {
 
     private FirebaseFirestore db =  FirebaseFirestore.getInstance();
+    private OnItemClickListener listener;
     //private GroupOverviewHolder groupOverviewHolder;
     //private Group group;
 
@@ -38,29 +39,18 @@ public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupO
 
     @Override
     protected void onBindViewHolder(@NonNull GroupOverviewHolder holder, int position, @NonNull Group model) {
-        //super.onBindViewHolder(holder,position);
-        final GroupOverviewHolder groupOverviewHolder = holder;
-        //this.group = model;
         holder.groupTitle.setText(model.getGroupTitle());
         holder.groupDesc.setText(model.getGroupDesc());
         Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
-
-        DocumentReference docRef =  db.collection("Users").document(model.getGroupCreatorUserID());
-        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                User user = documentSnapshot.toObject(User.class);
-                if(user != null) {
-                    Glide.with(groupOverviewHolder.groupCreatorPhoto.getContext()).load(user.getUserPhotoURL()).into(groupOverviewHolder.groupCreatorPhoto);
-                    groupOverviewHolder.groupCreator.setText(("Hosted by " + user.getUsername()));
-                }
-            }
-        });
+        Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
+        holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
         holder.groupDate.setText(model.getGroupMeetDate());
         holder.groupTime.setText(model.getGroupMeetTime());
 
 
     }
+
+
 
     @NonNull
     @Override
@@ -94,6 +84,29 @@ public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupO
             groupDate = itemView.findViewById(R.id.DateGroupTextviewCV);
             groupTime = itemView.findViewById(R.id.TimeGroupTextViewCV);
             moreDetailsBTN = itemView.findViewById(R.id.MoreDetailBTNCV);
+            handleMoreDetailsBTN();
         }
+
+        private void handleMoreDetailsBTN(){
+            moreDetailsBTN.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //startActivity(new Intent(moreDetailsBTN.getContext(), GroupDetailsActivity.class));
+                    int position = getAdapterPosition();
+                    //String groupID = getItem(position).getGroupID();
+                    if(position != RecyclerView.NO_POSITION && listener != null){
+                        listener.onItemClick(getSnapshots().getSnapshot(position), position);
+                    }
+                }
+            });
+        }
+    }
+
+    public interface OnItemClickListener{
+        void onItemClick(DocumentSnapshot documentSnapshot, int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener){
+        this.listener = listener;
     }
 }

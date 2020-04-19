@@ -81,6 +81,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         groupToAdd = new Group();
         if(mUser != null){
             groupToAdd.setGroupCreatorUserID(mUser.getUid());
+            groupToAdd.setGroupCreatorDisplayName(mUser.getDisplayName());
+            groupToAdd.setGroupCreatorUserPhotoURL(mUser.getPhotoUrl().toString());
         }
 
 
@@ -336,7 +338,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        String setTime = hourOfDay + ":" + minute;
+
+        String setTime;
+        if(minute < 9){
+            setTime  = hourOfDay + ":0" + minute;
+        }else{
+            setTime = hourOfDay + ":" + minute;
+        }
+
         groupToAdd.setGroupMeetTime(setTime);
         timeSpinnerAG.setText(setTime);
     }

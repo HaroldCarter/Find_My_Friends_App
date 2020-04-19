@@ -5,6 +5,7 @@ public class User {
     private String UserEmailAddress;
     private String UserPhotoURL;
     private String Username;
+    //should store the mode of transport here, so that we know what time estimates to give.
 
     public User() {
     }
@@ -14,6 +15,7 @@ public class User {
         UserEmailAddress = userEmailAddress;
         UserPhotoURL = userPhotoURL;
         Username = username;
+
     }
 
     public String getUID() {

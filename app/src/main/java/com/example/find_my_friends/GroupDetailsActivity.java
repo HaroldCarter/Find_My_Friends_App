@@ -2,6 +2,7 @@ package com.example.find_my_friends;
 
 import android.os.Bundle;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,13 +31,21 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         setContentView(R.layout.activity_group_details);
 
         Toolbar toolbar = findViewById(R.id.toolbarGD);
+        toolbar.setNavigationIcon(R.drawable.svg_back_arrow_primary);
         setSupportActionBar(toolbar);
         ActionBar supportBar = getSupportActionBar();
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         if (supportBar != null) {
             getSupportActionBar().setTitle("");
             //default theme sets the title incorrectly
-            getSupportActionBar().setIcon(R.drawable.svg_back_arrow_primary);
+
         }
 
         Bundle mapViewBundle = null;
@@ -59,6 +68,11 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
 
         //setting up the style of the map
         MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_json);
+        googleMap.getUiSettings().setCompassEnabled(false);
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(groupLatLng));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(groupLatLng, 5));
         googleMap.setMapStyle(style);
     }
 

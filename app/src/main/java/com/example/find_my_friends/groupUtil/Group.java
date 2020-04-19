@@ -26,10 +26,15 @@ public class Group {
     private double groupLatitude;
     private double groupLongitude;
     private String groupCreatorUserID;
+
+    private String groupCreatorUserPhotoURL;
+    private String groupCreatorDisplayName;
+
+
     private ArrayList<String> membersOfGroupIDS;
 
 
-    public Group(String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, ArrayList<String> membersOfGroupIDS) {
+    public Group(String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS) {
         this.groupID = groupID;
         this.groupPhotoURI = groupPhotoURI;
         this.groupTitle = groupTitle;
@@ -39,6 +44,8 @@ public class Group {
         this.groupLatitude = groupLatitude;
         this.groupLongitude = groupLongitude;
         this.groupCreatorUserID = groupCreatorUserID;
+        this.groupCreatorUserPhotoURL = groupCreatorUserPhotoURL;
+        this.groupCreatorDisplayName = groupCreatorDisplayName;
         this.membersOfGroupIDS = membersOfGroupIDS;
     }
 
@@ -95,9 +102,6 @@ public class Group {
 
 
     }
-
-    //required for firestore to correctly link, not used by my program.
-
 
     public String getGroupID() {
         return groupID;
@@ -162,19 +166,6 @@ public class Group {
     public void setGroupLongitude(double groupLongitude) {
         this.groupLongitude = groupLongitude;
     }
-/*
-
-    public GeoPoint getGroupLocation() {
-        return groupLocation;
-    }
-
-
-    public void setGroupLocation(GeoPoint groupLocation) {
-        this.groupLocation = groupLocation;
-    }
-
-     */
-
 
     public String getGroupCreatorUserID() {
         return groupCreatorUserID;
@@ -182,6 +173,22 @@ public class Group {
 
     public void setGroupCreatorUserID(String groupCreatorUserID) {
         this.groupCreatorUserID = groupCreatorUserID;
+    }
+
+    public String getGroupCreatorUserPhotoURL() {
+        return groupCreatorUserPhotoURL;
+    }
+
+    public void setGroupCreatorUserPhotoURL(String groupCreatorUserPhotoURL) {
+        this.groupCreatorUserPhotoURL = groupCreatorUserPhotoURL;
+    }
+
+    public String getGroupCreatorDisplayName() {
+        return groupCreatorDisplayName;
+    }
+
+    public void setGroupCreatorDisplayName(String groupCreatorDisplayName) {
+        this.groupCreatorDisplayName = groupCreatorDisplayName;
     }
 
     public ArrayList<String> getMembersOfGroupIDS() {

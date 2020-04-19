@@ -3,11 +3,14 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:elevation="10dp">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+       >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -18,9 +21,10 @@
                 android:id="@+id/ProfilePhotoCV"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_weight="3"
+                android:elevation="5dp"
                 android:background="@drawable/dsg_circular_shape"
                 android:scaleType="centerCrop"
                 card_view:layout_constraintBottom_toTopOf="@+id/GroupPhotoCV"
@@ -30,12 +34,13 @@
 
             <TextView
                 android:id="@+id/GroupTitleCV"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="240dp"
+                android:layout_height="25dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginBottom="30dp"
                 android:layout_weight="1"
                 android:fontFamily="@font/roboto_bold"
+                android:singleLine="true"
                 android:text="Pre-drinks"
                 android:textColor="@color/colorPrimary"
                 android:textSize="18sp"
@@ -45,11 +50,12 @@
 
             <TextView
                 android:id="@+id/HostedByCV"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="240dp"
+                android:layout_height="20dp"
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:fontFamily="@font/roboto"
+                android:singleLine="true"
                 android:text="Hosted by Brook Wood"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
@@ -60,8 +66,8 @@
 
             <TextView
                 android:id="@+id/GroupDistanceCV"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="80dp"
+                android:layout_height="30dp"
                 android:layout_gravity="center"
                 android:layout_weight="3"
                 android:drawableStart="@drawable/svg_location_primary"
@@ -92,6 +98,7 @@
                 android:id="@+id/DescriptionTitleCV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
                 android:drawableStart="@drawable/svg_import_contacts_primary"
                 android:fontFamily="@font/roboto"
                 android:text="Description"
@@ -124,6 +131,7 @@
                 android:id="@+id/DateAndTimeCV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
                 android:drawableStart="@drawable/svg_date_primary"
                 android:fontFamily="@font/roboto"
                 android:text="Date &amp; Time"
@@ -138,6 +146,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_alignParentEnd="true"
+                android:layout_marginEnd="5dp"
                 android:background="@drawable/svg_forward_arrow_primary"
                 card_view:layout_constraintEnd_toEndOf="parent"
                 card_view:layout_constraintHorizontal_bias="1.0"
