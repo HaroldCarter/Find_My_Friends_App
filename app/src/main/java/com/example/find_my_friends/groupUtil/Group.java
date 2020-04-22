@@ -66,6 +66,17 @@ public class Group {
         }
     }
 
+    public void appendMember(String userUID){
+        if(this.membersOfGroupIDS == null) {
+            //if this is the first member of the group being added.
+            this.membersOfGroupIDS = new ArrayList<>();
+            this.membersOfGroupIDS.add(userUID);
+        }
+        else{
+            this.membersOfGroupIDS.add(userUID);
+        }
+    }
+
     public void appendMemberRequest(FirebaseUser user){
         if(this.requestedMemberIDS == null) {
             //if this is the first member of the group being added.
@@ -74,6 +85,17 @@ public class Group {
         }
         else{
             this.requestedMemberIDS.add(user.getUid());
+        }
+    }
+
+    public void appendMemberRequest(String userUID){
+        if(this.requestedMemberIDS == null) {
+            //if this is the first member of the group being added.
+            this.requestedMemberIDS = new ArrayList<>();
+            this.requestedMemberIDS.add(userUID);
+        }
+        else{
+            this.requestedMemberIDS.add(userUID);
         }
     }
 

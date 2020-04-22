@@ -18,14 +18,14 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapter.GroupOverviewHolder> {
+public class GroupRequestsOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupRequestsOverviewAdapter.GroupOverviewHolder> {
 
     private FirebaseFirestore db =  FirebaseFirestore.getInstance();
     private OnItemClickListener listener;
     //private GroupOverviewHolder groupOverviewHolder;
     //private Group group;
 
-    public MyGroupAdapter(@NonNull FirestoreRecyclerOptions<Group> options) {
+    public GroupRequestsOverviewAdapter(@NonNull FirestoreRecyclerOptions<Group> options) {
         super(options);
     }
 
@@ -36,9 +36,15 @@ public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapt
         Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
         Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
         holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
-        holder.groupDate.setText(model.getGroupMeetDate());
-        holder.groupTime.setText(model.getGroupMeetTime());
 
+        //might cause a crash because its an int, look at this line if there is a crash upon loading the group requests.
+
+        if(model.getRequestedMemberIDS() != null) {
+            holder.numberOfGroupRequests.setText(Integer.toString(model.getRequestedMemberIDS().toArray().length));
+        }else{
+            holder.numberOfGroupRequests.setText("0");
+        }
+        //ignore all warning related to locale type, it is a single number it can never be a fractional
 
     }
 
@@ -47,7 +53,7 @@ public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapt
     @NonNull
     @Override
     public GroupOverviewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_my_group, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_group_requests, parent, false);
         return new GroupOverviewHolder(v);
     }
 
@@ -57,30 +63,29 @@ public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapt
         TextView groupCreator;
         ImageView groupPhoto;
         ImageView groupCreatorPhoto;
-        Button moreDetailsBTN;
-        TextView groupDistance;
-        TextView groupDate;
-        TextView groupTime;
+        Button viewGroupRequestsBTN;
+        TextView numberOfGroupRequests;
+
+
 
 
 
 
         public GroupOverviewHolder(@NonNull View itemView) {
             super(itemView);
-            groupTitle = itemView.findViewById(R.id.GroupTitle_my_groupCV);
-            groupDesc = itemView.findViewById(R.id.GroupDescription_my_groupCV);
-            groupCreator = itemView.findViewById(R.id.HostedBy_my_groupCV);
-            groupPhoto = itemView.findViewById(R.id.GroupPhoto_my_groupCV);
-            groupCreatorPhoto = itemView.findViewById(R.id.ProfilePhoto_my_groupCV);
-            groupDistance = itemView.findViewById(R.id.GroupDistance_my_groupCV);
-            groupDate = itemView.findViewById(R.id.DateGroupTextview_my_groupCV);
-            groupTime = itemView.findViewById(R.id.TimeGroupTextView_my_groupCV);
-            moreDetailsBTN = itemView.findViewById(R.id.MoreDetailBTN_my_groupCV);
-            handleMoreDetailsBTN();
+            groupTitle = itemView.findViewById(R.id.group_request_cardview_title);
+            groupDesc = itemView.findViewById(R.id.group_request_cardview_group_description);
+            groupCreator = itemView.findViewById(R.id.group_request_cardview_hosted_by);
+            groupPhoto = itemView.findViewById(R.id.group_request_cardview_group_photo);
+            groupCreatorPhoto = itemView.findViewById(R.id.group_request_cardview_profile_photo);
+            numberOfGroupRequests = itemView.findViewById(R.id.group_request_cardview_number_of_Requests);
+
+            viewGroupRequestsBTN = itemView.findViewById(R.id.group_request_cardview_view_group_requestBTN);
+            handleViewGroupRequestsBTN();
         }
 
-        private void handleMoreDetailsBTN(){
-            moreDetailsBTN.setOnClickListener(new View.OnClickListener() {
+        private void handleViewGroupRequestsBTN(){
+            viewGroupRequestsBTN.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     //startActivity(new Intent(viewGroupRequestsBTN.getContext(), GroupDetailsActivity.class));

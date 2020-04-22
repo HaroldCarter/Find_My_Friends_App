@@ -91,7 +91,7 @@ public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupO
             moreDetailsBTN.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //startActivity(new Intent(moreDetailsBTN.getContext(), GroupDetailsActivity.class));
+                    //startActivity(new Intent(viewGroupRequestsBTN.getContext(), GroupDetailsActivity.class));
                     int position = getAdapterPosition();
                     //String groupID = getItem(position).getGroupID();
                     if(position != RecyclerView.NO_POSITION && listener != null){

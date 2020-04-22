@@ -82,11 +82,6 @@
     <string name="title_activity_search_groups">SearchGroupsActivity</string>
 
 
-
-
-
-
-
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
@@ -183,6 +178,11 @@
     <string name="group_details_members_title">Current Members</string>
     <string name="user_card_view_display_name">Harold Carter</string>
     <string name="user_card_view_email_address">HaroldCodyCarter@gmail.com</string>
-    <string name="cardview_my_group_button_text">Edit</string>>
+    <string name="cardview_my_group_button_text">Edit</string>
+    <string name="cardview_group_requests_view_requestsBTN">View Requests</string>
+
+
+    <string name="message_no_requests_ever">Wait for your first request</string>>
+    <string name="message_no_new_requests">No new group requests</string>>
 
 </resources>

@@ -26,6 +26,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -39,7 +40,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
@@ -150,10 +150,13 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
 
     public void updateUI(){
         groupCreatorTitle.setText(group.getGroupCreatorDisplayName());
+        //need to add email to the groups so that the group works.
         //groupCreatorEmail.setText(gro)
         groupTitle.setText(group.getGroupTitle());
         groupDesc.setText(group.getGroupDesc());
         groupDate.setText(group.getGroupMeetDate());
+
+
 
         groupTime.setText(group.getGroupMeetTime());
         groupLatLng = new LatLng(group.getGroupLatitude(), group.getGroupLongitude());
@@ -169,8 +172,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
             groupLocation.setText(addresses.getAddressLine(0));
         }catch(IOException e){
             Log.e(TAG, "onClick: Error when trying to get the address, no address provided");
-            addresses = null;
-            groupLocation.setText("no address set");
+            groupLocation.setText(("no address set"));
         }
 
     }
@@ -259,12 +261,26 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         requestToJoinBTN.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
     }
     private void setupRecyclerView(){
-        Query query = userRef.whereIn("uid", group.getMembersOfGroupIDS());
-        FirestoreRecyclerOptions<User> options = new FirestoreRecyclerOptions.Builder<User>().setQuery(query, User.class).build();
-        userAdapter = new UserAdapter(options);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(userAdapter);
-        userAdapter.startListening();
+        //get the logical query for all users, (doesn't download them, just a logical requirement).
+        Query searchQuery = userRef.orderBy("uid");
+        boolean matchFound = false;
+        //no need to override method and hide users if no user is found because a group will always have at-least one member.
+        for (String memberID: group.getMembersOfGroupIDS()
+             ) {
+            //might return nothing when there are two members in a group as this logically reduces the dataset each time we call it.
+               searchQuery =  userRef.whereEqualTo("uid", memberID);
+                matchFound = true;
+        }
+
+
+        if(matchFound) {
+            // Query query = userRef.whereIn("uid", group.getMembersOfGroupIDS());
+            FirestoreRecyclerOptions<User> options = new FirestoreRecyclerOptions.Builder<User>().setQuery(searchQuery, User.class).build();
+            userAdapter = new UserAdapter(options);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(userAdapter);
+            userAdapter.startListening();
+        }//otherwise don't load the recyler view at all as there has been a failure in the database.
 
 
     }
@@ -324,7 +340,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
         Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);

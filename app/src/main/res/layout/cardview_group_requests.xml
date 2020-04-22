@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="10dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+       >
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <ImageView
+                android:id="@+id/group_request_cardview_profile_photo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_weight="3"
+                android:elevation="5dp"
+                android:background="@drawable/dsg_circular_shape"
+                android:scaleType="centerCrop"
+                card_view:layout_constraintBottom_toTopOf="@+id/group_request_cardview_group_photo"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toTopOf="parent"
+                card_view:srcCompat="@drawable/default_image" />
+
+            <TextView
+                android:id="@+id/group_request_cardview_title"
+                android:layout_width="240dp"
+                android:layout_height="25dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="30dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto_bold"
+                android:singleLine="true"
+                android:text="Pre-drinks"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                card_view:layout_constraintBottom_toTopOf="@+id/group_request_cardview_group_photo"
+                card_view:layout_constraintStart_toEndOf="@+id/group_request_cardview_profile_photo"
+                card_view:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/group_request_cardview_hosted_by"
+                android:layout_width="240dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto"
+                android:singleLine="true"
+                android:text="Hosted by Brook Wood"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintBottom_toTopOf="@+id/group_request_cardview_group_photo"
+                card_view:layout_constraintStart_toEndOf="@+id/group_request_cardview_profile_photo"
+                card_view:layout_constraintTop_toBottomOf="@+id/group_request_cardview_title"
+                card_view:layout_constraintVertical_bias="0.0" />
+
+            <TextView
+                android:id="@+id/group_request_cardview_number_of_Requests"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:layout_weight="3"
+                android:drawableEnd="@drawable/svg_person_black"
+                android:fontFamily="@font/roboto"
+                android:text="0"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                card_view:layout_constraintBottom_toTopOf="@+id/group_request_cardview_group_photo"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintHorizontal_bias="1.0"
+                card_view:layout_constraintStart_toEndOf="@+id/group_request_cardview_hosted_by"
+                card_view:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/group_request_cardview_group_photo"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="10dp"
+                android:scaleType="centerCrop"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintHorizontal_bias="1.0"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/group_request_cardview_profile_photo"
+                card_view:srcCompat="@drawable/default_image"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/group_request_cardview_description_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:drawableStart="@drawable/svg_import_contacts_primary"
+                android:fontFamily="@font/roboto"
+                android:text="Description"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/group_request_cardview_group_photo" />
+
+            <TextView
+                android:id="@+id/group_request_cardview_group_description"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:fontFamily="@font/roboto"
+                android:text="Pre-drinks bring your own stuff, don't set fire to the cat and don't throw up on the couch"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/group_request_cardview_description_title" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"></LinearLayout>
+
+            <Button
+                android:id="@+id/group_request_cardview_view_group_requestBTN"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/dsg_textview_rounded_fill"
+                android:elevation="5dp"
+                android:fontFamily="@font/roboto_bold"
+                android:text="@string/cardview_group_requests_view_requestsBTN"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                card_view:layout_constraintBottom_toBottomOf="parent"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/group_request_cardview_group_description" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>
