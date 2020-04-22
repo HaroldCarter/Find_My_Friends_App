@@ -13,14 +13,21 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.recyclerAdapters.UserAdapter;
+import com.example.find_my_friends.userUtil.User;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.HashMap;
 
@@ -29,7 +36,10 @@ import static com.example.find_my_friends.util.Constants.FIND_FRIENDS_KEY;
 public class GroupRequestsFragment extends Fragment {
 
     private GroupRequestsViewModel groupRequestsViewModel;
-    private FirebaseFirestore db;
+    private UserAdapter userAdapter;
+    private RecyclerView recyclerView;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CollectionReference groupsRef = db.collection("Users");
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -66,24 +76,17 @@ public class GroupRequestsFragment extends Fragment {
             }
         });
 
-        testFunction();
         return root;
     }
 
+    private void setupRecyclerView(){
+        Query query = groupsRef.orderBy("username");
+        FirestoreRecyclerOptions<User> options = new FirestoreRecyclerOptions.Builder<User>().setQuery(query, User.class).build();
+        userAdapter = new UserAdapter(options);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        recyclerView.setAdapter(userAdapter);
 
-    private void testFunction(){
-        DocumentReference docRef = db.collection("Groups").document("e566561d-f6d7-47a3-8eb8-eeb2de1d3256");
-        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                //latlng crashes the app, its not saving it correct, being saved as a map.
-                //HashMap hashMap = (HashMap) documentSnapshot.get("groupLocation");
-                Group group = documentSnapshot.toObject(Group.class);
-                //ok the group downloads correctly therefore the issue is with the actual recyler view itself.
-
-                //group.
-            }
-        });
     }
+
 
 }

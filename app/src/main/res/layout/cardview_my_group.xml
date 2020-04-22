@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="10dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+       >
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <ImageView
+                android:id="@+id/ProfilePhoto_my_groupCV"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_weight="3"
+                android:elevation="5dp"
+                android:background="@drawable/dsg_circular_shape"
+                android:scaleType="centerCrop"
+                card_view:layout_constraintBottom_toTopOf="@+id/GroupPhoto_my_groupCV"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toTopOf="parent"
+                card_view:srcCompat="@drawable/default_image" />
+
+            <TextView
+                android:id="@+id/GroupTitle_my_groupCV"
+                android:layout_width="240dp"
+                android:layout_height="25dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="30dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto_bold"
+                android:singleLine="true"
+                android:text="Pre-drinks"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                card_view:layout_constraintBottom_toTopOf="@+id/GroupPhoto_my_groupCV"
+                card_view:layout_constraintStart_toEndOf="@+id/ProfilePhoto_my_groupCV"
+                card_view:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/HostedBy_my_groupCV"
+                android:layout_width="240dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto"
+                android:singleLine="true"
+                android:text="Hosted by Brook Wood"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintBottom_toTopOf="@+id/GroupPhoto_my_groupCV"
+                card_view:layout_constraintStart_toEndOf="@+id/ProfilePhoto_my_groupCV"
+                card_view:layout_constraintTop_toBottomOf="@+id/GroupTitle_my_groupCV"
+                card_view:layout_constraintVertical_bias="0.0" />
+
+            <TextView
+                android:id="@+id/GroupDistance_my_groupCV"
+                android:layout_width="80dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:layout_weight="3"
+                android:drawableStart="@drawable/svg_location_primary"
+                android:fontFamily="@font/roboto"
+                android:text="3.5 Miles"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintBottom_toTopOf="@+id/GroupPhoto_my_groupCV"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintHorizontal_bias="1.0"
+                card_view:layout_constraintStart_toEndOf="@+id/HostedBy_my_groupCV"
+                card_view:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/GroupPhoto_my_groupCV"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="10dp"
+                android:scaleType="centerCrop"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintHorizontal_bias="1.0"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/ProfilePhoto_my_groupCV"
+                card_view:srcCompat="@drawable/default_image"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/DescriptionTitle_my_groupCV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:drawableStart="@drawable/svg_import_contacts_primary"
+                android:fontFamily="@font/roboto"
+                android:text="Description"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/GroupPhoto_my_groupCV" />
+
+            <TextView
+                android:id="@+id/GroupDescription_my_groupCV"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:fontFamily="@font/roboto"
+                android:text="Pre-drinks bring your own stuff, don't set fire to the cat and don't throw up on the couch"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/DescriptionTitle_my_groupCV" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"></LinearLayout>
+
+            <TextView
+                android:id="@+id/DateAndTime_my_groupCV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:drawableStart="@drawable/svg_date_primary"
+                android:fontFamily="@font/roboto"
+                android:text="Date &amp; Time"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/GroupDescription_my_groupCV" />
+
+            <Button
+                android:id="@+id/MoreDetailBTN_my_groupCV"
+                android:layout_width="150dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/dsg_textview_rounded_fill"
+                android:fontFamily="@font/roboto_bold"
+                android:text="@string/cardview_my_group_button_text"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                card_view:layout_constraintBottom_toBottomOf="parent"
+                card_view:layout_constraintEnd_toEndOf="parent"
+                card_view:layout_constraintHorizontal_bias="0.75"
+                card_view:layout_constraintStart_toEndOf="@+id/TimeGroupTextView_my_groupCV"
+                card_view:layout_constraintTop_toBottomOf="@+id/GroupDescription_my_groupCV" />
+
+            <TextView
+                android:id="@+id/DateGroupTextview_my_groupCV"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto"
+                android:prompt="@string/date_prompt_AG"
+                android:text="17/05/2020"
+                android:textAlignment="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintStart_toStartOf="parent"
+                card_view:layout_constraintTop_toBottomOf="@+id/DateAndTime_my_groupCV" />
+
+            <TextView
+                android:id="@+id/TimeGroupTextView_my_groupCV"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/roboto"
+                android:prompt="@string/time_prompt_AG"
+                android:text="19:00"
+                android:textAlignment="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp"
+                card_view:layout_constraintStart_toEndOf="@+id/DateGroupTextview_my_groupCV"
+                card_view:layout_constraintTop_toBottomOf="@+id/DateAndTime_my_groupCV" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>

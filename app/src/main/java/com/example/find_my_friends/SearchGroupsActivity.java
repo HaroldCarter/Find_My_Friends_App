@@ -126,7 +126,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         groupOverviewAdapter.setOnItemClickListener(new GroupOverviewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
-               startActivity(new Intent(getApplicationContext(), GroupDetailsActivity.class));
+                Intent intent = new Intent(getApplicationContext(), GroupDetailsActivity.class);
+                intent.putExtra("documentID",documentSnapshot.getId());
+                startActivity(intent);
             }
         });
     }

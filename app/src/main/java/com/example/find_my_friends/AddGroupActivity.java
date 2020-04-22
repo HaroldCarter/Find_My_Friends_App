@@ -5,6 +5,7 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.icu.util.Calendar;
 import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,20 +26,25 @@ import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.example.find_my_friends.util.TimePickerFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.UUID;
 
 import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
@@ -62,6 +68,10 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private ImageView groupPhoto;
     private boolean uploadStatus = false;
     //private  mCompressor;
+
+    private DocumentReference docRef;
+    private Group group;
+    private LatLng groupLatLng = null;
 
 
     private FirebaseStorage storageRef;
@@ -105,6 +115,50 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         handleTimeSpinnerAG();
         handleAddLocationBTN();
         handleAddNewGroupBTN();
+        handleLoadingData();
+    }
+
+
+    public void handleLoadingData(){
+        String documentID =getIntent().getStringExtra("documentID");
+        if (documentID!= null){
+            this.docRef = db.collection("Groups").document(documentID);
+            docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    group = documentSnapshot.toObject(Group.class);
+                    updateUI();
+                }
+            });
+        }else{
+        }
+    }
+
+
+    public void updateUI(){
+        //groupCreatorTitle.setText(group.getGroupCreatorDisplayName());
+        //groupCreatorEmail.setText(gro)
+        addGroupButton.setText("Update group");
+        titleTextViewAG.setText(group.getGroupTitle());
+        desTextViewAG.setText(group.getGroupDesc());
+        dateSpinnerAG.setText(group.getGroupMeetDate());
+        timeSpinnerAG.setText(group.getGroupMeetTime());
+        groupLatLng = new LatLng(group.getGroupLatitude(), group.getGroupLongitude());
+
+        Glide.with(this).load(group.getGroupPhotoURI()).into(groupPhoto);
+
+        Address addresses ;
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        try {
+            addresses = geocoder.getFromLocation(groupLatLng.latitude, groupLatLng.longitude, 1).get(0);
+            addLocationButton.setText(addresses.getAddressLine(0));
+        }catch(IOException e){
+            Log.e(TAG, "onClick: Error when trying to get the address, no address provided");
+            addresses = null;
+            addLocationButton.setText("no address set");
+        }
+
     }
 
     private void loadPhoto() {
@@ -145,7 +199,11 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                         Toast.makeText(AddGroupActivity.this, "Photo uploaded",
                                 Toast.LENGTH_LONG).show();
                         Log.d(TAG, uri.toString());
-                        groupToAdd.setGroupPhotoURI(uri.toString());
+                        if(group == null){
+                            groupToAdd.setGroupPhotoURI(uri.toString());
+                        }else {
+                            group.setGroupPhotoURI(uri.toString());
+                        }
                         loadGroupPhoto();
                         uploadStatus = true;
                     }
@@ -161,7 +219,11 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
 
     private void loadGroupPhoto(){
         if(groupToAdd.getGroupPhotoURI() != null) {
-            Glide.with(this).load(groupToAdd.getGroupPhotoURI()).into(groupPhoto);
+            if(group == null) {
+                Glide.with(this).load(groupToAdd.getGroupPhotoURI()).into(groupPhoto);
+            }else{
+                Glide.with(this).load(group.getGroupPhotoURI()).into(groupPhoto);
+            }
         }
     }
 
@@ -184,8 +246,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 //double lat = data.getDoubleExtra("Lat", 0.0);
                 //double lng = data.getDoubleExtra("Lng", 0.0);
                 locationSet = true;
-                groupToAdd.setGroupLatitude(data.getDoubleExtra("Lat", 0.0));
-                groupToAdd.setGroupLongitude(data.getDoubleExtra("Lng", 0.0));
+                if(group == null) {
+                    groupToAdd.setGroupLatitude(data.getDoubleExtra("Lat", 0.0));
+                    groupToAdd.setGroupLongitude(data.getDoubleExtra("Lng", 0.0));
+                }else{
+                    group.setGroupLatitude(data.getDoubleExtra("Lat", 0.0));
+                    group.setGroupLongitude(data.getDoubleExtra("Lng", 0.0));
+
+                }
                // groupToAdd.setGroupLocation(new GeoPoint(lat, lng));
                 //maybe update the button text to show the nearest address?
                 Bundle args = data.getBundleExtra("BUNDLE");
@@ -251,7 +319,17 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         addLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(new Intent(getApplicationContext(), SetLocationActivity.class), RESULT_LOCATION_REQUEST);
+
+                Intent intent = new Intent(getApplicationContext(), SetLocationActivity.class);
+                if(group != null) {
+                    intent.putExtra("Lat", groupLatLng.latitude);
+                    intent.putExtra("Lng", groupLatLng.longitude);
+                    intent.putExtra("State", "true");
+                }else {
+                    intent.putExtra("State", "false");
+                }
+
+                startActivityForResult(intent, RESULT_LOCATION_REQUEST);
             }
         });
     }
@@ -261,48 +339,58 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
             @Override
             public void onClick(View v) {
                 //set the onscreen display to the data on
-                groupToAdd.setGroupID(UUID.randomUUID().toString());
-                groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
-                groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
-                //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
-                groupToAdd.appendMember(mUser);
+                if (group == null) {
+                    groupToAdd.setGroupID(UUID.randomUUID().toString());
+                    groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
+                    groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
+                    //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
+                    groupToAdd.appendMember(mUser);
 
 
-                if(!uploadStatus){
-                    Snackbar.make(addGroupButton, "Please wait for the photo to be uploaded", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-                else if(groupToAdd.getGroupPhotoURI() == null){
-                    Snackbar.make(addGroupButton, "Please upload a group Photo", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-
-                else if(!locationSet){
-                    Snackbar.make(addGroupPhotoFAB, "Please set a location of the group", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-
-                else if(groupToAdd.getGroupTitle().equals("")){
-                    Snackbar.make(addGroupPhotoFAB, "Please Give the group a title", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }else if(groupToAdd.getGroupDesc().equals("")){
-                    Snackbar.make(addGroupPhotoFAB, "Please Give the group a Description", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-                else{
-                    //add the group to the database.
-                    if(groupToAdd.uploadGroup(db))
-                    {
-                        finish();
-                    }else{
-                        Snackbar.make(addGroupPhotoFAB, "Creation of group failed, check data and try again.", Snackbar.LENGTH_LONG)
+                    if (!uploadStatus) {
+                        Snackbar.make(addGroupButton, "Please wait for the photo to be uploaded", Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
+                    } else if (groupToAdd.getGroupPhotoURI() == null) {
+                        Snackbar.make(addGroupButton, "Please upload a group Photo", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    } else if (!locationSet) {
+                        Snackbar.make(addGroupPhotoFAB, "Please set a location of the group", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    } else if (groupToAdd.getGroupTitle().equals("")) {
+                        Snackbar.make(addGroupPhotoFAB, "Please Give the group a title", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    } else if (groupToAdd.getGroupDesc().equals("")) {
+                        Snackbar.make(addGroupPhotoFAB, "Please Give the group a Description", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    } else {
+                        //add the group to the database.
+                        if (groupToAdd.uploadGroup(db)) {
+                            finish();
+                        } else {
+                            Snackbar.make(addGroupPhotoFAB, "Creation of group failed, check data and try again.", Snackbar.LENGTH_LONG)
+                                    .setAction("Action", null).show();
+                        }
+
                     }
 
+
+                }else{
+                    if (!uploadStatus) {
+                        Snackbar.make(addGroupButton, "Please wait for the photo to be uploaded", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }else {
+                        group.setGroupDesc(desTextViewAG.getText().toString());
+                        group.setGroupTitle(titleTextViewAG.getText().toString());
+                        docRef.update("groupPhotoURI", group.getGroupPhotoURI());
+                        docRef.update("groupTitle", group.getGroupTitle());
+                        docRef.update("groupDesc", group.getGroupDesc());
+                        docRef.update("groupLatitude", group.getGroupLatitude());
+                        docRef.update("groupLongitude", group.getGroupLongitude());
+                        docRef.update("groupMeetDate", group.getGroupMeetDate());
+                        docRef.update("groupMeetTime", group.getGroupMeetTime());
+                        finish();
+                    }
                 }
-
-
-
             }
         });
     }
@@ -332,7 +420,11 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         calendar.set(Calendar.MONTH, month);
         calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         String setDate = DateFormat.getDateInstance().format(calendar.getTime());
-        groupToAdd.setGroupMeetDate(setDate);
+        if(group == null) {
+            groupToAdd.setGroupMeetDate(setDate);
+        }else{
+            group.setGroupMeetDate(setDate);
+        }
         dateSpinnerAG.setText(setDate);
     }
 
@@ -346,7 +438,11 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
             setTime = hourOfDay + ":" + minute;
         }
 
-        groupToAdd.setGroupMeetTime(setTime);
+        if(group == null) {
+            groupToAdd.setGroupMeetTime(setTime);
+        }else{
+            group.setGroupMeetTime(setTime);
+        }
         timeSpinnerAG.setText(setTime);
     }
 }

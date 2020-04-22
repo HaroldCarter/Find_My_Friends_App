@@ -12,9 +12,9 @@ public class User {
 
     public User(String UID, String userEmailAddress, String userPhotoURL, String username) {
         this.UID = UID;
-        UserEmailAddress = userEmailAddress;
-        UserPhotoURL = userPhotoURL;
-        Username = username;
+        this.UserEmailAddress = userEmailAddress;
+        this.UserPhotoURL = userPhotoURL;
+        this.Username = username;
 
     }
 

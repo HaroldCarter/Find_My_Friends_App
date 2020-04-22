@@ -32,9 +32,10 @@ public class Group {
 
 
     private ArrayList<String> membersOfGroupIDS;
+    private ArrayList<String> requestedMemberIDS;
 
 
-    public Group(String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS) {
+    public Group(String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS, ArrayList<String> requestedMemberIDS) {
         this.groupID = groupID;
         this.groupPhotoURI = groupPhotoURI;
         this.groupTitle = groupTitle;
@@ -47,6 +48,7 @@ public class Group {
         this.groupCreatorUserPhotoURL = groupCreatorUserPhotoURL;
         this.groupCreatorDisplayName = groupCreatorDisplayName;
         this.membersOfGroupIDS = membersOfGroupIDS;
+        this.requestedMemberIDS = requestedMemberIDS;
     }
 
     public Group(){
@@ -63,6 +65,18 @@ public class Group {
             this.membersOfGroupIDS.add(user.getUid());
         }
     }
+
+    public void appendMemberRequest(FirebaseUser user){
+        if(this.requestedMemberIDS == null) {
+            //if this is the first member of the group being added.
+            this.requestedMemberIDS = new ArrayList<>();
+            this.requestedMemberIDS.add(user.getUid());
+        }
+        else{
+            this.requestedMemberIDS.add(user.getUid());
+        }
+    }
+
 
 
     //for removing a user from a group
@@ -105,6 +119,14 @@ public class Group {
 
     public String getGroupID() {
         return groupID;
+    }
+
+    public ArrayList<String> getRequestedMemberIDS() {
+        return requestedMemberIDS;
+    }
+
+    public void setRequestedMemberIDS(ArrayList<String> requestedMemberIDS) {
+        this.requestedMemberIDS = requestedMemberIDS;
     }
 
     public void setGroupID(String groupID) {

@@ -181,5 +181,8 @@
     <string name="date_filter_default_textSG">any date</string>
     <string name="time_filter_default_textSG">any time</string>
     <string name="group_details_members_title">Current Members</string>
+    <string name="user_card_view_display_name">Harold Carter</string>
+    <string name="user_card_view_email_address">HaroldCodyCarter@gmail.com</string>
+    <string name="cardview_my_group_button_text">Edit</string>>
 
 </resources>

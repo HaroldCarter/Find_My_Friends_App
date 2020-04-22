@@ -1,5 +1,6 @@
 package com.example.find_my_friends.ui.my_groups;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,10 +14,13 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.find_my_friends.AddGroupActivity;
+import com.example.find_my_friends.GroupDetailsActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
+import com.example.find_my_friends.recyclerAdapters.MyGroupAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,10 +29,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.Query;
-
-import java.util.HashMap;
 
 import static com.example.find_my_friends.util.Constants.FIND_FRIENDS_KEY;
 
@@ -39,7 +40,7 @@ public class MyGroupsFragment extends Fragment {
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     private FirebaseUser mUser = mAuth.getCurrentUser();
     private CollectionReference groupsRef;
-    private GroupOverviewAdapter groupOverviewAdapter;
+    private MyGroupAdapter myGroupAdapter;
     private LinearLayoutManager linearLayoutManager;
 
 
@@ -100,9 +101,19 @@ public class MyGroupsFragment extends Fragment {
     private void setupRecyclerView(){
         Query query = groupsRef.whereEqualTo("groupCreatorUserID", mUser.getUid());
         FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
-        groupOverviewAdapter = new GroupOverviewAdapter(options);
+        myGroupAdapter = new MyGroupAdapter(options);
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(groupOverviewAdapter);
+        recyclerView.setAdapter(myGroupAdapter);
+
+
+        myGroupAdapter.setOnItemClickListener(new MyGroupAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
+                Intent intent = new Intent(getContext(), AddGroupActivity.class);
+                intent.putExtra("documentID",documentSnapshot.getId());
+                startActivity(intent);
+            }
+        });
 
     }
 
@@ -110,12 +121,12 @@ public class MyGroupsFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        groupOverviewAdapter.startListening();
+        myGroupAdapter.startListening();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        groupOverviewAdapter.stopListening();
+        myGroupAdapter.stopListening();
     }
 }
