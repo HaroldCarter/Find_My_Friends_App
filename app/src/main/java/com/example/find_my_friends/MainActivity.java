@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.navigation.NavController;
@@ -12,9 +13,14 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
+import com.example.find_my_friends.userUtil.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -29,6 +35,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.net.Uri;
 
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.Constants.currentUserDocument;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -41,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView profilePhoto;
     private TextView usernameTextview;
     private TextView emailTextview;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +60,19 @@ public class MainActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
 
+        db.collection("Users").document(firebaseUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                currentUserDocument = task.getResult();
+                if(currentUserDocument != null) {
+                    currentUser = currentUserDocument.toObject(User.class);
+                }
+            }
+        });
 
 
 
-
-        drawer = findViewById(R.id.drawer_layout);
+                drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         logoutButton = findViewById(R.id.logOutButton);
         // Passing each menu ID as a set of Ids because each

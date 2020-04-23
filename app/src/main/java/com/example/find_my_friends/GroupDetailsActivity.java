@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 public class GroupDetailsActivity extends AppCompatActivity implements OnMapReadyCallback {
     private MapView mapView;
@@ -235,11 +236,13 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         }
         if(group.getMembersOfGroupIDS() != null){
             group.getMembersOfGroupIDS().remove(user.getUid());
+            currentUser.removeMembership(group.getGroupID());
             Snackbar.make(requestToJoinBTN, "Group Left", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
         if(group.getRequestedMemberIDS() != null){
             group.getRequestedMemberIDS().remove(user.getUid());
+            currentUser.removeRequestedMembership(group.getGroupID());
             Snackbar.make(requestToJoinBTN, "Group request cancelled", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
@@ -252,6 +255,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
     private void requestToJoinGroup(){
         if(!getCurrentUserGroupMember()){
             group.appendMemberRequest(user);
+            //currentUser.appendRequestedMembership(group.getGroupID());
             docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
         }
     }
@@ -262,25 +266,13 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
     }
     private void setupRecyclerView(){
         //get the logical query for all users, (doesn't download them, just a logical requirement).
-        Query searchQuery = userRef.orderBy("uid");
-        boolean matchFound = false;
-        //no need to override method and hide users if no user is found because a group will always have at-least one member.
-        for (String memberID: group.getMembersOfGroupIDS()
-             ) {
-            //might return nothing when there are two members in a group as this logically reduces the dataset each time we call it.
-               searchQuery =  userRef.whereEqualTo("uid", memberID);
-                matchFound = true;
-        }
-
-
-        if(matchFound) {
-            // Query query = userRef.whereIn("uid", group.getMembersOfGroupIDS());
-            FirestoreRecyclerOptions<User> options = new FirestoreRecyclerOptions.Builder<User>().setQuery(searchQuery, User.class).build();
-            userAdapter = new UserAdapter(options);
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setAdapter(userAdapter);
-            userAdapter.startListening();
-        }//otherwise don't load the recyler view at all as there has been a failure in the database.
+        Query searchQuery =  userRef.whereIn("uid",  group.getMembersOfGroupIDS());
+        // Query query = userRef.whereIn("uid", group.getMembersOfGroupIDS());
+        FirestoreRecyclerOptions<User> options = new FirestoreRecyclerOptions.Builder<User>().setQuery(searchQuery, User.class).build();
+        userAdapter = new UserAdapter(options);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(userAdapter);
+        userAdapter.startListening();
 
 
     }

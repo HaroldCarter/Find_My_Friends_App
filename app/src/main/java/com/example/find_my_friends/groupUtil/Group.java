@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
@@ -12,6 +13,8 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 
 public class Group {
@@ -60,6 +63,7 @@ public class Group {
             //if this is the first member of the group being added.
             this.membersOfGroupIDS = new ArrayList<>();
             this.membersOfGroupIDS.add(user.getUid());
+            currentUser.appendMembership(this.groupID);
         }
         else{
             this.membersOfGroupIDS.add(user.getUid());
@@ -71,9 +75,24 @@ public class Group {
             //if this is the first member of the group being added.
             this.membersOfGroupIDS = new ArrayList<>();
             this.membersOfGroupIDS.add(userUID);
+            currentUser.appendMembership(this.groupID);
         }
         else{
             this.membersOfGroupIDS.add(userUID);
+            currentUser.appendMembership(this.groupID);
+        }
+    }
+
+    public void appendMemberGroupOnly(String userUID){
+        if(this.membersOfGroupIDS == null) {
+            //if this is the first member of the group being added.
+            this.membersOfGroupIDS = new ArrayList<>();
+            this.membersOfGroupIDS.add(userUID);
+
+        }
+        else{
+            this.membersOfGroupIDS.add(userUID);
+
         }
     }
 
@@ -82,9 +101,11 @@ public class Group {
             //if this is the first member of the group being added.
             this.requestedMemberIDS = new ArrayList<>();
             this.requestedMemberIDS.add(user.getUid());
+            currentUser.appendRequestedMembership(this.groupID);
         }
         else{
             this.requestedMemberIDS.add(user.getUid());
+            currentUser.appendRequestedMembership(this.groupID);
         }
     }
 
@@ -93,11 +114,27 @@ public class Group {
             //if this is the first member of the group being added.
             this.requestedMemberIDS = new ArrayList<>();
             this.requestedMemberIDS.add(userUID);
+            currentUser.appendRequestedMembership(this.groupID);
         }
         else{
             this.requestedMemberIDS.add(userUID);
+            currentUser.appendRequestedMembership(this.groupID);
         }
     }
+
+    public void appendMemberRequestGroupOnly(String userUID){
+        if(this.requestedMemberIDS == null) {
+            //if this is the first member of the group being added.
+            this.requestedMemberIDS = new ArrayList<>();
+            this.requestedMemberIDS.add(userUID);
+
+        }
+        else{
+            this.requestedMemberIDS.add(userUID);
+
+        }
+    }
+
 
 
 

@@ -25,6 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 import static com.example.find_my_friends.util.Constants.FIND_FRIENDS_KEY;
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 public class GroupRequestsActivity extends AppCompatActivity {
 
@@ -121,42 +122,77 @@ public class GroupRequestsActivity extends AppCompatActivity {
                 userAdapter.startListening();
 
 
-                userAdapter.setConfrimOnItemClickListener(new UserGroupRequestsAdapter.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(DocumentSnapshot documentSnapshot, int position, View view) {
-                        String userUID = (String)documentSnapshot.get("uid");
-                        if(userUID != null && group != null){
-                            //if the conditions are valid
-                            group.appendMember(userUID);
-                            Snackbar.make(recyclerView, "Member Added to group", Snackbar.LENGTH_LONG)
-                                    .setAction("Action", null).show();
-                            docRef.update("membersOfGroupIDS", group.getMembersOfGroupIDS());
-                        }
-                        if( group != null && group.getRequestedMemberIDS() != null && (userUID != null)){
-                            group.getRequestedMemberIDS().remove(userUID);
-                            docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
-                            view.setVisibility(View.GONE);
-                        }
-                    }
-                });
 
-                userAdapter.setDenyOnItemClickListener(new UserGroupRequestsAdapter.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(DocumentSnapshot documentSnapshot, int position, View view) {
-                        String userUID = (String)documentSnapshot.get("uid");
-                        if( group != null && group.getRequestedMemberIDS() != null && (userUID != null)){
-                            group.getRequestedMemberIDS().remove(userUID);
-                            Snackbar.make(recyclerView, "Group request Removed", Snackbar.LENGTH_LONG)
-                                    .setAction("Action", null).show();
-                            docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
-                            view.setVisibility(View.GONE);
-                        }
+                handleConfirmOnclick();
+                handleDenyOnclick();
 
-                    }
-                });
             }
         }
 
+    }
+
+    private void handleConfirmOnclick(){
+        userAdapter.setConfrimOnItemClickListener(new UserGroupRequestsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(DocumentSnapshot documentSnapshot, int position, View view) {
+                if(group != null && group.getMembersOfGroupIDS().toArray().length >= 10){
+                    Snackbar.make(recyclerView, "this Group is already full", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    return;
+                }
+
+                String userUID = (String)documentSnapshot.get("uid");
+
+                //add the user to the group.
+                if(userUID != null && group != null){
+                    //if the conditions are valid
+                    group.appendMemberGroupOnly(userUID);
+                    User userSnap = documentSnapshot.toObject(User.class);
+                    if(userSnap != null){
+                        userSnap.appendMembership(group.getGroupID(), documentSnapshot);
+                    }
+                    docRef.update("membersOfGroupIDS", group.getMembersOfGroupIDS());
+                    Snackbar.make(recyclerView, "Member Added to group", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+
+                }
+                //remove the group request
+                if( group != null && group.getRequestedMemberIDS() != null && (userUID != null)){
+                    group.getRequestedMemberIDS().remove(userUID);
+                    //currentUser.removeRequestedMembership(group.getGroupID());
+                    User userSnap = documentSnapshot.toObject(User.class);
+                    if(userSnap != null){
+                        userSnap.removeMembershipRequest(group.getGroupID(), documentSnapshot);
+
+                    }
+
+                    docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
+                    view.setVisibility(View.GONE);
+                }
+            }
+        });
+    }
+
+    private void handleDenyOnclick(){
+        userAdapter.setDenyOnItemClickListener(new UserGroupRequestsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(DocumentSnapshot documentSnapshot, int position, View view) {
+                String userUID = (String)documentSnapshot.get("uid");
+                if( group != null && group.getRequestedMemberIDS() != null && (userUID != null)){
+                    group.getRequestedMemberIDS().remove(userUID);
+                    //currentUser.removeRequestedMembership(group.getGroupID());
+                    Snackbar.make(recyclerView, "Group request Removed", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
+                    view.setVisibility(View.GONE);
+                    User userSnap = documentSnapshot.toObject(User.class);
+                    if(userSnap != null){
+                        userSnap.removeMembershipRequest(group.getGroupID(), documentSnapshot);
+                    }
+                }
+
+            }
+        });
     }
 
 

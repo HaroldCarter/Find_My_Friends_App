@@ -1,5 +1,8 @@
 package com.example.find_my_friends.util;
 
+import com.example.find_my_friends.userUtil.User;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 public class Constants {
     public static final String FIND_FRIENDS_KEY = "Find my friends application";
     public static final String MAPVIEW_BUNDLE_KEY = "GroupDetailsMapViewKey";
@@ -10,5 +13,7 @@ public class Constants {
     public int GPS_UPDATE_RATE = 10000;
     public static final int RESULT_LOADED_IMAGE = 1;
     public static final int RESULT_LOCATION_REQUEST = 2;
+    public static User currentUser;
+    public static DocumentSnapshot currentUserDocument;
 
 }

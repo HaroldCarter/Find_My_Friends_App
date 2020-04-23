@@ -128,6 +128,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     group = documentSnapshot.toObject(Group.class);
                     updateUI();
+                    uploadStatus = true;
+                    //stops errors regarding the button not allowing to update because the app things its uploading a photo.
                 }
             });
         }else{

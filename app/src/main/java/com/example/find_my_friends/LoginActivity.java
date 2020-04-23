@@ -16,6 +16,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.Constants.currentUserDocument;
 
 
 /**
@@ -36,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         if(mAuth.getCurrentUser() != null){
+
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }
 
