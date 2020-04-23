@@ -39,7 +39,6 @@ public class GroupRequestsActivity extends AppCompatActivity {
     private Toolbar toolbar;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,10 +53,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
         toolbar.setTitle("Group Requests");
 
 
-
-
         this.setActionBar(toolbar);
-
 
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -72,9 +68,9 @@ public class GroupRequestsActivity extends AppCompatActivity {
     }
 
 
-    public void handleLoadingData(){
+    public void handleLoadingData() {
         String documentID = getIntent().getStringExtra("documentID");
-        if (documentID!= null){
+        if (documentID != null) {
             this.docRef = db.collection("Groups").document(documentID);
             docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
@@ -88,23 +84,20 @@ public class GroupRequestsActivity extends AppCompatActivity {
     }
 
 
-
-
-    private void setupRecyclerView(){
+    private void setupRecyclerView() {
         //get the logical query for all users, (doesn't download them, just a logical requirement).
         Query searchQuery = userRef.orderBy("uid");
         boolean matchFound = false;
         //no need to override method and hide users if no user is found because a group will always have at-least one member.
-        if (group.getRequestedMemberIDS() == null ) {
+        if (group.getRequestedMemberIDS() == null) {
             messageToUserTextview.setText(R.string.message_no_new_requests);
             messageToUserTextview.setVisibility(View.VISIBLE);
 
         }
-        if(group.getRequestedMemberIDS().toArray().length == 0){
+        if (group.getRequestedMemberIDS().toArray().length == 0) {
             messageToUserTextview.setText(R.string.message_no_new_requests);
             messageToUserTextview.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             for (String memberID : group.getRequestedMemberIDS()
             ) {
                 //might return nothing when there are two members in a group as this logically reduces the dataset each time we call it.
@@ -122,7 +115,6 @@ public class GroupRequestsActivity extends AppCompatActivity {
                 userAdapter.startListening();
 
 
-
                 handleConfirmOnclick();
                 handleDenyOnclick();
 
@@ -131,24 +123,24 @@ public class GroupRequestsActivity extends AppCompatActivity {
 
     }
 
-    private void handleConfirmOnclick(){
+    private void handleConfirmOnclick() {
         userAdapter.setConfrimOnItemClickListener(new UserGroupRequestsAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(DocumentSnapshot documentSnapshot, int position, View view) {
-                if(group != null && group.getMembersOfGroupIDS().toArray().length >= 10){
+                if (group != null && group.getMembersOfGroupIDS().toArray().length >= 10) {
                     Snackbar.make(recyclerView, "this Group is already full", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                     return;
                 }
 
-                String userUID = (String)documentSnapshot.get("uid");
+                String userUID = (String) documentSnapshot.get("uid");
 
                 //add the user to the group.
-                if(userUID != null && group != null){
+                if (userUID != null && group != null) {
                     //if the conditions are valid
                     group.appendMemberGroupOnly(userUID);
                     User userSnap = documentSnapshot.toObject(User.class);
-                    if(userSnap != null){
+                    if (userSnap != null) {
                         userSnap.appendMembership(group.getGroupID(), documentSnapshot);
                     }
                     docRef.update("membersOfGroupIDS", group.getMembersOfGroupIDS());
@@ -157,11 +149,11 @@ public class GroupRequestsActivity extends AppCompatActivity {
 
                 }
                 //remove the group request
-                if( group != null && group.getRequestedMemberIDS() != null && (userUID != null)){
+                if (group != null && group.getRequestedMemberIDS() != null && (userUID != null)) {
                     group.getRequestedMemberIDS().remove(userUID);
                     //currentUser.removeRequestedMembership(group.getGroupID());
                     User userSnap = documentSnapshot.toObject(User.class);
-                    if(userSnap != null){
+                    if (userSnap != null) {
                         userSnap.removeMembershipRequest(group.getGroupID(), documentSnapshot);
 
                     }
@@ -173,12 +165,12 @@ public class GroupRequestsActivity extends AppCompatActivity {
         });
     }
 
-    private void handleDenyOnclick(){
+    private void handleDenyOnclick() {
         userAdapter.setDenyOnItemClickListener(new UserGroupRequestsAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(DocumentSnapshot documentSnapshot, int position, View view) {
-                String userUID = (String)documentSnapshot.get("uid");
-                if( group != null && group.getRequestedMemberIDS() != null && (userUID != null)){
+                String userUID = (String) documentSnapshot.get("uid");
+                if (group != null && group.getRequestedMemberIDS() != null && (userUID != null)) {
                     group.getRequestedMemberIDS().remove(userUID);
                     //currentUser.removeRequestedMembership(group.getGroupID());
                     Snackbar.make(recyclerView, "Group request Removed", Snackbar.LENGTH_LONG)
@@ -186,7 +178,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
                     docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
                     view.setVisibility(View.GONE);
                     User userSnap = documentSnapshot.toObject(User.class);
-                    if(userSnap != null){
+                    if (userSnap != null) {
                         userSnap.removeMembershipRequest(group.getGroupID(), documentSnapshot);
                     }
                 }
@@ -199,7 +191,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(userAdapter != null){
+        if (userAdapter != null) {
             userAdapter.startListening();
         }
 
@@ -210,7 +202,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if(userAdapter != null) {
+        if (userAdapter != null) {
             userAdapter.stopListening();
         }
     }
