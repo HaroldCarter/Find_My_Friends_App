@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
 
     <com.google.android.gms.maps.MapView
         android:layout_width="match_parent"
@@ -52,16 +53,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="35dp"
         app:srcCompat="@drawable/svg_add_white" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/mode_of_transport_fab_map_overview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/svg_walk_icon_white" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/floating_action_menu_map_overview"
@@ -69,31 +63,42 @@
         android:layout_height="220dp"
         android:layout_gravity="bottom|start"
         android:layout_marginStart="4dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="25dp"
         android:background="@drawable/dsg_textview_rounded_trans">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/mode_of_transport_fab_map_overview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/svg_walk_icon_white" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/action_menu_FAB1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="75dp"
             android:clickable="true"
             android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/mode_of_transport_fab_map_overview"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/action_menu_FAB2"
             app:srcCompat="@drawable/svg_bike_white" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/action_menu_FAB2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:layout_marginTop="10dp"
             android:clickable="true"
             android:visibility="visible"
-            app:layout_constraintBottom_toTopOf="@+id/action_menu_FAB1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/svg_car_white" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 

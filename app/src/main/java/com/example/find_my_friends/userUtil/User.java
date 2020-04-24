@@ -2,6 +2,7 @@ package com.example.find_my_friends.userUtil;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -18,6 +19,9 @@ public class User {
     private String UserEmailAddress;
     private String UserPhotoURL;
     private String Username;
+   // private String UserLat;
+   // private String UserLong;
+
 
 
     //should be used so a user can see their out going requests and memberships.
@@ -28,6 +32,31 @@ public class User {
 
     public User() {
     }
+/*
+    public void setLocationCurrentUser(LatLng latLng){
+        currentUser.setUserLat(Double.toString(latLng.latitude));
+        currentUser.setUserLong(Double.toString((latLng.longitude)));
+        currentUserDocument.getReference().update("UserLat", currentUser.UserLat);
+        currentUserDocument.getReference().update("UserLong", currentUser.UserLat);
+    }
+
+    public String getUserLat() {
+        return UserLat;
+    }
+
+    public void setUserLat(String userLat) {
+        UserLat = userLat;
+    }
+
+    public String getUserLong() {
+        return UserLong;
+    }
+
+    public void setUserLong(String userLong) {
+        UserLong = userLong;
+    }
+
+ */
 
     public ArrayList<String> getUsersMemberships() {
         return usersMemberships;

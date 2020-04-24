@@ -379,14 +379,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     private void hideMenu() {
         actionMenuFAB1.hide();
         actionMenuFAB2.hide();
-        floatingMenuBackground.setVisibility(View.INVISIBLE);
+        floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.dsg_textview_rounded_fully_trans));
+
         modeTransportMenuVisibility = false;
     }
 
     private void showMenu() {
         actionMenuFAB1.show();
         actionMenuFAB2.show();
-        floatingMenuBackground.setVisibility(View.VISIBLE);
+        floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.dsg_textview_rounded_trans));
         modeTransportMenuVisibility = true;
     }
 }

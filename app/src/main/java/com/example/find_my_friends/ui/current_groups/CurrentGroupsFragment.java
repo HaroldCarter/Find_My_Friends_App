@@ -53,8 +53,6 @@ public class CurrentGroupsFragment extends Fragment {
         Toolbar toolbar = root.findViewById(R.id.current_groups_menubar);
 
 
-       // getActivity().getActionBar().setIcon(R.drawable.svg_menu_primary);
-       // getActivity().getActionBar().setTitle("Current Groups");
 
         //setting the generic toolbars settings.
         toolbar.setNavigationIcon(R.drawable.svg_menu_primary);
@@ -76,15 +74,11 @@ public class CurrentGroupsFragment extends Fragment {
                 ((MainActivity) getActivity()).openDrawer();
             }
         });
-        //
 
-        //
 
 
         recyclerView = root.findViewById(R.id.current_groups_recycler);
         setupRecyclerView();
-
-        //((AppCompatActivity) getActivity()).getSupportActionBar().setSubtitle("banana");
 
         return root;
     }
