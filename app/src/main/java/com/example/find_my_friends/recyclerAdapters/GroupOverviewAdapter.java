@@ -24,10 +24,15 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointKM;
+
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupOverviewAdapter.GroupOverviewHolder> {
-
+    //private User User = currentUser;
     private FirebaseFirestore db =  FirebaseFirestore.getInstance();
     private OnItemClickListener listener;
     //private GroupOverviewHolder groupOverviewHolder;
@@ -46,7 +51,9 @@ public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupO
         holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
         holder.groupDate.setText(model.getGroupMeetDate());
         holder.groupTime.setText(model.getGroupMeetTime());
-
+        BigDecimal distance = new BigDecimal(distanceBetweenTwoPointKM(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude()));
+        distance = distance.round(new MathContext(2));
+        holder.groupDistance.setText( (distance + "KM"));
 
     }
 

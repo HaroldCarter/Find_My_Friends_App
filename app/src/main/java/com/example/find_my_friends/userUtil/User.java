@@ -1,13 +1,9 @@
 package com.example.find_my_friends.userUtil;
 
-import androidx.annotation.NonNull;
+
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.ArrayList;
 
 import static com.example.find_my_friends.util.Constants.currentUser;
@@ -19,8 +15,9 @@ public class User {
     private String UserEmailAddress;
     private String UserPhotoURL;
     private String Username;
-   // private String UserLat;
-   // private String UserLong;
+    private double UserLat;
+    private double UserLong;
+    private Boolean UserLocationUpToDate;
 
 
 
@@ -28,35 +25,61 @@ public class User {
     private ArrayList<String> usersMemberships;
     private ArrayList<String> usersRequestsMemberships;
     private String modeOfTransport = "Person";
+    //would implemented an enumerated interface however firestore really doesn't like that.
     //should store the mode of transport here, so that we know what time estimates to give.
 
     public User() {
     }
-/*
-    public void setLocationCurrentUser(LatLng latLng){
-        currentUser.setUserLat(Double.toString(latLng.latitude));
-        currentUser.setUserLong(Double.toString((latLng.longitude)));
-        currentUserDocument.getReference().update("UserLat", currentUser.UserLat);
-        currentUserDocument.getReference().update("UserLong", currentUser.UserLat);
+
+    public LatLng getUserLocation(){
+        return new LatLng(this.UserLat, this.getUserLong());
     }
 
-    public String getUserLat() {
+
+
+    public Boolean getUserLocationUpToDate() {
+        return UserLocationUpToDate;
+    }
+
+    public void setUserLocationUpToDate(Boolean userLocationUpToDate) {
+        UserLocationUpToDate = userLocationUpToDate;
+    }
+
+    public void setCurrentUserLocationUpToDate(Boolean userLocationUpToDate) {
+        currentUser.setUserLocationUpToDate(userLocationUpToDate);
+        currentUserDocument.getReference().update("UserLocationUpToDate", currentUser.getUserLocationUpToDate());
+    }
+
+    public void setLocationCurrentUser(LatLng latLng){
+        currentUser.setUserLat(latLng.latitude);
+        currentUser.setUserLong((latLng.longitude));
+        currentUserDocument.getReference().update("UserLat", currentUser.UserLat);
+        currentUserDocument.getReference().update("UserLong", currentUser.UserLong);
+    }
+
+    public void setLocationCurrentUser(double lat, double lng){
+        currentUser.setUserLat(lat);
+        currentUser.setUserLong((lng));
+        currentUserDocument.getReference().update("UserLat", currentUser.UserLat);
+        currentUserDocument.getReference().update("UserLong", currentUser.UserLong);
+    }
+
+
+    public double getUserLat() {
         return UserLat;
     }
 
-    public void setUserLat(String userLat) {
+    public void setUserLat(double userLat) {
         UserLat = userLat;
     }
 
-    public String getUserLong() {
+    public double getUserLong() {
         return UserLong;
     }
 
-    public void setUserLong(String userLong) {
+    public void setUserLong(double userLong) {
         UserLong = userLong;
     }
-
- */
 
     public ArrayList<String> getUsersMemberships() {
         return usersMemberships;
@@ -80,6 +103,11 @@ public class User {
 
     public void setModeOfTransport(String modeOfTransport) {
         this.modeOfTransport = modeOfTransport;
+    }
+
+    public void setModeOfTransportCurrentUser(String modeOfTransport){
+        currentUser.setModeOfTransport(modeOfTransport);
+        currentUserDocument.getReference().update("modeOfTransport", currentUser.getModeOfTransport());
     }
 
 

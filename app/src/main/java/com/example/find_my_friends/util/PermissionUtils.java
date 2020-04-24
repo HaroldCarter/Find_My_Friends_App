@@ -15,6 +15,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import static com.example.find_my_friends.util.Constants.LOCATION_BACKGROUND_PERMISSION_REQUEST_CODE;
 import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
 
@@ -34,6 +35,22 @@ public class PermissionUtils {
             }
         }
     }
+
+
+    public static void requestLocationBackgroundPermission(Activity activity) {
+        if (!hasPermission(activity ,Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+            if (shouldShowRational(activity, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                Toast.makeText(activity, "Background location is required to get your location for the map", Toast.LENGTH_SHORT)
+                        .show();
+                ActivityCompat.requestPermissions(activity, new String[] { Manifest.permission.ACCESS_BACKGROUND_LOCATION },
+                        LOCATION_BACKGROUND_PERMISSION_REQUEST_CODE);
+            } else {
+                ActivityCompat.requestPermissions(activity, new String[] { Manifest.permission.ACCESS_BACKGROUND_LOCATION },
+                        LOCATION_BACKGROUND_PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
 
     public static void requestReadExternalPermission(Activity activity) {
         if (!hasPermission(activity ,Manifest.permission.READ_EXTERNAL_STORAGE)) {
@@ -55,6 +72,10 @@ public class PermissionUtils {
     }
     public static boolean checkLocationPermission(Activity activity){
         return hasPermission(activity ,Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    public static boolean checkLocationBackgroundPermission(Activity activity){
+        return hasPermission(activity ,Manifest.permission.ACCESS_BACKGROUND_LOCATION);
     }
 
 

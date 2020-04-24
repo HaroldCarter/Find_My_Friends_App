@@ -1,13 +1,8 @@
 package com.example.find_my_friends.ui.map_overview;
-
-import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,11 +18,10 @@ import com.example.find_my_friends.AddGroupActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.SearchGroupsActivity;
+import com.example.find_my_friends.userUtil.User;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -35,13 +29,21 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.Constants.currentUserDocument;
+import static com.example.find_my_friends.util.Constants.currentUserFirebase;
 
 public class MapOverviewFragment extends Fragment implements OnMapReadyCallback {
 
@@ -57,22 +59,23 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     private View root;
     private MapView mapView;
     private GoogleMap mMap;
-    private LatLng currentLocation = new LatLng(0, 0);
-    private Location mCurrentLocation;
-    private FusedLocationProviderClient fusedLocationClient;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+   //private LatLng currentLocation = new LatLng(0, 0);
+   // private FusedLocationProviderClient fusedLocationClient;
+    private FloatingActionButton gpsToggleFAB;
+    private FloatingActionButton addGroupPhotoFAB;
+    private FloatingActionButton navigationDrawFAB;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
+
 
         mapOverviewViewModel =
                 ViewModelProviders.of(this).get(MapOverviewViewModel.class);
         root = inflater.inflate(R.layout.fragment_map_overview, container, false);
-        floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
-        actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
-        actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
-        searchFAB = root.findViewById(R.id.search_group_fab_map_overview);
-        mapView = root.findViewById(R.id.map_view_overview);
+
+        locateResources();
 
 
 
@@ -86,25 +89,77 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
 
         //set to hide for the default and then override this later once data has been checked
         hideMenu();
-        //handle checking if we have approved location services.
-        if(PermissionUtils.checkLocationPermission(getActivity())){
-            fetchLastLocation();
-        }else{
-            PermissionUtils.requestLocationPermission(getActivity());
-        }
 
-
-        //createLocationRequest();
         handleNavDrawFAB();
         handleGPSToggleFAB();
         handleAddGroupFAB();
         handleSearchFAB();
-
-        modeTransportFAB = (FloatingActionButton) root.findViewById(R.id.mode_of_transport_fab_map_overview);
         handleModeTransportSelection();
         checkStateOfTransport();
+        loadCurrentUser();
+
 
         return root;
+    }
+
+    private void locateResources(){
+        floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
+        actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
+        actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
+        searchFAB = root.findViewById(R.id.search_group_fab_map_overview);
+        mapView = root.findViewById(R.id.map_view_overview);
+
+        gpsToggleFAB = root.findViewById(R.id.location_toggle_map_overview);
+        addGroupPhotoFAB =  root.findViewById(R.id.add_group_fab_map_overview);
+        navigationDrawFAB =  root.findViewById(R.id.nav_draw_fab_map_overview);
+        modeTransportFAB =  root.findViewById(R.id.mode_of_transport_fab_map_overview);
+    }
+
+    //each time data about the user is request/refreshed the cached variable should also be updated, should be placed into a custom util's class, and implement an oncomplete method for this.
+    private void loadCurrentUser(){
+        db.collection("Users").document(currentUserFirebase.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                currentUserDocument = task.getResult();
+                if(currentUserDocument != null) {
+                    currentUser = currentUserDocument.toObject(User.class);
+                    mapView.getMapAsync(MapOverviewFragment.this);
+                    loadGpsState();
+                    loadModeOfTransportSelection();
+                }
+            }
+        });
+    }
+
+    private void loadGpsState(){
+        if(currentUser != null && currentUser.getUserLocationUpToDate() != null) {
+            boolean currentState = currentUser.getUserLocationUpToDate();
+            if (currentState) {
+                gpsToggleFAB.setImageAlpha(255);
+                gpsToggle = true;
+            } else {
+
+                gpsToggleFAB.setImageAlpha(50);
+                gpsToggle = false;
+            }
+        }
+    }
+
+    private void loadModeOfTransportSelection(){
+        if(currentUser != null && currentUser.getModeOfTransport() != null) {
+           switch(currentUser.getModeOfTransport()){
+               case "Car":
+                   modeTransportState = 1;
+                   break;
+               case "Bike":
+                   modeTransportState = 2;
+                   break;
+               default:
+                   modeTransportState = 0;
+                   break;
+           }
+           updateMenu();
+        }
     }
 
     private void handleSearchFAB(){
@@ -117,7 +172,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     }
 
     private void handleNavDrawFAB() {
-        FloatingActionButton navigationDrawFAB = (FloatingActionButton) root.findViewById(R.id.nav_draw_fab_map_overview);
         navigationDrawFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,7 +182,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
 
 
     private void handleAddGroupFAB() {
-        FloatingActionButton addGroupPhotoFAB = (FloatingActionButton) root.findViewById(R.id.add_group_fab_map_overview);
         addGroupPhotoFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -144,16 +197,18 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     }
 
     private void handleGPSToggleFAB() {
-        final FloatingActionButton gpsToggleFAB = (FloatingActionButton) root.findViewById(R.id.location_toggle_map_overview);
+
         gpsToggleFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
                 if (gpsToggle) {
                     gpsToggleFAB.setImageAlpha(50);
+                    currentUser.setCurrentUserLocationUpToDate(false);
                     gpsToggle = false;
                 } else {
                     gpsToggleFAB.setImageAlpha(255);
+                    currentUser.setCurrentUserLocationUpToDate(true);
                     gpsToggle = true;
                 }
 
@@ -163,72 +218,28 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     }
 
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
-            return;
-        }
-        if (!PermissionUtils.checkLocationPermission(getActivity())) {
-            //this permission is critical to the application, not having it will crash search functions and cause alot of issues, therefore forcing the user to accept it is the only option.
-            PermissionUtils.requestLocationPermission(getActivity());
-        } else {
-            fetchLastLocation();
-        }
-    }
 
-
-    private void fetchLastLocation(){
-        if(!PermissionUtils.checkLocationPermission(getActivity())){
-            return;
-        }
-        fusedLocationClient.getLastLocation().addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    currentLocation = new LatLng(location.getLatitude(),location.getLongitude());
-                    mapView.getMapAsync(MapOverviewFragment.this);
-                }
-            }
-        });
-    }
-
-    protected void createLocationRequest() {
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    /*
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (requestingLocationUpdates) {
-            startLocationUpdates();
-        }
-    }
-
-    private void startLocationUpdates() {
-        fusedLocationClient.requestLocationUpdates(locationRequest,
-                locationCallback,
-                Looper.getMainLooper());
-    }
-     */
 
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
-        googleMap.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
-        googleMap.getUiSettings().setCompassEnabled(false);
-        googleMap.getUiSettings().setZoomControlsEnabled(false);
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
-        googleMap.animateCamera(CameraUpdateFactory.newLatLng(currentLocation));
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 5));
+
+        if(currentUser != null && currentUser.getUserLocation() != null) {
+            LatLng userLocation = currentUser.getUserLocation();
+            googleMap.addMarker(new MarkerOptions().position(userLocation).title("Current Location"));
+            googleMap.getUiSettings().setCompassEnabled(false);
+            googleMap.getUiSettings().setZoomControlsEnabled(false);
+            googleMap.getUiSettings().setMapToolbarEnabled(false);
+            googleMap.animateCamera(CameraUpdateFactory.newLatLng(userLocation));
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 5));
+        }
         //setting up the style of the map
-        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
-        googleMap.setMapStyle(style);
+        if(getActivity()!= null && getActivity().getApplicationContext() != null) {
+            //don't apply the style if the app is crashing, this shouldn't happen, but applying this can cause the application not just to crash but to complete halt (app not responding).
+            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
+            googleMap.setMapStyle(style);
+        }
 
 
 
@@ -268,7 +279,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
         Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
@@ -351,18 +362,21 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
             switch (modeTransportState) {
                 case 1:
                     //car selected
+                    currentUser.setModeOfTransportCurrentUser("Car");
                     modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
                     actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
                     actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
                     break;
                 case 2:
                     //bike selected
+                    currentUser.setModeOfTransportCurrentUser("Bike");
                     modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
                     actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
                     actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
                     break;
                 default:
                     //walking selected
+                    currentUser.setModeOfTransportCurrentUser("Person");
                     modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
                     actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
                     actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
@@ -377,17 +391,20 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     }
 
     private void hideMenu() {
-        actionMenuFAB1.hide();
-        actionMenuFAB2.hide();
-        floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.dsg_textview_rounded_fully_trans));
-
-        modeTransportMenuVisibility = false;
+        if(getContext() != null) {
+            actionMenuFAB1.hide();
+            actionMenuFAB2.hide();
+            floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.dsg_textview_rounded_fully_trans));
+            modeTransportMenuVisibility = false;
+        }
     }
 
     private void showMenu() {
-        actionMenuFAB1.show();
-        actionMenuFAB2.show();
-        floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.dsg_textview_rounded_trans));
-        modeTransportMenuVisibility = true;
+        if(getContext() != null) {
+            actionMenuFAB1.show();
+            actionMenuFAB2.show();
+            floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.dsg_textview_rounded_trans));
+            modeTransportMenuVisibility = true;
+        }
     }
 }
