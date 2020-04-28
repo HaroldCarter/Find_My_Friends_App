@@ -1,11 +1,11 @@
 package com.example.find_my_friends.recyclerAdapters;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,33 +13,28 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.find_my_friends.GroupDetailsActivity;
-import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
-
-import com.example.find_my_friends.userUtil.User;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointKM;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.MathContext;
-
-public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupOverviewAdapter.GroupOverviewHolder> {
+public class SearchGroupAdapter extends FirestoreRecyclerAdapter<Group, SearchGroupAdapter.GroupOverviewHolder> implements Filterable {
     //private User User = currentUser;
     private FirebaseFirestore db =  FirebaseFirestore.getInstance();
     private OnItemClickListener listener;
     //private GroupOverviewHolder groupOverviewHolder;
     //private Group group;
 
-    public GroupOverviewAdapter(@NonNull FirestoreRecyclerOptions<Group> options) {
+    public SearchGroupAdapter(@NonNull FirestoreRecyclerOptions<Group> options) {
         super(options);
     }
 
@@ -116,5 +111,10 @@ public class GroupOverviewAdapter extends FirestoreRecyclerAdapter<Group, GroupO
 
     public void setOnItemClickListener(OnItemClickListener listener){
         this.listener = listener;
+    }
+
+    @Override
+    public Filter getFilter() {
+        return null;
     }
 }

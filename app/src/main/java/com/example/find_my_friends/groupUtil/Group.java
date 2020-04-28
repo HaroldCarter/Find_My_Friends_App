@@ -4,21 +4,26 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+
+import ch.hsr.geohash.GeoHash;
 
 import static com.example.find_my_friends.util.Constants.currentUser;
 
 
 public class Group {
     //private String TAG = "Group Class :";
+
+    //groups need to store an array containing keyword matches of the title so that we can achieve pattern matching.
+    private  ArrayList<String> groupTitleKeywords;
+    private ArrayList<String> groupGeoHashResolutions;
+
     private String groupID;
     private String groupPhotoURI;
     private String groupTitle;
@@ -38,7 +43,9 @@ public class Group {
     private ArrayList<String> requestedMemberIDS;
 
 
-    public Group(String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS, ArrayList<String> requestedMemberIDS) {
+    public Group(ArrayList<String> groupTitleKeywords, ArrayList<String> groupGeoHashResolutions, String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS, ArrayList<String> requestedMemberIDS) {
+        this.groupTitleKeywords = groupTitleKeywords;
+        this.groupGeoHashResolutions = groupGeoHashResolutions;
         this.groupID = groupID;
         this.groupPhotoURI = groupPhotoURI;
         this.groupTitle = groupTitle;
@@ -56,6 +63,57 @@ public class Group {
 
     public Group(){
     }
+
+
+    public void generateGeoHash(){
+        int i = 1;
+        this.groupGeoHashResolutions = new ArrayList<>();
+        while(i <= 12){
+            this.groupGeoHashResolutions.add(GeoHash.withCharacterPrecision(this.groupLatitude,this.groupLongitude, i).toBase32());
+            i++;
+        }
+    }
+
+    public ArrayList<String> getGroupGeoHashResolutions() {
+        return groupGeoHashResolutions;
+    }
+
+    public void setGroupGeoHashResolutions(ArrayList<String> groupGeoHashResolutions) {
+        this.groupGeoHashResolutions = groupGeoHashResolutions;
+    }
+
+
+    public ArrayList<String> getGroupTitleKeywords() {
+        return groupTitleKeywords;
+    }
+
+    public void setGroupTitleKeywords(ArrayList<String> groupTitleKeywords) {
+        this.groupTitleKeywords = groupTitleKeywords;
+    }
+
+    //this should generate an array of keywords, which can then be appended to the database.
+    public void generateKeywords(String enteredText){
+        this.groupTitleKeywords = new ArrayList<>();
+        enteredText = enteredText.toLowerCase().trim();
+        String[] splitStr = enteredText.split("\\s+");
+        //now that the title has been split at the spaces, we need to incrementally build another array which builds partial completion of each word.
+        ArrayList<String> accumulator = new ArrayList<>();
+        for (String S: splitStr
+             ) {
+            accumulator.clear();
+            for (Character c: S.toCharArray()
+                 ) {
+                if(accumulator.isEmpty()){
+                    accumulator.add(c.toString());
+                }else{
+                    accumulator.add(accumulator.get(accumulator.size()-1) + c.toString());
+                }
+            }
+            this.groupTitleKeywords.addAll(accumulator);
+        }
+        this.groupTitleKeywords.add(groupTitle);
+    }
+
 
     //for appending users to a group.
     public void appendMember(FirebaseUser user){

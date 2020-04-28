@@ -92,7 +92,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
         if (group.getRequestedMemberIDS() == null) {
             messageToUserTextview.setText(R.string.message_no_new_requests);
             messageToUserTextview.setVisibility(View.VISIBLE);
-
+            return;
         }
         if (group.getRequestedMemberIDS().toArray().length == 0) {
             messageToUserTextview.setText(R.string.message_no_new_requests);

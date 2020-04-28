@@ -16,10 +16,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-
-import static com.example.find_my_friends.util.Constants.currentUser;
-import static com.example.find_my_friends.util.Constants.currentUserDocument;
 
 
 /**
@@ -48,6 +44,27 @@ public class LoginActivity extends AppCompatActivity {
         configureLoginButton();
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("username", mEmail.getText().toString());
+        outState.putString("password", mPassword.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String username = (String)savedInstanceState.get("username");
+        mEmail.setText(username);
+        String password = (String)savedInstanceState.get("password");
+        mPassword.setText(password);
     }
 
     public void configureRegisterButton() {

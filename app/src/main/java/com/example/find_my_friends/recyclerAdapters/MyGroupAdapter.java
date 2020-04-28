@@ -65,7 +65,7 @@ public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapt
 
 
 
-        public GroupOverviewHolder(@NonNull View itemView) {
+        public GroupOverviewHolder(@NonNull View itemView ) {
             super(itemView);
             groupTitle = itemView.findViewById(R.id.GroupTitle_my_groupCV);
             groupDesc = itemView.findViewById(R.id.GroupDescription_my_groupCV);

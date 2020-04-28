@@ -24,10 +24,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
+
+import ch.hsr.geohash.GeoHash;
 
 import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
 import static com.example.find_my_friends.util.Constants.TIMEPICKER_TAG_KEY;
@@ -41,6 +45,8 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     private RecyclerView recyclerView;
     private TextView dateSpinnerSG;
     private TextView timeSpinnerSG;
+    private TextView distanceText;
+    private SeekBar distanceSeekBar;
     private Calendar calendar;
     private String filterGroupDate;
     private String filterGroupTime;
@@ -54,11 +60,33 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         recyclerView = findViewById(R.id.SearchGroupRecycler);
         dateSpinnerSG = findViewById(R.id.dateSpinnerSG);
         timeSpinnerSG = findViewById(R.id.timeSpinnerSG);
-
+        distanceSeekBar = findViewById(R.id.SearchDistanceSeekBar);
         calendar = Calendar.getInstance();
-
+        distanceText = findViewById(R.id.DistanceSearchTitle);
 
         handleBackBTN();
+
+        distanceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(progress != 100) {
+                    int distance = (int) (progress / 100.0 * 300.0);
+                    distanceText.setText(("Distance : " + distance + "Miles"));
+                }else{
+                    distanceText.setText(("Distance : " +" INF"));
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         setupRecyclerView();
 
@@ -116,7 +144,13 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     }
 
     private void setupRecyclerView(){
-        Query query = groupsRef.orderBy("groupTitle");
+
+
+
+
+        Query query = groupsRef.whereArrayContains("groupTitleKeywords", "test");
+        //Query query = groupsRef.whereGreaterThan("groupLatitude",bounds.get(0)).whereLessThan("groupLatitude",bounds.get(1));
+        //.whereGreaterThan("groupLongitude", bounds.get(2)).whereLessThan("groupLongitude", bounds.get(3));
         FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
         groupOverviewAdapter = new GroupOverviewAdapter(options);
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel;
 
 public class CurrentGroupsViewModel extends ViewModel {
 
+
     private MutableLiveData<String> mText;
 
     public CurrentGroupsViewModel() {

@@ -36,7 +36,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -140,7 +139,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     public void updateUI(){
         //groupCreatorTitle.setText(group.getGroupCreatorDisplayName());
         //groupCreatorEmail.setText(gro)
-        addGroupButton.setText("Update group");
+        addGroupButton.setText(("Update group"));
         titleTextViewAG.setText(group.getGroupTitle());
         desTextViewAG.setText(group.getGroupDesc());
         dateSpinnerAG.setText(group.getGroupMeetDate());
@@ -157,8 +156,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
             addLocationButton.setText(addresses.getAddressLine(0));
         }catch(IOException e){
             Log.e(TAG, "onClick: Error when trying to get the address, no address provided");
-            addresses = null;
-            addLocationButton.setText("no address set");
+            addLocationButton.setText(("no address set"));
         }
 
     }
@@ -345,6 +343,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     groupToAdd.setGroupID(UUID.randomUUID().toString());
                     groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
                     groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
+                    groupToAdd.generateKeywords(groupToAdd.getGroupTitle());
+                    groupToAdd.generateGeoHash();
                     //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
                     groupToAdd.appendMember(mUser);
 
@@ -364,7 +364,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     } else if (groupToAdd.getGroupDesc().equals("")) {
                         Snackbar.make(addGroupPhotoFAB, "Please Give the group a Description", Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
-                    } else {
+                    } else if(groupToAdd.getGroupMeetTime() == null){
+                        Snackbar.make(addGroupPhotoFAB, "please set a time", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    } else if(groupToAdd.getGroupMeetDate() == null){
+                        Snackbar.make(addGroupPhotoFAB, "please set a date", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                    else {
                         //add the group to the database.
                         if (groupToAdd.uploadGroup(db)) {
                             finish();

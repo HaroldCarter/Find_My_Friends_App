@@ -11,6 +11,8 @@ import static com.example.find_my_friends.util.Constants.currentUserDocument;
 
 public class User {
 
+    //maybe store a keyword of their display name so that the users can be indexed by name.
+
     private String UID;
     private String UserEmailAddress;
     private String UserPhotoURL;

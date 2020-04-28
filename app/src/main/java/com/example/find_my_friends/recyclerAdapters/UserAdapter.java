@@ -18,6 +18,9 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 public class UserAdapter extends FirestoreRecyclerAdapter<User, UserAdapter.UserviewHolder> {
 
 
+    //need to figure out a way to deteched when the user has scrolled down, and then request to load the next 10 group requests.
+
+
     public UserAdapter(@NonNull FirestoreRecyclerOptions<User> options) {
         super(options);
     }
