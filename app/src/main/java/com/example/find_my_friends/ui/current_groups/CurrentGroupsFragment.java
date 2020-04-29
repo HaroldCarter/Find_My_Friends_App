@@ -1,23 +1,17 @@
 package com.example.find_my_friends.ui.current_groups;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toolbar;
-
-import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,9 +21,7 @@ import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.recyclerAdapters.CurrentGroupAdapter;
-import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.userUtil.User;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
@@ -136,6 +128,12 @@ public class CurrentGroupsFragment extends Fragment {
 
             }
         }
+        if(mode.equals("update")){
+            groups.clear();
+            updateRecyclerView();
+        }else{
+            setupRecyclerView();
+        }
     }
 
 
@@ -184,9 +182,6 @@ public class CurrentGroupsFragment extends Fragment {
 
     private void setupRecyclerView(){
         if(currentUser.getUsersMemberships() != null && currentUser.getUsersMemberships().toArray().length !=0) {
-
-
-
 
             currentGroupAdapter = new CurrentGroupAdapter(this.groups);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

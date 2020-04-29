@@ -13,8 +13,10 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="60dp"
         android:gravity="center"
+        android:text="@string/default_string"
+        android:textColor="@color/colorPrimary"
         android:textSize="30sp"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@+id/group_requests_users_recycler"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

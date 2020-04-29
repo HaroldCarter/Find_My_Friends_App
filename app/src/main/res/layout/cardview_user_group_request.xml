@@ -26,8 +26,9 @@
 
             <TextView
                 android:id="@+id/user_cardview_group_request_displayTextView"
-                android:layout_width="250dp"
+                android:layout_width="240dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:fontFamily="@font/roboto_bold"
                 android:singleLine="true"
@@ -39,8 +40,9 @@
 
             <TextView
                 android:id="@+id/user_cardview_group_request_display_email"
-                android:layout_width="250dp"
+                android:layout_width="240dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:singleLine="true"
                 android:text="@string/user_card_view_email_address"
                 android:textColor="@color/colorPrimary"

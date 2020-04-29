@@ -95,6 +95,7 @@
 
 
     <string name="message_no_requests_ever">Wait for your first request</string>>
-    <string name="message_no_new_requests">No new group requests</string>>
+    <string name="message_no_new_requests">No new group requests</string>
+    <string name="default_string">default</string>>
 
 </resources>

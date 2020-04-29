@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
-                    if(currentUser.getUserLocationUpToDate()) {
+                    if(currentUser != null && currentUser.getUserLocationUpToDate()) {
                         currentUser.setLocationCurrentUser(location.getLatitude(), location.getLongitude());
                     }
                 }

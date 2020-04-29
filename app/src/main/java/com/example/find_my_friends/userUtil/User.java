@@ -19,7 +19,7 @@ public class User {
     private String Username;
     private double UserLat;
     private double UserLong;
-    private Boolean UserLocationUpToDate;
+    private Boolean UserLocationUpToDate = true;
 
 
 

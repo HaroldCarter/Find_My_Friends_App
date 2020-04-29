@@ -14,15 +14,11 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.find_my_friends.AddGroupActivity;
 import com.example.find_my_friends.GroupRequestsActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.recyclerAdapters.GroupRequestsOverviewAdapter;
-import com.example.find_my_friends.recyclerAdapters.MyGroupAdapter;
-import com.example.find_my_friends.recyclerAdapters.UserGroupRequestsAdapter;
-import com.example.find_my_friends.userUtil.User;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
