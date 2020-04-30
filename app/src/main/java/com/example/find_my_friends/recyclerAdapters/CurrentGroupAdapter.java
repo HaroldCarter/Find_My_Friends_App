@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
-import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -75,7 +74,7 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
     }
 
     @Override
-    public CurrentGroupHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public CurrentGroupHolder onCreateViewHolder( ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_group_overview, parent, false);
         return new CurrentGroupHolder(v, listener);
     }

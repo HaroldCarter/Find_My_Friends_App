@@ -98,4 +98,9 @@
     <string name="message_no_new_requests">No new group requests</string>
     <string name="default_string">default</string>>
 
+
+    <string name="search_hint">search by group title</string>
+    <string name="search_title">search groups</string>
+
+
 </resources>

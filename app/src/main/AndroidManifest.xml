@@ -23,8 +23,17 @@
         <activity android:name=".GroupRequestsActivity"></activity>
         <activity
             android:name=".SearchGroupsActivity"
-            android:label="@string/title_activity_search_groups"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:launchMode="singleTop"
+            android:theme="@style/AppThemeActionBar"
+            android:parentActivityName=".MainActivity">
+            <!-- unsure how to implement this, the XML folder might break this -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+
+        </activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

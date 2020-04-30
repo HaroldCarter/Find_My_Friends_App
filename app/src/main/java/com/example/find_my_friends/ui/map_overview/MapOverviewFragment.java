@@ -1,7 +1,7 @@
 package com.example.find_my_friends.ui.map_overview;
 import android.content.Intent;
 
-import android.location.Location;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,9 +19,6 @@ import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.SearchGroupsActivity;
 import com.example.find_my_friends.userUtil.User;
-import com.example.find_my_friends.util.PermissionUtils;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -30,16 +27,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.Constants.currentUserDocument;
