@@ -34,7 +34,7 @@ public class User {
     }
 
     public LatLng getUserLocation(){
-        return new LatLng(this.UserLat, this.getUserLong());
+        return new LatLng(this.UserLat, this.UserLong);
     }
 
 
@@ -55,15 +55,15 @@ public class User {
     public void setLocationCurrentUser(LatLng latLng){
         currentUser.setUserLat(latLng.latitude);
         currentUser.setUserLong((latLng.longitude));
-        currentUserDocument.getReference().update("UserLat", currentUser.UserLat);
-        currentUserDocument.getReference().update("UserLong", currentUser.UserLong);
+        currentUserDocument.getReference().update("userLat", currentUser.UserLat);
+        currentUserDocument.getReference().update("userLong", currentUser.UserLong);
     }
 
     public void setLocationCurrentUser(double lat, double lng){
         currentUser.setUserLat(lat);
         currentUser.setUserLong((lng));
-        currentUserDocument.getReference().update("UserLat", currentUser.UserLat);
-        currentUserDocument.getReference().update("UserLong", currentUser.UserLong);
+        currentUserDocument.getReference().update("userLat", currentUser.UserLat);
+        currentUserDocument.getReference().update("userLong", currentUser.UserLong);
     }
 
 

@@ -14,6 +14,7 @@ import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.TimePickerFragment;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -73,7 +74,7 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         distanceSeekBar = findViewById(R.id.SearchDistanceSeekBar);
         calendar = Calendar.getInstance();
         distanceText = findViewById(R.id.DistanceSearchTitle);
-        //searchView = findViewById(R.id.searchViewSearchGroups);
+
 
 
         handleDistanceSeekBar();
@@ -116,6 +117,8 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
                 @Override
                 public boolean onQueryTextSubmit(String query) {
                     //once the user has submitted the text
+                    Snackbar.make(distanceText.getRootView(), query, Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
                     return false;
                 }
 
