@@ -36,9 +36,12 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -345,7 +348,6 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
                     groupToAdd.generateKeywords(groupToAdd.getGroupTitle());
                     groupToAdd.generateGeoHash();
-                    //put the creator as a member and as the creator this saves over complicates later functions and makes literal sense.
                     groupToAdd.appendMember(mUser);
 
 

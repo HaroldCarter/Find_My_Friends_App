@@ -10,22 +10,34 @@ import android.icu.util.Calendar;
 import android.os.Bundle;
 
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.groupUtil.GroupSearchSuggestionProvider;
+import com.example.find_my_friends.recyclerAdapters.CurrentGroupAdapter;
 import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.TimePickerFragment;
+import com.firebase.ui.firestore.FirestoreArray;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.firebase.ui.firestore.ObservableSnapshotArray;
+import com.firebase.ui.firestore.SnapshotParser;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.provider.SearchRecentSuggestions;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,15 +51,24 @@ import android.widget.TimePicker;
 
 
 import java.text.DateFormat;
+import java.util.ArrayList;
+
+import uk.co.mgbramwell.geofire.android.GeoFire;
+import uk.co.mgbramwell.geofire.android.model.Distance;
+import uk.co.mgbramwell.geofire.android.model.DistanceUnit;
+import uk.co.mgbramwell.geofire.android.model.QueryLocation;
+import uk.co.mgbramwell.geofire.android.query.GeoFireQuery;
 
 import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
 import static com.example.find_my_friends.util.Constants.TIMEPICKER_TAG_KEY;
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 public class SearchGroupsActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference groupsRef = db.collection("Groups");
 
-    private GroupOverviewAdapter groupOverviewAdapter;
+    //private GroupOverviewAdapter groupOverviewAdapter;
+    private CurrentGroupAdapter currentGroupAdapter;
     private RecyclerView recyclerView;
     private TextView dateSpinnerSG;
     private TextView timeSpinnerSG;
@@ -56,17 +77,48 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     private Calendar calendar;
     private String filterGroupDate;
     private String filterGroupTime;
+    private Query query;
 
+
+    private SearchView searchView;
+    private EditText searchViewEditText;
+
+
+
+    private  GeoFire geoFire = new GeoFire(groupsRef);
+    private double distance = 0.0;
+    private String searchText = "";
+    private String searchDate = "any";
+    private String searchTime = "any";
+
+    private ArrayList<Group> groups = new ArrayList<>();
+
+    //because the activity is running in single top mode, each new launch request is managed by this F.
+    @Override
+    protected void onNewIntent(Intent intent) {
+
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            searchText = intent.getStringExtra(SearchManager.QUERY);
+            updateSearch();
+            if(searchViewEditText != null){
+                searchViewEditText.setText(searchText);
+                searchViewEditText.setSelection(searchText.length());
+            }
+
+
+        }
+        super.onNewIntent(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_groups);
+
         if(getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Search Groups");
         }
-
 
         recyclerView = findViewById(R.id.SearchGroupRecycler);
         dateSpinnerSG = findViewById(R.id.dateSpinnerSG);
@@ -75,15 +127,13 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         calendar = Calendar.getInstance();
         distanceText = findViewById(R.id.DistanceSearchTitle);
 
-
-
         handleDistanceSeekBar();
         setupRecyclerView();
         handleDateSpinnerSG();
         handleTimeSpinnerSG();
-
-
     }
+
+
 
 
     @Override
@@ -91,46 +141,68 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         getMenuInflater().inflate(R.menu.search_bar, menu);
         MenuItem menuItem = menu.findItem(R.id.search_aciton_bar);
 
-        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView = (SearchView) menuItem.getActionView();
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                searchText = "";
+                updateSearch();
+                return false;
+            }
+        });
         //search view cannot by styled by an XML document but need to be manually styled in code.
         //therefore best to style everything here rather than fragement styling.
-        searchView.setBackgroundResource(R.drawable.dsg_textview_rounded_borded);
+        if(searchView != null) {
+            searchView.setBackgroundResource(R.drawable.dsg_textview_rounded_borded);
 
-        ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_button);
-        searchIcon.setImageResource(R.drawable.svg_search_primary);
+            ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_button);
+            searchIcon.setImageResource(R.drawable.svg_search_primary);
 
-        ImageView voiceIcon = searchView.findViewById(androidx.appcompat.R.id.search_voice_btn);
-        voiceIcon.setImageResource(R.drawable.svg_voice_primary);
+            ImageView voiceIcon = searchView.findViewById(androidx.appcompat.R.id.search_voice_btn);
+            voiceIcon.setImageResource(R.drawable.svg_voice_primary);
 
-        ImageView closeBTN = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
-        closeBTN.setImageResource(R.drawable.svg_cancel_primary);
+            ImageView closeBTN = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
+            closeBTN.setImageResource(R.drawable.svg_cancel_primary);
 
-        EditText editText =  searchView.findViewById(androidx.appcompat.R.id.search_src_text);
-        editText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
-        editText.setHintTextColor(getResources().getColor(R.color.colorAccent));
+
+            searchViewEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+            searchViewEditText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+            searchViewEditText.setHintTextColor(getResources().getColor(R.color.colorAccent));
+        }
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         //if the system has an error just make the search menu un-reactive rather than crash.
-        if(searchManager != null) {
+        if(searchManager != null && searchView != null) {
             searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(getApplicationContext(), SearchGroupsActivity.class)));
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
                     //once the user has submitted the text
+                    SearchRecentSuggestions suggestions = new SearchRecentSuggestions(SearchGroupsActivity.this,GroupSearchSuggestionProvider.AUTHORITY, GroupSearchSuggestionProvider.MODE);
+                    suggestions.saveRecentQuery(query, null);
                     Snackbar.make(distanceText.getRootView(), query, Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
+                    searchText = query;
+                    updateSearch();
+                    //this works but need to figure out a way to custom style the suggestion, and to make it actually search once an option is clicked.
                     return false;
                 }
 
                 @Override
                 public boolean onQueryTextChange(String newText) {
+
                     return false;
                 }
             });
 
         }
-
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void updateQuery(String newText){
+        Query query = groupsRef.whereArrayContains("groupTitleKeywords", newText);
+        FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
+        //groupOverviewAdapter.updateOptions(options);
     }
 
 
@@ -138,12 +210,11 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         distanceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress != 100) {
-                    int distance = (int) (progress / 100.0 * 300.0);
-                    distanceText.setText(("Distance : " + distance + "Miles"));
-                }else{
-                    distanceText.setText(("Distance : " +" INF"));
-                }
+                int distanceInt = (int) (progress / 100.0 * 200.0);
+                distanceText.setText(("Distance : " + distanceInt + "Miles"));
+                distance = distanceInt;
+                updateSearch();
+
             }
 
             @Override
@@ -156,6 +227,58 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
 
             }
         });
+    }
+
+    private void updateSearch(){
+        GeoFireQuery geoFireQuery;
+        Distance searchDistance = new Distance(distance, DistanceUnit.MILES);
+
+
+
+        //don't update distances based off  the users location changing but rather the groups location changing.
+        QueryLocation queryLocation = QueryLocation.fromDegrees(currentUser.getUserLat(), currentUser.getUserLong());
+
+        geoFireQuery =  geoFire.query();
+
+
+        if(searchDate != null && !searchDate.equals("any")){
+            geoFireQuery = geoFireQuery.whereEqualTo("groupMeetDate", searchDate);
+        }
+        if(searchTime != null && !searchTime.equals("any")){
+            geoFireQuery = geoFireQuery.whereEqualTo("groupMeetTime", searchTime);
+        }
+        if(searchText != null && !searchText.equals("")){
+            geoFireQuery = geoFireQuery.whereArrayContains("groupTitleKeywords", searchText);
+        }
+
+
+
+        geoFireQuery.whereNearTo(queryLocation, searchDistance);//.whereEqualTo("groupMeetTime", searchTime);
+
+
+        /*
+
+         */
+        geoFireQuery.build().get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    groups.clear();
+                    if(task.getResult() != null) {
+                        groups.addAll(task.getResult().toObjects(Group.class));
+                    }
+                    //no catch required, if the group returns empty then just don't displaying anything.
+                    currentGroupAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+        currentGroupAdapter = new CurrentGroupAdapter(groups);
+        currentGroupAdapter.notifyDataSetChanged();
+        recyclerView.setLayoutManager(new LinearLayoutManager(SearchGroupsActivity.this));
+        recyclerView.setAdapter(currentGroupAdapter);
+        handleAdapterOnClick();
+
+
     }
 
 
@@ -184,13 +307,14 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         Calendar calendar = Calendar.getInstance();
-
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month);
         calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         String setDate = DateFormat.getDateInstance().format(calendar.getTime());
         this.filterGroupDate = setDate;
         dateSpinnerSG.setText(setDate);
+        searchDate = setDate;
+        updateSearch();
     }
 
     @Override
@@ -204,27 +328,50 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         }
         this.filterGroupTime = setTime;
         timeSpinnerSG.setText(setTime);
+        searchTime = setTime;
+        updateSearch();
     }
 
     private void setupRecyclerView(){
 
+        //needs testing extensively, unknown.
+        //GeoFire geoFire = new GeoFire(groupsRef);
+        QueryLocation queryLocation = QueryLocation.fromDegrees(currentUser.getUserLat(), currentUser.getUserLong());
+        Distance searchDistance = new Distance(0.0, DistanceUnit.MILES);
 
+        //testing geoquery works.
 
+        query =  geoFire.query().whereEqualTo("groupMeetDate", searchDate)
+                //.whereNearTo(queryLocation, searchDistance)
+                .build();
 
-        Query query = groupsRef.whereArrayContains("groupTitleKeywords", "test");
-        //Query query = groupsRef.whereGreaterThan("groupLatitude",bounds.get(0)).whereLessThan("groupLatitude",bounds.get(1));
-        //.whereGreaterThan("groupLongitude", bounds.get(2)).whereLessThan("groupLongitude", bounds.get(3));
-        FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
-        groupOverviewAdapter = new GroupOverviewAdapter(options);
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(groupOverviewAdapter);
-
-        groupOverviewAdapter.setOnItemClickListener(new GroupOverviewAdapter.OnItemClickListener() {
+        //manually getting the query works however, passing this to the firestore ui breaks this. ahhhhhh because its converted to a normal query and then
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.getResult() != null){
+
+                   groups = (ArrayList<Group>) task.getResult().toObjects(Group.class);
+                    //FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setSnapshotArray(groups).build();
+                    //FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
+                    currentGroupAdapter = new CurrentGroupAdapter(groups);
+                    currentGroupAdapter.notifyDataSetChanged();
+                    recyclerView.setLayoutManager(new LinearLayoutManager(SearchGroupsActivity.this));
+                    recyclerView.setAdapter(currentGroupAdapter);
+                    handleAdapterOnClick();
+                }
+            }
+        });
+
+    }
+
+
+    private void handleAdapterOnClick(){
+        currentGroupAdapter.setOnItemClickListener(new CurrentGroupAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick( int position) {
                 Intent intent = new Intent(getApplicationContext(), GroupDetailsActivity.class);
-                intent.putExtra("documentID",documentSnapshot.getId());
+                intent.putExtra("documentID",groups.get(position).getGroupID());
                 startActivity(intent);
             }
         });
@@ -233,13 +380,12 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     @Override
     protected void onStart() {
         super.onStart();
-        groupOverviewAdapter.startListening();
     }
+
 
     @Override
     protected void onStop() {
         super.onStop();
-        groupOverviewAdapter.stopListening();
     }
 
 }

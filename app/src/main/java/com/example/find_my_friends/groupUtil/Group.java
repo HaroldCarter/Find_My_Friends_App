@@ -7,12 +7,17 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
+
+
 
 import java.util.ArrayList;
 
 import ch.hsr.geohash.GeoHash;
+import uk.co.mgbramwell.geofire.android.GeoFire;
 
 import static com.example.find_my_friends.util.Constants.currentUser;
 
@@ -30,7 +35,7 @@ public class Group {
     private String groupDesc;
     private String groupMeetDate;
     private String groupMeetTime;
-    //private GeoPoint groupLocation;
+
     private double groupLatitude;
     private double groupLongitude;
     private String groupCreatorUserID;
@@ -95,21 +100,48 @@ public class Group {
     public void generateKeywords(String enteredText){
         this.groupTitleKeywords = new ArrayList<>();
         enteredText = enteredText.toLowerCase().trim();
+        StringBuilder previousWord = new StringBuilder();
+        StringBuilder currentWord = new StringBuilder();
         String[] splitStr = enteredText.split("\\s+");
         //now that the title has been split at the spaces, we need to incrementally build another array which builds partial completion of each word.
         ArrayList<String> accumulator = new ArrayList<>();
         for (String S: splitStr
              ) {
             accumulator.clear();
+            currentWord.setLength(0);
             for (Character c: S.toCharArray()
                  ) {
                 if(accumulator.isEmpty()){
                     accumulator.add(c.toString());
+                    currentWord.append(c);
                 }else{
                     accumulator.add(accumulator.get(accumulator.size()-1) + c.toString());
+                    currentWord.append(c);
+                }
+                if(previousWord.length() != 0) {
+                    this.groupTitleKeywords.add(previousWord.toString() + " " + currentWord.toString());
                 }
             }
+            //gives the breakdown of the contents of a word
             this.groupTitleKeywords.addAll(accumulator);
+
+            //gives the work itself with a space at the end
+            this.groupTitleKeywords.add((S + " "));
+            //if the word isn't the first word, it adds the current word to the sentence.
+            if(previousWord.length() != 0){
+                previousWord.append(" ");
+                previousWord.append(S);
+
+                //adds the full sentence up to this point with a space at the end.
+                if(previousWord.length() != enteredText.length()) {
+                    this.groupTitleKeywords.add(previousWord.toString());
+                    this.groupTitleKeywords.add(previousWord.toString() + " ");
+                };
+            }else{
+                previousWord.append(S);
+            }
+
+
         }
         this.groupTitleKeywords.add(groupTitle);
     }
@@ -207,8 +239,9 @@ public class Group {
     }
 
 
-    public boolean uploadGroup(FirebaseFirestore db){
+    public boolean uploadGroup(final FirebaseFirestore db){
         //do not allow a profile containing nulls to be uploaded, nulls are very bad practise
+        final Group group = this;
         if(this.membersOfGroupIDS == null || this.groupCreatorUserID == null || this.groupPhotoURI == null){
             return false;
         }else{
@@ -219,6 +252,14 @@ public class Group {
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
+                            //GeoFirestore geoFirestore = new GeoFirestore( db.collection("Groups"));
+                            //geoFirestore.setLocation(group.groupID, new GeoPoint(group.getGroupLatitude(), group.getGroupLongitude()));
+
+                            //testing geofire gps search
+                            GeoFire geoFire = new GeoFire(db.collection("Groups"));
+                            geoFire.setLocation(group.getGroupID(), group.getGroupLatitude(), group.getGroupLongitude());
+
+
                             Log.d("Group Class :", "group uploaded to fireStore successfully");
                         }
                     })

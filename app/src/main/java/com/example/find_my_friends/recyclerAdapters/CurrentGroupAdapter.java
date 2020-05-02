@@ -90,9 +90,20 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
             holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
             holder.groupDate.setText(model.getGroupMeetDate());
             holder.groupTime.setText(model.getGroupMeetTime());
-            BigDecimal distance = new BigDecimal(distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude()));
-            distance = distance.round(new MathContext(2));
-            holder.groupDistance.setText( (distance + "Mile"));
+
+            double distanceDouble = distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude());
+            BigDecimal distance = new BigDecimal(distanceDouble);
+            if(distanceDouble < 100) {
+                if(distanceDouble < 0.1){
+                    holder.groupDistance.setText( (0.0 + "Mile"));
+                }else {
+                    distance = distance.round(new MathContext(2));
+                    holder.groupDistance.setText((distance.toString() + "Mile"));
+                }
+            }else{
+                holder.groupDistance.setText( (distance.toBigInteger().toString() + "Mile"));
+            }
+
         }else{
             //else the list of groups is empty or the group referred too is deleted.
             holder.groupCreator.getRootView().setVisibility(View.GONE);

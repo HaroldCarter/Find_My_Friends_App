@@ -3,4 +3,6 @@
     android:hint="@string/search_hint"
     android:label="@string/app_name"
     android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"
+    android:searchSuggestAuthority="com.example.find_my_friends"
+    android:searchSuggestSelection=" ?"
     />
