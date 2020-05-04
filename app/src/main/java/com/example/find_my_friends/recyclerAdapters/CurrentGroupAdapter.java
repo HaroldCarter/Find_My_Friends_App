@@ -14,8 +14,6 @@ import com.bumptech.glide.Glide;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.ArrayList;
 
 import static com.example.find_my_friends.util.Constants.currentUser;
@@ -91,18 +89,14 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
             holder.groupDate.setText(model.getGroupMeetDate());
             holder.groupTime.setText(model.getGroupMeetTime());
 
-            double distanceDouble = distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude());
-            BigDecimal distance = new BigDecimal(distanceDouble);
-            if(distanceDouble < 100) {
-                if(distanceDouble < 0.1){
-                    holder.groupDistance.setText( (0.0 + "Mile"));
-                }else {
-                    distance = distance.round(new MathContext(2));
-                    holder.groupDistance.setText((distance.toString() + "Mile"));
-                }
+            int distance = (int) distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude());
+            if(distance <= 1){
+                holder.groupDistance.setText((distance + "Mile"));
             }else{
-                holder.groupDistance.setText( (distance.toBigInteger().toString() + "Mile"));
+                holder.groupDistance.setText((distance + " Miles"));
             }
+
+
 
         }else{
             //else the list of groups is empty or the group referred too is deleted.

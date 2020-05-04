@@ -12,18 +12,12 @@ import android.os.Bundle;
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.groupUtil.GroupSearchSuggestionProvider;
 import com.example.find_my_friends.recyclerAdapters.CurrentGroupAdapter;
-import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.TimePickerFragment;
-import com.firebase.ui.firestore.FirestoreArray;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.firebase.ui.firestore.ObservableSnapshotArray;
-import com.firebase.ui.firestore.SnapshotParser;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -31,13 +25,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.provider.SearchRecentSuggestions;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -199,12 +191,6 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void updateQuery(String newText){
-        Query query = groupsRef.whereArrayContains("groupTitleKeywords", newText);
-        FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
-        //groupOverviewAdapter.updateOptions(options);
-    }
-
 
     private void handleDistanceSeekBar(){
         distanceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -214,12 +200,10 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
                 distanceText.setText(("Distance : " + distanceInt + "Miles"));
                 distance = distanceInt;
                 updateSearch();
-
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
@@ -232,12 +216,7 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     private void updateSearch(){
         GeoFireQuery geoFireQuery;
         Distance searchDistance = new Distance(distance, DistanceUnit.MILES);
-
-
-
-        //don't update distances based off  the users location changing but rather the groups location changing.
         QueryLocation queryLocation = QueryLocation.fromDegrees(currentUser.getUserLat(), currentUser.getUserLong());
-
         geoFireQuery =  geoFire.query();
 
 
@@ -251,14 +230,8 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
             geoFireQuery = geoFireQuery.whereArrayContains("groupTitleKeywords", searchText);
         }
 
+        geoFireQuery.whereNearTo(queryLocation, searchDistance);
 
-
-        geoFireQuery.whereNearTo(queryLocation, searchDistance);//.whereEqualTo("groupMeetTime", searchTime);
-
-
-        /*
-
-         */
         geoFireQuery.build().get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -333,35 +306,13 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     }
 
     private void setupRecyclerView(){
+        groups = new ArrayList<>();
+        currentGroupAdapter = new CurrentGroupAdapter(groups);
+        currentGroupAdapter.notifyDataSetChanged();
+        recyclerView.setLayoutManager(new LinearLayoutManager(SearchGroupsActivity.this));
+        recyclerView.setAdapter(currentGroupAdapter);
+        handleAdapterOnClick();
 
-        //needs testing extensively, unknown.
-        //GeoFire geoFire = new GeoFire(groupsRef);
-        QueryLocation queryLocation = QueryLocation.fromDegrees(currentUser.getUserLat(), currentUser.getUserLong());
-        Distance searchDistance = new Distance(0.0, DistanceUnit.MILES);
-
-        //testing geoquery works.
-
-        query =  geoFire.query().whereEqualTo("groupMeetDate", searchDate)
-                //.whereNearTo(queryLocation, searchDistance)
-                .build();
-
-        //manually getting the query works however, passing this to the firestore ui breaks this. ahhhhhh because its converted to a normal query and then
-        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.getResult() != null){
-
-                   groups = (ArrayList<Group>) task.getResult().toObjects(Group.class);
-                    //FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setSnapshotArray(groups).build();
-                    //FirestoreRecyclerOptions<Group> options = new FirestoreRecyclerOptions.Builder<Group>().setQuery(query, Group.class).build();
-                    currentGroupAdapter = new CurrentGroupAdapter(groups);
-                    currentGroupAdapter.notifyDataSetChanged();
-                    recyclerView.setLayoutManager(new LinearLayoutManager(SearchGroupsActivity.this));
-                    recyclerView.setAdapter(currentGroupAdapter);
-                    handleAdapterOnClick();
-                }
-            }
-        });
 
     }
 

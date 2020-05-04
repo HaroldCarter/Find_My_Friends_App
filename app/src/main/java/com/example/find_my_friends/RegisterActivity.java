@@ -33,14 +33,19 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
 import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.Constants.currentUserDocument;
+import static com.example.find_my_friends.util.Constants.currentUserFirebase;
 
 import java.util.UUID;
 
@@ -66,6 +71,8 @@ public class RegisterActivity extends AppCompatActivity {
     FloatingActionButton backBTN;
 
     ProgressBar rProgressBar;
+    ProgressBar progressBarProfilePhoto;
+
     static final String TAG = "Register Activity : ";
     Bitmap profilePhotoBitmap = null;
     Activity contextOfApp;
@@ -85,6 +92,7 @@ public class RegisterActivity extends AppCompatActivity {
         rConfirmPassword = findViewById(R.id.confirmPasswordTextFieldReg);
         rConfirmEmail = findViewById(R.id.confirmEmailRelativeTextFieldReg);
         rProgressBar = findViewById(R.id.progressBarReg);
+        progressBarProfilePhoto = findViewById(R.id.progressBarUserProfilePhoto);
         addPhotoBTN = findViewById(R.id.addUsersPhoto);
         mAuth = FirebaseAuth.getInstance();
         backBTN = findViewById(R.id.backButton);
@@ -105,11 +113,14 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void configureAddPhotoButton() {
-        uploadStatus = false;
+
+
 
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                uploadStatus = false;
+                progressBarProfilePhoto.setVisibility(View.VISIBLE);
                 PermissionUtils.requestReadExternalPermission(RegisterActivity.this);
                 if (PermissionUtils.checkReadExternalPermission(RegisterActivity.this)) {
                     loadPhoto();
@@ -201,6 +212,7 @@ public class RegisterActivity extends AppCompatActivity {
                     Log.e(TAG, "onFailure: ", e.getCause());
                     Toast.makeText(RegisterActivity.this, e.toString(),
                             Toast.LENGTH_LONG).show();
+                    progressBarProfilePhoto.setVisibility(View.INVISIBLE);
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -223,6 +235,7 @@ public class RegisterActivity extends AppCompatActivity {
                         photoURI = uri;
                         loadGroupPhoto();
                         uploadStatus = true;
+                        progressBarProfilePhoto.setVisibility(View.INVISIBLE);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -230,7 +243,9 @@ public class RegisterActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(RegisterActivity.this, "Linking the selected photo failed, photo did not upload correctly (connection interrupted)",
                                 Toast.LENGTH_LONG).show();
+                        progressBarProfilePhoto.setVisibility(View.INVISIBLE);
                     }
+
                 });
     }
 
@@ -351,7 +366,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void launchMainActivity() {
         rProgressBar.setVisibility(View.INVISIBLE);
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        loadCurrentUser();
         finish();
     }
 
@@ -406,6 +421,24 @@ public class RegisterActivity extends AppCompatActivity {
                 });
 
 
+    }
+
+
+
+
+    private void loadCurrentUser(){
+        currentUserFirebase = FirebaseAuth.getInstance().getCurrentUser();
+        db.collection("Users").document(currentUserFirebase.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                currentUserDocument = task.getResult();
+                if(currentUserDocument != null) {
+                    currentUser = currentUserDocument.toObject(User.class);
+                    CurrentUserLoaded = true;
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                }
+            }
+        });
     }
 }
 

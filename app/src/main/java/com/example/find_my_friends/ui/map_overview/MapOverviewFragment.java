@@ -1,7 +1,11 @@
 package com.example.find_my_friends.ui.map_overview;
+import android.content.Context;
 import android.content.Intent;
 
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,33 +17,41 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
-
 import com.example.find_my_friends.AddGroupActivity;
+import com.example.find_my_friends.GroupDetailsActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.SearchGroupsActivity;
+import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.groupUtil.GroupMarker;
 import com.example.find_my_friends.userUtil.User;
+
+import com.example.find_my_friends.userUtil.UserMarker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
-import static com.example.find_my_friends.util.Constants.currentUserDocument;
-import static com.example.find_my_friends.util.Constants.currentUserFirebase;
 
-public class MapOverviewFragment extends Fragment implements OnMapReadyCallback {
+public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
     private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
@@ -59,6 +71,14 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
     private FloatingActionButton gpsToggleFAB;
     private FloatingActionButton addGroupPhotoFAB;
     private FloatingActionButton navigationDrawFAB;
+
+    private MarkerOptions currentLocation;
+    private Marker currentLocationMarker;
+
+    private ArrayList<GroupMarker> currentGroupMarkers;
+    private HashMap<String, Integer> currentMarkersHashMaps = new HashMap<>();
+    private boolean groupInspected = false;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -84,16 +104,136 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
         //set to hide for the default and then override this later once data has been checked
         hideMenu();
 
+        //handle on screen interactions (onclick listeners)
         handleNavDrawFAB();
         handleGPSToggleFAB();
         handleAddGroupFAB();
         handleSearchFAB();
         handleModeTransportSelection();
+        //check from the server the current mode of transport for the current user.
         checkStateOfTransport();
-        loadCurrentUser();
 
+        currentUser.setListener(new User.ChangeListener() {
+            @Override
+            public void onChange() {
+                //update the ui
+                loadGpsState();
+                loadModeOfTransportSelection();
+                updateCurrentLocation();
+                loadIcon(currentLocationMarker ,currentUser.getModeOfTransport());
+            }
+        });
+
+        if(CurrentUserLoaded){
+            loadGpsState();
+            loadModeOfTransportSelection();
+            mapView.getMapAsync(MapOverviewFragment.this);
+        }
 
         return root;
+    }
+
+    private void updateCurrentLocation(){
+        if(currentLocationMarker != null){
+            currentLocationMarker.setPosition(new LatLng(currentUser.getUserLat(), currentUser.getUserLong()));
+        }
+    }
+
+    private void loadGroups(GoogleMap googleMap){
+
+
+        if(currentUser.getUsersMemberships() != null) {
+            currentGroupMarkers = new ArrayList<>();
+            currentMarkersHashMaps.clear();
+            for (String s : currentUser.getUsersMemberships()
+            ) {
+
+                db.collection("Groups").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot != null) {
+                            Group tempGroup = documentSnapshot.toObject(Group.class);
+                            if (tempGroup != null) {
+                                Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(tempGroup.getGroupLatitude(), tempGroup.getGroupLongitude())).title(tempGroup.getGroupTitle()));
+                                GroupMarker groupMarker = new GroupMarker(marker, tempGroup);
+                                currentGroupMarkers.add(groupMarker);
+                                currentMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
+                            }
+
+                        }
+                    }
+                });
+
+
+            }
+        }
+    }
+
+
+    public void resumeGroupOverview(){
+        //hide all the group memeber markers.
+        //show all the group markers
+        for (GroupMarker groupMarker: currentGroupMarkers
+             ) {
+            groupMarker.getGroupMarker().setVisible(true);
+            for (UserMarker user: groupMarker.getUsers()
+                 ) {
+                user.getUserMarker().setVisible(false);
+            }
+        }
+    }
+
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if (marker != null && currentMarkersHashMaps != null && currentGroupMarkers != null ){
+            currentLocationMarker.setVisible(false);
+            Integer index = currentMarkersHashMaps.get(marker.getId());
+            if(index != null) {
+                GroupMarker selectedMarker = currentGroupMarkers.get(index);
+                //hide all the other group markers.
+                for (GroupMarker cGM : currentGroupMarkers
+                ) {
+                    if (!cGM.getGroupMarker().getId().equals(selectedMarker.getGroupMarker().getId())) {
+                        cGM.getGroupMarker().setVisible(false);
+                    }
+                }
+                groupInspected = true;
+                navigationDrawFAB.setImageResource(R.drawable.svg_cancel_white);
+
+
+                //load the group's users and display them in on the map.
+
+
+
+                for (String s : currentGroupMarkers.get(index).getGroupMarkerRepresents().getMembersOfGroupIDS()
+                ) {
+                    db.collection("Users").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if(documentSnapshot != null) {
+                                User tempUser = documentSnapshot.toObject(User.class);
+                                UserMarker userMarker = new UserMarker((mMap.addMarker(new MarkerOptions().position(tempUser.getUserLocation()).title(tempUser.getUsername()))), tempUser);
+                                currentGroupMarkers.get(index).appendUser(userMarker);
+                                loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport());
+                            }
+                        }
+                    });
+
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Integer index =  currentMarkersHashMaps.get(marker.getId());
+        if(index != null){
+            Intent intent = new Intent(this.getActivity(), GroupDetailsActivity.class);
+            intent.putExtra("documentID",currentGroupMarkers.get(index).getGroupMarkerRepresents().getGroupID());
+            startActivity(intent);
+        }
     }
 
     private void locateResources(){
@@ -109,30 +249,14 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
         modeTransportFAB =  root.findViewById(R.id.mode_of_transport_fab_map_overview);
     }
 
-    //each time data about the user is request/refreshed the cached variable should also be updated, should be placed into a custom util's class, and implement an oncomplete method for this.
-    private void loadCurrentUser(){
-        db.collection("Users").document(currentUserFirebase.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                currentUserDocument = task.getResult();
-                if(currentUserDocument != null) {
-                    currentUser = currentUserDocument.toObject(User.class);
-                    mapView.getMapAsync(MapOverviewFragment.this);
-                    loadGpsState();
-                    loadModeOfTransportSelection();
-                }
-            }
-        });
-    }
+
 
     private void loadGpsState(){
         if(currentUser != null && currentUser.getUserLocationUpToDate() != null) {
-            boolean currentState = currentUser.getUserLocationUpToDate();
-            if (currentState) {
+            if (currentUser.getUserLocationUpToDate()) {
                 gpsToggleFAB.setImageAlpha(255);
                 gpsToggle = true;
             } else {
-
                 gpsToggleFAB.setImageAlpha(50);
                 gpsToggle = false;
             }
@@ -169,7 +293,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
         navigationDrawFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainActivity) getActivity()).openDrawer();
+                if(groupInspected){
+                    navigationDrawFAB.setImageResource(R.drawable.svg_menu_white);
+                    groupInspected = false;
+                    resumeGroupOverview();
+                    currentLocationMarker.setVisible(true);
+                    //make all the group veiwable again.
+                }else {
+                    ((MainActivity) getActivity()).openDrawer();
+                }
             }
         });
     }
@@ -221,12 +353,18 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
 
         if(currentUser != null && currentUser.getUserLocation() != null) {
             LatLng userLocation = currentUser.getUserLocation();
-            googleMap.addMarker(new MarkerOptions().position(userLocation).title("Current Location"));
+            currentLocation = new MarkerOptions().position(userLocation).title("Current Location");
+            currentLocationMarker = googleMap.addMarker(currentLocation);
+            loadIcon(currentLocationMarker ,currentUser.getModeOfTransport());
+            loadGroups(googleMap);
+            googleMap.setOnInfoWindowClickListener(this);
+            googleMap.setOnMarkerClickListener(this);
             googleMap.getUiSettings().setCompassEnabled(false);
             googleMap.getUiSettings().setZoomControlsEnabled(false);
             googleMap.getUiSettings().setMapToolbarEnabled(false);
             googleMap.animateCamera(CameraUpdateFactory.newLatLng(userLocation));
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 5));
+
         }
         //setting up the style of the map
         if(getActivity()!= null && getActivity().getApplicationContext() != null) {
@@ -234,13 +372,40 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback 
             MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
             googleMap.setMapStyle(style);
         }
-
-
-
-
-
-
     }
+
+    private void loadIcon(Marker marker, String modeOfTransport){
+        if(marker != null) {
+            switch (modeOfTransport) {
+                case "Car":
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_car_white)));
+                    break;
+                case "Bike":
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_bike_white)));
+                    break;
+                default:
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_person_white)));
+                    break;
+
+            }
+        }
+    }
+
+
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        if(vectorDrawable != null) {
+            vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+
+            Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            vectorDrawable.draw(canvas);
+            return BitmapDescriptorFactory.fromBitmap(bitmap);
+        }else{
+            return null;
+        }
+    }
+
 
     @Override
     public void onStart() {

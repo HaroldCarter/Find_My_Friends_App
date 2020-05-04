@@ -1,5 +1,6 @@
 package com.example.find_my_friends.recyclerAdapters;
 
+import android.location.Location;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,9 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
 public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapter.GroupOverviewHolder> {
 
@@ -38,7 +42,12 @@ public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapt
         holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
         holder.groupDate.setText(model.getGroupMeetDate());
         holder.groupTime.setText(model.getGroupMeetTime());
-
+        int distance = (int) distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude());
+        if(distance <= 1){
+            holder.groupDistance.setText((distance + "Mile"));
+        }else{
+            holder.groupDistance.setText((distance + " Miles"));
+        }
 
     }
 

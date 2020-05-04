@@ -7,15 +7,24 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
+import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.Constants.currentUserDocument;
+import static com.example.find_my_friends.util.Constants.currentUserFirebase;
 
 
 /**
@@ -27,6 +36,11 @@ import com.google.firebase.auth.FirebaseAuth;
 public class LoginActivity extends AppCompatActivity {
     EditText mEmail, mPassword;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private String email;
+    private String password;
+    private boolean validInput = true;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,11 +48,16 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
         mAuth = FirebaseAuth.getInstance();
+        progressBar = findViewById(R.id.progressBarLoginPage);
 
         if(mAuth.getCurrentUser() != null){
-
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            progressBar.setVisibility(View.VISIBLE);
+            loadCurrentUser();
         }
+
+
+        mEmail =  findViewById(R.id.loginUsernameTextField);
+        mPassword =  findViewById(R.id.loginPasswordTextField);
 
         configureRegisterButton();
         configureLoginButton();
@@ -68,7 +87,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void configureRegisterButton() {
-        Button regButton = (Button) findViewById(R.id.registerButton);
+        Button regButton = findViewById(R.id.registerButton);
         regButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,65 +97,75 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void configureLoginButton(){
-        Button loginBTN = (Button) findViewById(R.id.logInButton);
-        mEmail = (EditText) findViewById(R.id.loginUsernameTextField);
-        mPassword = (EditText) findViewById(R.id.loginPasswordTextField);
-
-
-
-
+        Button loginBTN = findViewById(R.id.logInButton);
         if(mAuth != null) {
-
-
             loginBTN.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String email = mEmail.getText().toString();
-                    String password = mPassword.getText().toString();
-
-                    boolean validInput = true;
-
-
-
-                    if(TextUtils.isEmpty(email) ||  !Patterns.EMAIL_ADDRESS.matcher(email).matches()){
-                        //prompt to enter a valid email
-                        mEmail.setError("please enter a valid email");
-                        validInput = false;
-                    }
-
-                    if(password.length() < 5) {
-                        //prompt to enter a valid password
-                        mPassword.setError("please enter a valid password");
-                        validInput = false;
-                    }
-
-                    if(!validInput){
-                        return;
-                    }
-                   
-
-                    mAuth.signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener( new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(LoginActivity.this, "Authentication Succeeded.",
-                                                Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                                    } else {
-                                        Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
+                    email = mEmail.getText().toString();
+                    password = mPassword.getText().toString();
+                    validInput = true;
+                    checkValidInput();
                 }
             });
         }
         else{
             Toast.makeText(LoginActivity.this, "User Already Logged in.",
                     Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            progressBar.setVisibility(View.VISIBLE);
+            loadCurrentUser();
         }
-        //if not then we are already logged in.
+    }
+
+    private void checkValidInput(){
+        if(TextUtils.isEmpty(email) ||  !Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+            //prompt to enter a valid email
+            mEmail.setError("please enter a valid email");
+            validInput = false;
+        }
+        if(password.length() < 5) {
+            //prompt to enter a valid password
+            mPassword.setError("please enter a valid password");
+            validInput = false;
+        }
+        if(validInput){
+            signUserIn();
+        }
+    }
+
+    private void signUserIn(){
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener( new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(LoginActivity.this, "Authentication Succeeded.",
+                                    Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.VISIBLE);
+                            loadCurrentUser();
+
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.INVISIBLE);
+                        }
+                    }
+                });
+    }
+
+    private void loadCurrentUser(){
+        currentUserFirebase = FirebaseAuth.getInstance().getCurrentUser();
+        db.collection("Users").document(currentUserFirebase.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                currentUserDocument = task.getResult();
+                if(currentUserDocument != null) {
+                    currentUser = currentUserDocument.toObject(User.class);
+                    CurrentUserLoaded = true;
+                    progressBar.setVisibility(View.INVISIBLE);
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                }
+            }
+        });
     }
 }

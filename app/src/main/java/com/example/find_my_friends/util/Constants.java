@@ -18,6 +18,7 @@ public class Constants {
     public static User currentUser;
     public static FirebaseUser currentUserFirebase;
     public static DocumentSnapshot currentUserDocument;
-    public static Boolean collectingLocation;
+    public static Boolean CollectingLocaiton;
+    public static Boolean CurrentUserLoaded = false;
 
 }

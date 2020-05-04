@@ -8,7 +8,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.annotation.NonNull;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -25,13 +27,13 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.GPS_UPDATE_RATE;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.Constants.currentUserDocument;
@@ -49,15 +51,49 @@ public class MainActivity extends AppCompatActivity {
 
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        loadCurrentUser();
         handleLoadingPopulatingNavDraw();
+        handleSettingUpLocationServices();
+        listenForChangesToCurrentUser();
+    }
+
+
+    private void listenForChangesToCurrentUser(){
+        currentUserDocument.getReference().addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                if(documentSnapshot != null && documentSnapshot.exists()){
+                    currentUserDocument = documentSnapshot;
+                    currentUser = currentUserDocument.toObject(User.class);
+                    if(currentUser != null) {
+                        currentUser.notifyChangeListener();
+                        CurrentUserLoaded = true;
+                    }else{
+                        CurrentUserLoaded = false;
+                        FirebaseAuth.getInstance().signOut();
+                        finish();
+                    }
+
+                    //this is a little wasteful as all upates created by the user on the interface are already modelled, however critical for functionality such as
+                }else{
+                    if(e != null) {
+                        Toast.makeText(MainActivity.this, e.toString(),
+                                Toast.LENGTH_LONG).show();
+                    }else {
+                        Toast.makeText(MainActivity.this, "Database Error, User Signed Out",
+                                Toast.LENGTH_LONG).show();
+                    }
+                    CurrentUserLoaded = false;
+                    FirebaseAuth.getInstance().signOut();
+                    finish();
+                }
+            }
+        });
     }
 
     private void handleSettingUpLocationServices(){
@@ -118,20 +154,6 @@ public class MainActivity extends AppCompatActivity {
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    private void loadCurrentUser(){
-        currentUserFirebase = FirebaseAuth.getInstance().getCurrentUser();
-
-        db.collection("Users").document(currentUserFirebase.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                currentUserDocument = task.getResult();
-                if(currentUserDocument != null) {
-                    currentUser = currentUserDocument.toObject(User.class);
-                    handleSettingUpLocationServices();
-                }
-            }
-        });
-    }
 
     private void handleLoadingPopulatingNavDraw(){
         drawer = findViewById(R.id.drawer_layout);

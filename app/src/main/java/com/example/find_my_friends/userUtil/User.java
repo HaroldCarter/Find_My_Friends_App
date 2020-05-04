@@ -10,6 +10,7 @@ import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.Constants.currentUserDocument;
 
 public class User {
+    static private User.ChangeListener listener;
 
     //maybe store a keyword of their display name so that the users can be indexed by name.
 
@@ -37,7 +38,25 @@ public class User {
         return new LatLng(this.UserLat, this.UserLong);
     }
 
+    public void setUser(User user){
+        this.UID = user.UID;
+        this.UserEmailAddress = user.UserEmailAddress;
+        this.UserPhotoURL = user.UserPhotoURL;
+        this.Username = user.Username;
+        this.UserLat = user.UserLat;
+        this.UserLong = user.UserLong;
+        this.UserLocationUpToDate = user.UserLocationUpToDate;
+        this.usersMemberships = user.usersMemberships;
+        this.usersRequestsMemberships = user.usersRequestsMemberships;
+        this.modeOfTransport = user.modeOfTransport;
+        listener.onChange();
+    }
 
+    public void notifyChangeListener(){
+        if(listener != null) {
+            listener.onChange();
+        }
+    }
 
     public Boolean getUserLocationUpToDate() {
         return UserLocationUpToDate;
@@ -281,4 +300,20 @@ public class User {
     public void setUsername(String username) {
         Username = username;
     }
+
+
+    //only one listener is required as we do not want to update all pages at once, only the pages that are currently onscreen, which is limited to one at a time.
+    public ChangeListener getListener() {
+        return listener;
+    }
+
+    public void setListener(ChangeListener listener) {
+        this.listener = listener;
+    }
+
+    public interface ChangeListener {
+        void onChange();
+    }
+
+
 }
