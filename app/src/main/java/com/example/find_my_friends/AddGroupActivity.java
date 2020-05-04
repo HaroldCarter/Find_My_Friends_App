@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -69,6 +70,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private FloatingActionButton addGroupPhotoFAB;
     private ImageView groupPhoto;
     private boolean uploadStatus = false;
+    private ProgressBar progressBarGroupPhoto;
+    private ProgressBar progressBarAddGroup;
     //private  mCompressor;
 
     private DocumentReference docRef;
@@ -110,6 +113,9 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         titleTextViewAG = findViewById(R.id.TitleTextViewAG);
         desTextViewAG = findViewById(R.id.DescriptionOfGroupAG);
 
+        progressBarGroupPhoto = findViewById(R.id.progressBarGroupPhoto);
+        progressBarAddGroup = findViewById(R.id.progressBarAddGroup);
+
 
         handleAddGroupPhotoFAB();
         handleBackBTN();
@@ -131,6 +137,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     group = documentSnapshot.toObject(Group.class);
                     updateUI();
                     uploadStatus = true;
+                    progressBarGroupPhoto.setVisibility(View.INVISIBLE);
                     //stops errors regarding the button not allowing to update because the app things its uploading a photo.
                 }
             });
@@ -209,6 +216,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                         }
                         loadGroupPhoto();
                         uploadStatus = true;
+                        progressBarGroupPhoto.setVisibility(View.INVISIBLE);
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -341,6 +350,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         addGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBarAddGroup.setVisibility(View.VISIBLE);
                 //set the onscreen display to the data on
                 if (group == null) {
                     groupToAdd.setGroupID(UUID.randomUUID().toString());
@@ -376,13 +386,16 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     else {
                         //add the group to the database.
                         if (groupToAdd.uploadGroup(db)) {
+                            progressBarAddGroup.setVisibility(View.INVISIBLE);
                             finish();
+                            return;
                         } else {
                             Snackbar.make(addGroupPhotoFAB, "Creation of group failed, check data and try again.", Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();
                         }
 
                     }
+                    progressBarAddGroup.setVisibility(View.INVISIBLE);
 
 
                 }else{
@@ -399,6 +412,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                         docRef.update("groupLongitude", group.getGroupLongitude());
                         docRef.update("groupMeetDate", group.getGroupMeetDate());
                         docRef.update("groupMeetTime", group.getGroupMeetTime());
+                        progressBarAddGroup.setVisibility(View.INVISIBLE);
                         finish();
                     }
                 }
@@ -407,11 +421,13 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     }
 
     private void handleAddGroupPhotoFAB(){
-        uploadStatus = false;
+
         addGroupPhotoFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //make a request to get permission
+                uploadStatus = false;
+                progressBarGroupPhoto.setVisibility(View.VISIBLE);
                 if(!PermissionUtils.checkReadExternalPermission(AddGroupActivity.this)){
                     PermissionUtils.requestReadExternalPermission(AddGroupActivity.this);
                 }else{

@@ -63,5 +63,14 @@
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@drawable/svg_add_white" />
 
+    <ProgressBar
+        android:id="@+id/progressBarGroupPhoto"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="center" />
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

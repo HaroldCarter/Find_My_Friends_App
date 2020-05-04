@@ -187,9 +187,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public boolean onMarkerClick(Marker marker) {
         if (marker != null && currentMarkersHashMaps != null && currentGroupMarkers != null ){
-            currentLocationMarker.setVisible(false);
             Integer index = currentMarkersHashMaps.get(marker.getId());
             if(index != null) {
+                currentLocationMarker.setVisible(false);
                 GroupMarker selectedMarker = currentGroupMarkers.get(index);
                 //hide all the other group markers.
                 for (GroupMarker cGM : currentGroupMarkers
