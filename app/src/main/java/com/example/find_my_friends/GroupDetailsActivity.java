@@ -42,6 +42,8 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.Locale;
 
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.removeMembershipCurrentUser;
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.removeRequestedMembershipCurrentUser;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
 
@@ -192,7 +194,6 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
                 if(!getCurrentUserGroupMember()) {
                     changeRequestBTN("Requested");
                     requestToJoinGroup();
-
                     currentUserGroupMember = true;
                 }else{
                     leaveGroup();
@@ -236,13 +237,13 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         }
         if(group.getMembersOfGroupIDS() != null){
             group.getMembersOfGroupIDS().remove(user.getUid());
-            currentUser.removeMembership(group.getGroupID());
+            removeMembershipCurrentUser(group.getGroupID());
             Snackbar.make(requestToJoinBTN, "Group Left", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
         if(group.getRequestedMemberIDS() != null){
             group.getRequestedMemberIDS().remove(user.getUid());
-            currentUser.removeRequestedMembership(group.getGroupID());
+            removeRequestedMembershipCurrentUser(group.getGroupID());
             Snackbar.make(requestToJoinBTN, "Group request cancelled", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }

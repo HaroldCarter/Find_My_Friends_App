@@ -33,6 +33,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.notifyChangeListener;
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.setLocationCurrentUser;
 import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.GPS_UPDATE_RATE;
 import static com.example.find_my_friends.util.Constants.currentUser;
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     currentUserDocument = documentSnapshot;
                     currentUser = currentUserDocument.toObject(User.class);
                     if(currentUser != null) {
-                        currentUser.notifyChangeListener();
+                        notifyChangeListener();
                         CurrentUserLoaded = true;
                     }else{
                         CurrentUserLoaded = false;
@@ -97,11 +99,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleSettingUpLocationServices(){
-        createLocationRequest();
-        setupLocationCallback();
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if(handleRequestingPermissions()){
+            createLocationRequest();
+            setupLocationCallback();
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             setUpLocationUpdates();
         }
     }
@@ -111,7 +112,9 @@ public class MainActivity extends AppCompatActivity {
         boolean hasPermissionLocation = PermissionUtils.checkLocationPermission(this);
         boolean hasPermissionBackground = PermissionUtils.checkLocationBackgroundPermission(this);
 
-        if(hasPermissionLocation && hasPermissionBackground)return true;
+        if(hasPermissionLocation && hasPermissionBackground){
+            return true;
+        }
         else{
             if(!hasPermissionBackground){
                 PermissionUtils.requestLocationBackgroundPermission(this);
@@ -133,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 for (Location location : locationResult.getLocations()) {
                     if(currentUser != null && currentUser.getUserLocationUpToDate()) {
-                        currentUser.setLocationCurrentUser(location.getLatitude(), location.getLongitude());
+                        setLocationCurrentUser(location.getLatitude(), location.getLongitude());
                     }
                 }
             }

@@ -26,6 +26,9 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 
+import static com.example.find_my_friends.userUtil.UserUtil.appendMembership;
+import static com.example.find_my_friends.userUtil.UserUtil.removeMembershipRequest;
+
 public class GroupRequestsActivity extends AppCompatActivity {
 
     private UserGroupRequestsAdapter userAdapter;
@@ -223,7 +226,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
                             //currentUser.removeRequestedMembership(group.getGroupID());
                             User userSnap = documentSnapshot.toObject(User.class);
                             if (userSnap != null) {
-                                userSnap.removeMembershipRequest(group.getGroupID(), documentSnapshot);
+                                removeMembershipRequest(group.getGroupID(), documentSnapshot);
 
                             }
 
@@ -235,7 +238,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
                             group.appendMemberGroupOnly(userUID);
                             User userSnap = documentSnapshot.toObject(User.class);
                             if (userSnap != null) {
-                                userSnap.appendMembership(group.getGroupID(), documentSnapshot);
+                                appendMembership(group.getGroupID(), documentSnapshot);
                             }
                             docRef.update("membersOfGroupIDS", group.getMembersOfGroupIDS());
                             Snackbar.make(recyclerView, "Member Added to group", Snackbar.LENGTH_LONG)
@@ -271,7 +274,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
                             docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
                             User userSnap = documentSnapshot.toObject(User.class);
                             if (userSnap != null) {
-                                userSnap.removeMembershipRequest(group.getGroupID(), documentSnapshot);
+                                removeMembershipRequest(group.getGroupID(), documentSnapshot);
                             }
                         }
                     }

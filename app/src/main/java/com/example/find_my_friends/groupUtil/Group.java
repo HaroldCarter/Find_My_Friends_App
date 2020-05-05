@@ -7,9 +7,7 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
 
 
@@ -19,7 +17,8 @@ import java.util.ArrayList;
 import ch.hsr.geohash.GeoHash;
 import uk.co.mgbramwell.geofire.android.GeoFire;
 
-import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.appendMembershipCurrentUser;
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.appendRequestedMembershipCurrentUser;
 
 
 public class Group {
@@ -131,7 +130,6 @@ public class Group {
             if(previousWord.length() != 0){
                 previousWord.append(" ");
                 previousWord.append(S);
-
                 //adds the full sentence up to this point with a space at the end.
                 if(previousWord.length() != enteredText.length()) {
                     this.groupTitleKeywords.add(previousWord.toString());
@@ -140,8 +138,6 @@ public class Group {
             }else{
                 previousWord.append(S);
             }
-
-
         }
         this.groupTitleKeywords.add(groupTitle);
     }
@@ -153,7 +149,7 @@ public class Group {
             //if this is the first member of the group being added.
             this.membersOfGroupIDS = new ArrayList<>();
             this.membersOfGroupIDS.add(user.getUid());
-            currentUser.appendMembership(this.groupID);
+            appendMembershipCurrentUser(this.groupID);
         }
         else{
             this.membersOfGroupIDS.add(user.getUid());
@@ -165,20 +161,44 @@ public class Group {
             //if this is the first member of the group being added.
             this.membersOfGroupIDS = new ArrayList<>();
             this.membersOfGroupIDS.add(userUID);
-            currentUser.appendMembership(this.groupID);
+            appendMembershipCurrentUser(this.groupID);
         }
         else{
             this.membersOfGroupIDS.add(userUID);
-            currentUser.appendMembership(this.groupID);
+            appendMembershipCurrentUser(this.groupID);
         }
     }
+
+    public void appendMemberRequest(String userUID){
+        if(this.requestedMemberIDS == null) {
+            //if this is the first member of the group being added.
+            this.requestedMemberIDS = new ArrayList<>();
+            this.requestedMemberIDS.add(userUID);
+            appendRequestedMembershipCurrentUser(this.groupID);
+        }
+        else{
+            this.requestedMemberIDS.add(userUID);
+            appendRequestedMembershipCurrentUser(this.groupID);
+        }
+    }
+
+    public void appendMemberRequestGroupOnly(String userUID){
+        if(this.requestedMemberIDS == null) {
+            //if this is the first member of the group being added.
+            this.requestedMemberIDS = new ArrayList<>();
+            this.requestedMemberIDS.add(userUID);
+        }
+        else{
+            this.requestedMemberIDS.add(userUID);
+        }
+    }
+
 
     public void appendMemberGroupOnly(String userUID){
         if(this.membersOfGroupIDS == null) {
             //if this is the first member of the group being added.
             this.membersOfGroupIDS = new ArrayList<>();
             this.membersOfGroupIDS.add(userUID);
-
         }
         else{
             this.membersOfGroupIDS.add(userUID);
@@ -188,40 +208,15 @@ public class Group {
 
     public void appendMemberRequest(FirebaseUser user){
         if(this.requestedMemberIDS == null) {
-            //if this is the first member of the group being added.
+            //if this is the first member of the group being added create a new array
             this.requestedMemberIDS = new ArrayList<>();
+            //
             this.requestedMemberIDS.add(user.getUid());
-            currentUser.appendRequestedMembership(this.groupID);
+            appendRequestedMembershipCurrentUser(this.groupID);
         }
         else{
             this.requestedMemberIDS.add(user.getUid());
-            currentUser.appendRequestedMembership(this.groupID);
-        }
-    }
-
-    public void appendMemberRequest(String userUID){
-        if(this.requestedMemberIDS == null) {
-            //if this is the first member of the group being added.
-            this.requestedMemberIDS = new ArrayList<>();
-            this.requestedMemberIDS.add(userUID);
-            currentUser.appendRequestedMembership(this.groupID);
-        }
-        else{
-            this.requestedMemberIDS.add(userUID);
-            currentUser.appendRequestedMembership(this.groupID);
-        }
-    }
-
-    public void appendMemberRequestGroupOnly(String userUID){
-        if(this.requestedMemberIDS == null) {
-            //if this is the first member of the group being added.
-            this.requestedMemberIDS = new ArrayList<>();
-            this.requestedMemberIDS.add(userUID);
-
-        }
-        else{
-            this.requestedMemberIDS.add(userUID);
-
+            appendRequestedMembershipCurrentUser(this.groupID);
         }
     }
 
@@ -246,7 +241,6 @@ public class Group {
             return false;
         }else{
             //save the object to the database.
-
             db.collection("Groups").document(this.groupID)
                     .set(this, SetOptions.merge())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -254,12 +248,9 @@ public class Group {
                         public void onSuccess(Void aVoid) {
                             //GeoFirestore geoFirestore = new GeoFirestore( db.collection("Groups"));
                             //geoFirestore.setLocation(group.groupID, new GeoPoint(group.getGroupLatitude(), group.getGroupLongitude()));
-
                             //testing geofire gps search
                             GeoFire geoFire = new GeoFire(db.collection("Groups"));
                             geoFire.setLocation(group.getGroupID(), group.getGroupLatitude(), group.getGroupLongitude());
-
-
                             Log.d("Group Class :", "group uploaded to fireStore successfully");
                         }
                     })

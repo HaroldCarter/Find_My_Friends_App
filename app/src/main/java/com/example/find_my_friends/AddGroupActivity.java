@@ -357,7 +357,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
                     groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
                     groupToAdd.generateKeywords(groupToAdd.getGroupTitle());
-                    groupToAdd.generateGeoHash();
+                    //groupToAdd.generateGeoHash();
                     groupToAdd.appendMember(mUser);
 
 

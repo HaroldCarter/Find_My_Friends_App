@@ -24,9 +24,11 @@ import com.example.find_my_friends.R;
 import com.example.find_my_friends.SearchGroupsActivity;
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.groupUtil.GroupMarker;
+import com.example.find_my_friends.userUtil.CurrentUserUtil;
 import com.example.find_my_friends.userUtil.User;
 
 import com.example.find_my_friends.userUtil.UserMarker;
+import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -47,6 +49,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.setCurrentUserListener;
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.setLocationUpToDateCurrentUser;
+import static com.example.find_my_friends.userUtil.CurrentUserUtil.setModeOfTransportCurrentUser;
+import static com.example.find_my_friends.userUtil.UserUtil.getUserLocation;
 import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
@@ -85,6 +91,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
 
 
+        //PermissionUtils.requestLocationBackgroundPermission(getActivity());
+        //PermissionUtils.requestLocationPermission(getActivity());
+
         mapOverviewViewModel =
                 ViewModelProviders.of(this).get(MapOverviewViewModel.class);
         root = inflater.inflate(R.layout.fragment_map_overview, container, false);
@@ -113,7 +122,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         //check from the server the current mode of transport for the current user.
         checkStateOfTransport();
 
-        currentUser.setListener(new User.ChangeListener() {
+        setCurrentUserListener(new CurrentUserUtil.ChangeListener() {
             @Override
             public void onChange() {
                 //update the ui
@@ -213,7 +222,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         public void onSuccess(DocumentSnapshot documentSnapshot) {
                             if(documentSnapshot != null) {
                                 User tempUser = documentSnapshot.toObject(User.class);
-                                UserMarker userMarker = new UserMarker((mMap.addMarker(new MarkerOptions().position(tempUser.getUserLocation()).title(tempUser.getUsername()))), tempUser);
+                                UserMarker userMarker = new UserMarker((mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()))), tempUser);
                                 currentGroupMarkers.get(index).appendUser(userMarker);
                                 loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport());
                             }
@@ -330,11 +339,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
                 if (gpsToggle) {
                     gpsToggleFAB.setImageAlpha(50);
-                    currentUser.setCurrentUserLocationUpToDate(false);
+                    setLocationUpToDateCurrentUser(false);
                     gpsToggle = false;
                 } else {
                     gpsToggleFAB.setImageAlpha(255);
-                    currentUser.setCurrentUserLocationUpToDate(true);
+                    setLocationUpToDateCurrentUser(true);
                     gpsToggle = true;
                 }
 
@@ -351,8 +360,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
 
-        if(currentUser != null && currentUser.getUserLocation() != null) {
-            LatLng userLocation = currentUser.getUserLocation();
+        if(currentUser != null && getUserLocation(currentUser) != null) {
+            LatLng userLocation = getUserLocation(currentUser);
             currentLocation = new MarkerOptions().position(userLocation).title("Current Location");
             currentLocationMarker = googleMap.addMarker(currentLocation);
             loadIcon(currentLocationMarker ,currentUser.getModeOfTransport());
@@ -521,21 +530,21 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             switch (modeTransportState) {
                 case 1:
                     //car selected
-                    currentUser.setModeOfTransportCurrentUser("Car");
+                    setModeOfTransportCurrentUser("Car");
                     modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
                     actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
                     actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
                     break;
                 case 2:
                     //bike selected
-                    currentUser.setModeOfTransportCurrentUser("Bike");
+                    setModeOfTransportCurrentUser("Bike");
                     modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
                     actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
                     actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));
                     break;
                 default:
                     //walking selected
-                    currentUser.setModeOfTransportCurrentUser("Person");
+                    setModeOfTransportCurrentUser("Person");
                     modeTransportFAB.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_person_white));
                     actionMenuFAB1.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_bike_white));
                     actionMenuFAB2.setImageDrawable(ContextCompat.getDrawable(getActivity().getApplicationContext(), R.drawable.svg_car_white));

@@ -50,6 +50,8 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         progressBar = findViewById(R.id.progressBarLoginPage);
 
+
+
         if(mAuth.getCurrentUser() != null){
             progressBar.setVisibility(View.VISIBLE);
             loadCurrentUser();
