@@ -20,6 +20,8 @@ public class Group {
     private double groupLongitude;
     private String groupCreatorUserID;
 
+
+
     private String groupCreatorUserPhotoURL;
     private String groupCreatorDisplayName;
 

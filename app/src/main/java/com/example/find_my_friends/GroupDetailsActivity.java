@@ -198,8 +198,8 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
                     requestToJoinGroup();
                     currentUserGroupMember = true;
                 }else{
-                    leaveGroup();
                     currentUserGroupMember = false;
+                    leaveGroup();
 
                 }
             }
@@ -235,6 +235,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         if(user.getUid().equals(group.getGroupCreatorUserID())){
             Snackbar.make(requestToJoinBTN, "You cannot leave your own group", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
+            currentUserGroupMember = true;
             return;
         }
         if(group.getMembersOfGroupIDS() != null){

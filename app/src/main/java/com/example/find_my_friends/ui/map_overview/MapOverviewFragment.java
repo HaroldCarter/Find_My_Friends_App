@@ -102,7 +102,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         locateResources();
 
 
-
+        //mapview bundle key (restore the map state upon reopening the fragment).
         Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
@@ -123,6 +123,21 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         //check from the server the current mode of transport for the current user.
         checkStateOfTransport();
 
+
+        //listen out for changes to the user.
+        currentUserListener();
+        //if the current user is loaded, then start the map services.
+        if(CurrentUserLoaded){
+            loadGpsState();
+            loadModeOfTransportSelection();
+            mapView.getMapAsync(MapOverviewFragment.this);
+        }
+
+        return root;
+    }
+
+
+    private void currentUserListener(){
         setCurrentUserListener(new CurrentUserUtil.ChangeListener() {
             @Override
             public void onChange() {
@@ -133,14 +148,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 loadIcon(currentLocationMarker ,currentUser.getModeOfTransport());
             }
         });
-
-        if(CurrentUserLoaded){
-            loadGpsState();
-            loadModeOfTransportSelection();
-            mapView.getMapAsync(MapOverviewFragment.this);
-        }
-
-        return root;
     }
 
     private void updateCurrentLocation(){
@@ -150,14 +157,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void loadGroups(GoogleMap googleMap){
-
-
         if(currentUser.getUsersMemberships() != null) {
             currentGroupMarkers = new ArrayList<>();
             groupMarkersHashMaps.clear();
             for (String s : currentUser.getUsersMemberships()
             ) {
-
                 db.collection("Groups").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -182,7 +186,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-
+    //hide all the user markers on the screen, and display all the group markers; because only one group can be selected at a time it may be an idea just to deselect just that items users.
     public void resumeGroupOverview(){
         for (GroupMarker groupMarker: currentGroupMarkers
              ) {
@@ -195,14 +199,16 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
+    //whenever a marker is interacted with the callback is given to this function therefore allowing us to actively work out which marker was interacted with.
     @Override
     public boolean onMarkerClick(Marker marker) {
         if(!checkIfMakerGroupMarker(marker)){
             checkIfMarkerUserMarker(marker);
-
         }
         return false;
     }
+
+
 
     private boolean checkIfMakerGroupMarker(Marker marker) {
         if (marker != null && groupMarkersHashMaps != null && currentGroupMarkers != null) {
@@ -258,6 +264,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
         }
     }
+
+
+
 
 
     private boolean checkIfMarkerUserMarker(Marker marker){
@@ -445,6 +454,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         if(marker != null) {
             switch (modeOfTransport) {
                 case "Car":
+
                     marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_car_white)));
                     break;
                 case "Bike":

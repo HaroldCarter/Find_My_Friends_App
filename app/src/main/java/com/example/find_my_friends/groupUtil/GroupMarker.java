@@ -16,6 +16,8 @@ public class GroupMarker {
         this.groupMarkerRepresents = groupMarkerRepresents;
     }
 
+
+
     public Marker getGroupMarker() {
         return groupMarker;
     }

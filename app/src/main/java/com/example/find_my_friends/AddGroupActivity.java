@@ -235,13 +235,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     }
 
     private void loadGroupPhoto(){
-        if(groupToAdd.getGroupPhotoURI() != null) {
-            if(group == null) {
+        if(group == null) {
+            if(groupToAdd.getGroupPhotoURI() != null) {
                 Glide.with(this).load(groupToAdd.getGroupPhotoURI()).into(groupPhoto);
-            }else{
-                Glide.with(this).load(group.getGroupPhotoURI()).into(groupPhoto);
             }
+        }else{
+            Glide.with(this).load(group.getGroupPhotoURI()).into(groupPhoto);
         }
+
     }
 
 
