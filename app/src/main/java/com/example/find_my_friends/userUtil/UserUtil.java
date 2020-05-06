@@ -2,8 +2,8 @@ package com.example.find_my_friends.userUtil;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 
-import java.util.ArrayList;
 
 public class UserUtil {
 
@@ -17,32 +17,33 @@ public class UserUtil {
 
 
     static public void appendMembership( String groupUID, DocumentSnapshot userSnap) {
-        User tempUser  = userSnap.toObject(User.class);
+        if(userSnap != null && userSnap.exists()){
+            userSnap.getReference().update("usersMemberships", FieldValue.arrayUnion(groupUID));
+        }
+        /*
+        originally how the function was working,  simplfied above/
         if(tempUser != null && tempUser.getUsersMemberships() != null) {
             tempUser.getUsersMemberships().add(groupUID);
             userSnap.getReference().update("usersMemberships", tempUser.getUsersMemberships());
         }if(tempUser != null ){
             tempUser.setUsersMemberships(new ArrayList<String>());
             tempUser.getUsersMemberships().add(groupUID);
-            userSnap.getReference().update("usersMemberships", tempUser.getUsersMemberships());
+
         }
+
+         */
     }
 
 
-    //not tested, might not work.
     static public void removeMembership( String groupUID, DocumentSnapshot userSnap) {
-        User tempUser  = userSnap.toObject(User.class);
-        if(tempUser != null && tempUser.getUsersMemberships() != null) {
-            tempUser.getUsersMemberships().remove(groupUID);
-            userSnap.getReference().update("usersMemberships", tempUser.getUsersMemberships());
+        if(userSnap != null && userSnap.exists()) {
+            userSnap.getReference().update("usersMemberships", FieldValue.arrayRemove(groupUID));
         }
     }
 
     static public void removeMembershipRequest( String groupUID, DocumentSnapshot userSnap) {
-        User tempUser  = userSnap.toObject(User.class);
-        if(tempUser != null && tempUser.getUsersRequestsMemberships() != null) {
-            tempUser.getUsersRequestsMemberships().remove(groupUID);
-            userSnap.getReference().update("usersRequestsMemberships", tempUser.getUsersRequestsMemberships());
+        if(userSnap != null && userSnap.exists()) {
+            userSnap.getReference().update("usersRequestsMemberships",FieldValue.arrayRemove(groupUID));
         }
     }
 }

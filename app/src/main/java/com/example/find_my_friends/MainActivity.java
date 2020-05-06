@@ -33,6 +33,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
+
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.notifyChangeListener;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.setLocationCurrentUser;
 import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
@@ -65,13 +66,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //each time the listener is set up, it counts as a read, and updating teh document snapshot triggers another change.
     private void listenForChangesToCurrentUser(){
         currentUserDocument.getReference().addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
                 if(documentSnapshot != null && documentSnapshot.exists()){
-                    currentUserDocument = documentSnapshot;
-                    currentUser = currentUserDocument.toObject(User.class);
+                    //currentUserDocument = documentSnapshot;
+                    //that one line might've been causing a cyclic dependancy.
+                    currentUser = documentSnapshot.toObject(User.class);
                     if(currentUser != null) {
                         notifyChangeListener();
                         CurrentUserLoaded = true;
@@ -83,11 +86,10 @@ public class MainActivity extends AppCompatActivity {
 
                     //this is a little wasteful as all upates created by the user on the interface are already modelled, however critical for functionality such as
                 }else{
-                    if(e != null) {
-                        Toast.makeText(MainActivity.this, e.toString(),
-                                Toast.LENGTH_LONG).show();
+                    if(e != null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        Toast.makeText(MainActivity.this, e.toString(),Toast.LENGTH_LONG).show();
                     }else {
-                        Toast.makeText(MainActivity.this, "Database Error, User Signed Out",
+                        Toast.makeText(MainActivity.this, "User signed out",
                                 Toast.LENGTH_LONG).show();
                     }
                     CurrentUserLoaded = false;
@@ -136,7 +138,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 for (Location location : locationResult.getLocations()) {
                     if(currentUser != null && currentUser.getUserLocationUpToDate()) {
-                        setLocationCurrentUser(location.getLatitude(), location.getLongitude());
+                        if(location.getLatitude() != currentUser.getUserLat() || location.getLongitude() != currentUser.getUserLong()) {
+                            //only set the location of the current user if the location has indeed changed otherwise this is wasteful
+                            setLocationCurrentUser(location.getLatitude(), location.getLongitude());
+                        }
                     }
                 }
             }

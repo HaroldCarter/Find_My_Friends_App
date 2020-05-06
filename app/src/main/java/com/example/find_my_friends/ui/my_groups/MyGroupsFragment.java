@@ -15,18 +15,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.find_my_friends.AddGroupActivity;
-import com.example.find_my_friends.GroupDetailsActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
-import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.recyclerAdapters.MyGroupAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -72,7 +68,9 @@ public class MyGroupsFragment extends Fragment {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).openDrawer();
+                if(getActivity() != null) {
+                    ((MainActivity) getActivity()).openDrawer();
+                }
             }
         });
 
@@ -80,20 +78,6 @@ public class MyGroupsFragment extends Fragment {
        setupRecyclerView();
         return root;
     }
-
-
-    private void testFunction(){
-        DocumentReference docRef = db.collection("Groups").document("a918c058-b2c8-4eec-86ac-8bd02c9336cd");
-        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                //latlng crashes the app, its not saving it correct, being saved as a map.
-                Group group = documentSnapshot.toObject(Group.class);
-                //group.
-            }
-        });
-    }
-
 
 
 

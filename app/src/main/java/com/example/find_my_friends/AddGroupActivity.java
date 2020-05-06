@@ -24,6 +24,8 @@ import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.groupUtil.GroupUtil;
+import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.example.find_my_friends.util.TimePickerFragment;
@@ -37,7 +39,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -50,6 +51,9 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.UUID;
 
+import static com.example.find_my_friends.groupUtil.GroupUtil.appendMember;
+import static com.example.find_my_friends.groupUtil.GroupUtil.generateKeywords;
+import static com.example.find_my_friends.groupUtil.GroupUtil.removeMember;
 import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
 import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
 import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
@@ -82,6 +86,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private FirebaseStorage storageRef;
     private FirebaseUser mUser;
     private FirebaseFirestore db;
+    private GroupUtil groupUtil = new GroupUtil();
     private boolean locationSet = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -356,9 +361,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     groupToAdd.setGroupID(UUID.randomUUID().toString());
                     groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
                     groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
-                    groupToAdd.generateKeywords(groupToAdd.getGroupTitle());
-                    //groupToAdd.generateGeoHash();
-                    groupToAdd.appendMember(mUser);
+                    generateKeywords(groupToAdd ,groupToAdd.getGroupTitle());
 
 
                     if (!uploadStatus) {
@@ -385,11 +388,14 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     }
                     else {
                         //add the group to the database.
-                        if (groupToAdd.uploadGroup(db)) {
+                        //don't append member till we have done all our checks.
+                        appendMember(groupToAdd ,mUser);
+                        if (groupUtil.uploadGroup(groupToAdd, db)) {
                             progressBarAddGroup.setVisibility(View.INVISIBLE);
                             finish();
                             return;
                         } else {
+                            removeMember(groupToAdd, mUser);
                             Snackbar.make(addGroupPhotoFAB, "Creation of group failed, check data and try again.", Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();
                         }

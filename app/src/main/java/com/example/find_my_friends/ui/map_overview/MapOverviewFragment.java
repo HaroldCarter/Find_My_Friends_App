@@ -23,12 +23,13 @@ import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.SearchGroupsActivity;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.groupUtil.GroupInfoWindowAdapter;
+import com.example.find_my_friends.groupUtil.GroupInfoWindowData;
 import com.example.find_my_friends.groupUtil.GroupMarker;
 import com.example.find_my_friends.userUtil.CurrentUserUtil;
 import com.example.find_my_friends.userUtil.User;
 
 import com.example.find_my_friends.userUtil.UserMarker;
-import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -72,14 +73,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private MapView mapView;
     private GoogleMap mMap;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-   //private LatLng currentLocation = new LatLng(0, 0);
-   // private FusedLocationProviderClient fusedLocationClient;
+
+
     private FloatingActionButton gpsToggleFAB;
     private FloatingActionButton addGroupPhotoFAB;
     private FloatingActionButton navigationDrawFAB;
 
     private MarkerOptions currentLocation;
     private Marker currentLocationMarker;
+    private Marker selectedMarker;
 
     private ArrayList<GroupMarker> currentGroupMarkers;
     private HashMap<String, Integer> currentMarkersHashMaps = new HashMap<>();
@@ -90,9 +92,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                              ViewGroup container, Bundle savedInstanceState) {
 
 
-
-        //PermissionUtils.requestLocationBackgroundPermission(getActivity());
-        //PermissionUtils.requestLocationPermission(getActivity());
 
         mapOverviewViewModel =
                 ViewModelProviders.of(this).get(MapOverviewViewModel.class);
@@ -164,6 +163,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                             Group tempGroup = documentSnapshot.toObject(Group.class);
                             if (tempGroup != null) {
                                 Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(tempGroup.getGroupLatitude(), tempGroup.getGroupLongitude())).title(tempGroup.getGroupTitle()));
+                                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempGroup.getGroupID(), tempGroup.getGroupPhotoURI(), tempGroup.getGroupTitle(), tempGroup.getGroupCreatorUserPhotoURL(), tempGroup.getGroupCreatorDisplayName());
+                                marker.setTag(groupInfoWindowData);
                                 GroupMarker groupMarker = new GroupMarker(marker, tempGroup);
                                 currentGroupMarkers.add(groupMarker);
                                 currentMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
@@ -208,13 +209,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                     }
                 }
                 groupInspected = true;
+                this.selectedMarker = marker;
                 navigationDrawFAB.setImageResource(R.drawable.svg_cancel_white);
 
 
                 //load the group's users and display them in on the map.
-
-
-
                 for (String s : currentGroupMarkers.get(index).getGroupMarkerRepresents().getMembersOfGroupIDS()
                 ) {
                     db.collection("Users").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -304,6 +303,10 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             public void onClick(View view) {
                 if(groupInspected){
                     navigationDrawFAB.setImageResource(R.drawable.svg_menu_white);
+                    if(selectedMarker != null) {
+                        selectedMarker.hideInfoWindow();
+                        selectedMarker = null;
+                    }
                     groupInspected = false;
                     resumeGroupOverview();
                     currentLocationMarker.setVisible(true);
@@ -338,10 +341,12 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             public void onClick(View view) {
                 //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
                 if (gpsToggle) {
+                    //if true then turn it off on this interaction
                     gpsToggleFAB.setImageAlpha(50);
                     setLocationUpToDateCurrentUser(false);
                     gpsToggle = false;
                 } else {
+                    //else false then turn on/
                     gpsToggleFAB.setImageAlpha(255);
                     setLocationUpToDateCurrentUser(true);
                     gpsToggle = true;
@@ -361,6 +366,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         mMap = googleMap;
 
         if(currentUser != null && getUserLocation(currentUser) != null) {
+            GroupInfoWindowAdapter infoWindowAdapter = new GroupInfoWindowAdapter(getContext());
+            googleMap.setInfoWindowAdapter(infoWindowAdapter);
             LatLng userLocation = getUserLocation(currentUser);
             currentLocation = new MarkerOptions().position(userLocation).title("Current Location");
             currentLocationMarker = googleMap.addMarker(currentLocation);

@@ -7,6 +7,7 @@
     <color name="colorConfirm">#29D62D</color>
     <color name="colorDeny">#D62929</color>
     <color name="white">#FFFF</color>
+    <color name="whiteTrans">#87FFFFFF</color>
     <color name="LightGray">#A5A5A5</color>
     <color name="transparent">#00A5A5A5</color>
 </resources>

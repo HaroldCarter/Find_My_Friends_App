@@ -258,6 +258,7 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     private void setUserProfileUri(Uri profilePhotoUri) {
+        //update the profile to contain the profile photo
         UserProfileChangeRequest updateRequest = new UserProfileChangeRequest.Builder().setPhotoUri(profilePhotoUri).build();
         if (mAuth.getCurrentUser() != null) {
             mAuth.getCurrentUser().updateProfile(updateRequest).addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -371,10 +372,12 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void updateUserInfo(final String username) {
+        //set the username in the authentication panel.
         UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                 .setDisplayName(username)
                 .build();
 
+        //apply the update.
         if (mAuth.getCurrentUser() != null) {
             mAuth.getCurrentUser().updateProfile(profileUpdate)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -399,12 +402,18 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     private void storeUserInfoOnFireStore(FirebaseUser firebaseUser) {
+        //asimilated this data into a user object.
         User user = new User();
         user.setUID(firebaseUser.getUid());
         user.setUserEmailAddress(firebaseUser.getEmail());
-        user.setUserPhotoURL(firebaseUser.getPhotoUrl().toString());
+        //this should never occur but just to catch the null anyway.
+        if(firebaseUser.getPhotoUrl() != null) {
+            user.setUserPhotoURL(firebaseUser.getPhotoUrl().toString());
+        }
         user.setUsername(firebaseUser.getDisplayName());
 
+        //upload this as a document to the firestore database.
+        //experiencing issues with this function not actually uploading the user to the documents. however this function has not been changed.
         db.collection("Users").document(firebaseUser.getUid())
                 .set(user, SetOptions.merge())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {

@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -42,6 +43,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.Locale;
 
+import static com.example.find_my_friends.groupUtil.GroupUtil.appendMemberRequest;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.removeMembershipCurrentUser;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.removeRequestedMembershipCurrentUser;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
@@ -247,17 +249,20 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
             Snackbar.make(requestToJoinBTN, "Group request cancelled", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
-        docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
-        docRef.update("membersOfGroupIDS", group.getMembersOfGroupIDS());
+        //update the group so that user is sucessfully deregistered
+        docRef.update("requestedMemberIDS", FieldValue.arrayRemove(user.getUid()));
+        docRef.update("membersOfGroupIDS", FieldValue.arrayRemove(user.getUid()));
+        //change the text of the button so that user knows that they can click to request to join the group.
         changeRequestBTN("Request To Join");
 
     }
 
     private void requestToJoinGroup(){
         if(!getCurrentUserGroupMember()){
-            group.appendMemberRequest(user);
-            //currentUser.appendRequestedMembership(group.getGroupID());
-            docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
+            //update the current user,
+            appendMemberRequest(group, user);
+            //update the document for the group that the user is requesting a membership
+            docRef.update("requestedMemberIDS", FieldValue.arrayUnion(user.getUid()));
         }
     }
 
@@ -274,7 +279,6 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(userAdapter);
         userAdapter.startListening();
-
 
     }
 

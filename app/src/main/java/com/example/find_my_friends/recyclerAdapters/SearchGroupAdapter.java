@@ -18,18 +18,15 @@ import com.example.find_my_friends.groupUtil.Group;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 
 import static com.example.find_my_friends.util.Constants.currentUser;
-import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointKM;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
 public class SearchGroupAdapter extends FirestoreRecyclerAdapter<Group, SearchGroupAdapter.GroupOverviewHolder> implements Filterable {
     //private User User = currentUser;
-    private FirebaseFirestore db =  FirebaseFirestore.getInstance();
     private OnItemClickListener listener;
     //private GroupOverviewHolder groupOverviewHolder;
     //private Group group;

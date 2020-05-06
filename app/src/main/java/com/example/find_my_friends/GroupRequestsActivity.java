@@ -21,11 +21,13 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 
+import static com.example.find_my_friends.groupUtil.GroupUtil.appendMemberGroupOnly;
 import static com.example.find_my_friends.userUtil.UserUtil.appendMembership;
 import static com.example.find_my_friends.userUtil.UserUtil.removeMembershipRequest;
 
@@ -230,17 +232,18 @@ public class GroupRequestsActivity extends AppCompatActivity {
 
                             }
 
-                            docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
+                            docRef.update("requestedMemberIDS", FieldValue.arrayRemove(userUID));
                         }
                         //add the user to the group.
                         if (userUID != null && group != null) {
                             //if the conditions are valid
-                            group.appendMemberGroupOnly(userUID);
+                            //appending this to the local version might not be required however do not test this till after you've tested the refactor works.
+                            appendMemberGroupOnly(group, userUID);
                             User userSnap = documentSnapshot.toObject(User.class);
                             if (userSnap != null) {
                                 appendMembership(group.getGroupID(), documentSnapshot);
                             }
-                            docRef.update("membersOfGroupIDS", group.getMembersOfGroupIDS());
+                            docRef.update("membersOfGroupIDS", FieldValue.arrayUnion(userUID));
                             Snackbar.make(recyclerView, "Member Added to group", Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();
                         }
@@ -271,7 +274,7 @@ public class GroupRequestsActivity extends AppCompatActivity {
                             //currentUser.removeRequestedMembership(group.getGroupID());
                             Snackbar.make(recyclerView, "Group request Removed", Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();
-                            docRef.update("requestedMemberIDS", group.getRequestedMemberIDS());
+                            docRef.update("requestedMemberIDS", FieldValue.arrayRemove(userUID));
                             User userSnap = documentSnapshot.toObject(User.class);
                             if (userSnap != null) {
                                 removeMembershipRequest(group.getGroupID(), documentSnapshot);

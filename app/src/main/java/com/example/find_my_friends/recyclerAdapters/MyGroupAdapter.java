@@ -1,6 +1,5 @@
 package com.example.find_my_friends.recyclerAdapters;
 
-import android.location.Location;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,14 +16,11 @@ import com.example.find_my_friends.groupUtil.Group;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
 public class MyGroupAdapter extends FirestoreRecyclerAdapter<Group, MyGroupAdapter.GroupOverviewHolder> {
-
-    private FirebaseFirestore db =  FirebaseFirestore.getInstance();
     private OnItemClickListener listener;
     //private GroupOverviewHolder groupOverviewHolder;
     //private Group group;

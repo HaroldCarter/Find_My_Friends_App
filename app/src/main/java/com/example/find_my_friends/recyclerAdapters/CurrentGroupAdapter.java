@@ -72,7 +72,8 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
     }
 
     @Override
-    public CurrentGroupHolder onCreateViewHolder( ViewGroup parent, int viewType) {
+    @NonNull
+    public CurrentGroupHolder  onCreateViewHolder( ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.cardview_group_overview, parent, false);
         return new CurrentGroupHolder(v, listener);
     }

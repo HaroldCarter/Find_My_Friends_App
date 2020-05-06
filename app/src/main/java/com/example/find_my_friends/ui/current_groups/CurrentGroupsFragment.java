@@ -77,7 +77,9 @@ public class CurrentGroupsFragment extends Fragment {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).openDrawer();
+                if(getActivity() != null) {
+                    ((MainActivity) getActivity()).openDrawer();
+                }
             }
         });
 
