@@ -84,8 +84,10 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private Marker selectedMarker;
 
     private ArrayList<GroupMarker> currentGroupMarkers;
-    private HashMap<String, Integer> currentMarkersHashMaps = new HashMap<>();
+    private HashMap<String, Integer> groupMarkersHashMaps = new HashMap<>();
+    private HashMap<String, Integer> userMarkerHashMaps = new HashMap<>();
     private boolean groupInspected = false;
+    private boolean groupHighlighted = false;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -152,7 +154,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
         if(currentUser.getUsersMemberships() != null) {
             currentGroupMarkers = new ArrayList<>();
-            currentMarkersHashMaps.clear();
+            groupMarkersHashMaps.clear();
             for (String s : currentUser.getUsersMemberships()
             ) {
 
@@ -163,11 +165,12 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                             Group tempGroup = documentSnapshot.toObject(Group.class);
                             if (tempGroup != null) {
                                 Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(tempGroup.getGroupLatitude(), tempGroup.getGroupLongitude())).title(tempGroup.getGroupTitle()));
-                                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempGroup.getGroupID(), tempGroup.getGroupPhotoURI(), tempGroup.getGroupTitle(), tempGroup.getGroupCreatorUserPhotoURL(), tempGroup.getGroupCreatorDisplayName());
+                                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempGroup.getGroupID(), null, null, tempGroup.getGroupTitle(), tempGroup.getGroupCreatorUserPhotoURL(), tempGroup.getGroupCreatorDisplayName());
+                                marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_location_white)));
                                 marker.setTag(groupInfoWindowData);
                                 GroupMarker groupMarker = new GroupMarker(marker, tempGroup);
                                 currentGroupMarkers.add(groupMarker);
-                                currentMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
+                                groupMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
                             }
 
                         }
@@ -181,8 +184,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
 
     public void resumeGroupOverview(){
-        //hide all the group memeber markers.
-        //show all the group markers
         for (GroupMarker groupMarker: currentGroupMarkers
              ) {
             groupMarker.getGroupMarker().setVisible(true);
@@ -196,39 +197,77 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (marker != null && currentMarkersHashMaps != null && currentGroupMarkers != null ){
-            Integer index = currentMarkersHashMaps.get(marker.getId());
-            if(index != null) {
+        if(!checkIfMakerGroupMarker(marker)){
+            checkIfMarkerUserMarker(marker);
+
+        }
+        return false;
+    }
+
+    private boolean checkIfMakerGroupMarker(Marker marker) {
+        if (marker != null && groupMarkersHashMaps != null && currentGroupMarkers != null) {
+            Integer index = groupMarkersHashMaps.get(marker.getId());
+            if (index != null) {
                 currentLocationMarker.setVisible(false);
-                GroupMarker selectedMarker = currentGroupMarkers.get(index);
-                //hide all the other group markers.
-                for (GroupMarker cGM : currentGroupMarkers
-                ) {
-                    if (!cGM.getGroupMarker().getId().equals(selectedMarker.getGroupMarker().getId())) {
-                        cGM.getGroupMarker().setVisible(false);
-                    }
-                }
+                hideAllGroupMarkersButCurrent(index);
                 groupInspected = true;
                 this.selectedMarker = marker;
-                navigationDrawFAB.setImageResource(R.drawable.svg_cancel_white);
+                navigationDrawFAB.setImageResource(R.drawable.svg_back_arrow_white);
+                generateUserMarkers(index);
+                return true;
+            }
+        }
+        return false;
+    }
 
 
-                //load the group's users and display them in on the map.
-                for (String s : currentGroupMarkers.get(index).getGroupMarkerRepresents().getMembersOfGroupIDS()
-                ) {
-                    db.collection("Users").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot documentSnapshot) {
-                            if(documentSnapshot != null) {
-                                User tempUser = documentSnapshot.toObject(User.class);
-                                UserMarker userMarker = new UserMarker((mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()))), tempUser);
-                                currentGroupMarkers.get(index).appendUser(userMarker);
-                                loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport());
-                            }
+    private void hideAllGroupMarkersButCurrent(Integer index){
+        GroupMarker selectedMarker = currentGroupMarkers.get(index);
+        //hide all the other group markers.
+        for (GroupMarker cGM : currentGroupMarkers
+        ) {
+            if (!cGM.getGroupMarker().getId().equals(selectedMarker.getGroupMarker().getId())) {
+                cGM.getGroupMarker().setVisible(false);
+            }
+        }
+    }
+
+
+    private void generateUserMarkers(Integer index){
+        userMarkerHashMaps.clear();
+        //load the group's users and display them in on the map.
+        for (String s : currentGroupMarkers.get(index).getGroupMarkerRepresents().getMembersOfGroupIDS()
+        ) {
+            db.collection("Users").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    if (documentSnapshot != null) {
+                        User tempUser = documentSnapshot.toObject(User.class);
+                        if(tempUser != null) {
+                            Marker markerUser = mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()));
+                            UserMarker userMarker = new UserMarker(markerUser, tempUser);
+                            GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress());
+                            markerUser.setTag(groupInfoWindowData);
+                            currentGroupMarkers.get(index).appendUser(userMarker);
+                            userMarkerHashMaps.put(markerUser.getId(), currentGroupMarkers.get(index).getUserIndex(userMarker));
+                            loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport());
                         }
-                    });
-
+                    }
                 }
+            });
+
+        }
+    }
+
+
+    private boolean checkIfMarkerUserMarker(Marker marker){
+        if(marker != null && userMarkerHashMaps !=null){
+            Integer index = userMarkerHashMaps.get(marker.getId());
+            if(index != null) {
+                groupInspected = true;
+                this.selectedMarker = marker;
+                navigationDrawFAB.setImageResource(R.drawable.svg_back_arrow_white);
+                return true;
             }
         }
         return false;
@@ -236,7 +275,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Integer index =  currentMarkersHashMaps.get(marker.getId());
+        Integer index =  groupMarkersHashMaps.get(marker.getId());
         if(index != null){
             Intent intent = new Intent(this.getActivity(), GroupDetailsActivity.class);
             intent.putExtra("documentID",currentGroupMarkers.get(index).getGroupMarkerRepresents().getGroupID());
@@ -301,17 +340,29 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         navigationDrawFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 if(groupInspected){
-                    navigationDrawFAB.setImageResource(R.drawable.svg_menu_white);
+                    navigationDrawFAB.setImageResource(R.drawable.svg_cancel_white);
                     if(selectedMarker != null) {
                         selectedMarker.hideInfoWindow();
                         selectedMarker = null;
                     }
                     groupInspected = false;
+                    groupHighlighted = true;
+
+                    //make all the group veiwable again.
+                }
+                else if(groupHighlighted){
+                    navigationDrawFAB.setImageResource(R.drawable.svg_menu_white);
+                    if(selectedMarker != null) {
+                        selectedMarker.hideInfoWindow();
+                        selectedMarker = null;
+                    }
+                    groupHighlighted = false;
                     resumeGroupOverview();
                     currentLocationMarker.setVisible(true);
-                    //make all the group veiwable again.
-                }else {
+                }
+                else {
                     ((MainActivity) getActivity()).openDrawer();
                 }
             }

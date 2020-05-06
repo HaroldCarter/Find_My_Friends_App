@@ -101,6 +101,7 @@
 
     <string name="search_hint">search by group title</string>
     <string name="search_title">search groups</string>
+    <string name="group_window_info_adapter_eta_string">ETA :</string>
 
 
 </resources>

@@ -44,6 +44,15 @@ public class GroupMarker {
         this.users.add(userMarker);
     }
 
+    public UserMarker getUser(UserMarker userMarker){
+        return this.users.get(this.users.indexOf(userMarker));
+    }
+
+    public int getUserIndex(UserMarker userMarker){
+        return this.users.indexOf(userMarker);
+    }
+
+
     public void removeUser(UserMarker userMarker) {
         this.users.remove(userMarker);
     }
