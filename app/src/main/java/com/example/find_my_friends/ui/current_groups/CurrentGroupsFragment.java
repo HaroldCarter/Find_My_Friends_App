@@ -20,7 +20,7 @@ import com.example.find_my_friends.GroupDetailsActivity;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
-import com.example.find_my_friends.recyclerAdapters.CurrentGroupAdapter;
+import com.example.find_my_friends.recyclerAdapters.GroupAdapter;
 import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -40,7 +40,7 @@ import static com.example.find_my_friends.util.Constants.currentUserDocument;
 public class CurrentGroupsFragment extends Fragment {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference groupsRef = db.collection("Groups");
-    private CurrentGroupAdapter currentGroupAdapter;
+    private GroupAdapter groupAdapter;
     private RecyclerView recyclerView;
     private ArrayList<Group> groups = new ArrayList<>();
     private int count = 0;
@@ -178,19 +178,19 @@ public class CurrentGroupsFragment extends Fragment {
     }
 
     private void updateRecyclerView(){
-        currentGroupAdapter.notifyDataSetChanged();
+        groupAdapter.notifyDataSetChanged();
     }
 
 
     private void setupRecyclerView(){
         if(currentUser.getUsersMemberships() != null && currentUser.getUsersMemberships().toArray().length !=0) {
 
-            currentGroupAdapter = new CurrentGroupAdapter(this.groups);
+            groupAdapter = new GroupAdapter(this.groups);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            recyclerView.setAdapter(currentGroupAdapter);
+            recyclerView.setAdapter(groupAdapter);
 
 
-            currentGroupAdapter.setOnItemClickListener(new CurrentGroupAdapter.OnItemClickListener() {
+            groupAdapter.setOnItemClickListener(new GroupAdapter.OnItemClickListener() {
                 @Override
                 public void onItemClick(int position) {
                     Intent intent = new Intent(getContext(), GroupDetailsActivity.class);

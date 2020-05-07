@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
@@ -16,6 +17,7 @@ import uk.co.mgbramwell.geofire.android.GeoFire;
 
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.appendMembershipCurrentUser;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.appendRequestedMembershipCurrentUser;
+import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
 public class GroupUtil {
 
@@ -185,6 +187,68 @@ public class GroupUtil {
             return false;
         }
     }
+
+
+
+    static public boolean isUserAMember(Group group, User user){
+        if(group.getMembersOfGroupIDS() != null) {
+            return (group.getMembersOfGroupIDS().indexOf(user.getUID()) != -1);
+        }else{
+            return false;
+        }
+    }
+
+    static public boolean isUserAlreadyCompleted(Group group, User user){
+        if(group.getCompletedMemeberIDS() != null) {
+            return (group.getCompletedMemeberIDS().indexOf(user.getUID()) != -1);
+        }else{
+            return false;
+        }
+    }
+
+
+    static public boolean canUserComplete(Group group, User user){
+        float distance = distanceBetweenTwoPointMiles(group.getGroupLatitude(), group.getGroupLongitude(), user.getUserLat(), user.getUserLong());
+        if(distance < 1.0){
+            return isUserAMember(group, user);
+        }else{
+            return false;
+        }
+
+    }
+
+
+    //append a member to the completedMemberList
+    static public boolean appendCompletedMember(Group group, FirebaseUser user){
+        if(group.getCompletedMemeberIDS() == null) {
+            group.setCompletedMemeberIDS(new ArrayList<>());
+            group.getCompletedMemeberIDS().add(user.getUid());
+            return true;
+        }
+        else{
+            if(group.getCompletedMemeberIDS().indexOf(user.getUid()) != -1){
+                group.getCompletedMemeberIDS().add(user.getUid());
+                return true;
+            }else{
+                return false;
+            }
+
+        }
+    }
+
+    //for removing a user from a group
+    static public boolean removeCompletedMember(Group group, FirebaseUser user){
+        if(group.getCompletedMemeberIDS() != null){
+            return group.getCompletedMemeberIDS().remove(user.getUid());
+        }
+        else{
+            return false;
+        }
+    }
+
+
+
+
 
 
 }

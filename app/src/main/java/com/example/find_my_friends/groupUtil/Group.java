@@ -24,13 +24,19 @@ public class Group {
 
     private String groupCreatorUserPhotoURL;
     private String groupCreatorDisplayName;
+    private String groupCreatorEmail;
+
+
+    //for getting when the group is complete.
+    private boolean groupCompletionStatus = false;
+    private ArrayList<String> completedMemberIDS;
 
 
     private ArrayList<String> membersOfGroupIDS;
     private ArrayList<String> requestedMemberIDS;
 
 
-    public Group(ArrayList<String> groupTitleKeywords, String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS, ArrayList<String> requestedMemberIDS) {
+    public Group(ArrayList<String> groupTitleKeywords, String groupID, String groupPhotoURI, String groupTitle, String groupDesc, String groupMeetDate, String groupMeetTime, double groupLatitude, double groupLongitude, String groupCreatorUserID, String groupCreatorEmail, String groupCreatorUserPhotoURL, String groupCreatorDisplayName, ArrayList<String> membersOfGroupIDS, ArrayList<String> requestedMemberIDS) {
         this.groupTitleKeywords = groupTitleKeywords;
         this.groupID = groupID;
         this.groupPhotoURI = groupPhotoURI;
@@ -41,6 +47,7 @@ public class Group {
         this.groupLatitude = groupLatitude;
         this.groupLongitude = groupLongitude;
         this.groupCreatorUserID = groupCreatorUserID;
+        this.groupCreatorEmail = groupCreatorEmail;
         this.groupCreatorUserPhotoURL = groupCreatorUserPhotoURL;
         this.groupCreatorDisplayName = groupCreatorDisplayName;
         this.membersOfGroupIDS = membersOfGroupIDS;
@@ -50,6 +57,37 @@ public class Group {
     public Group(){
     }
 
+    public ArrayList<String> getCompletedMemberIDS() {
+        return completedMemberIDS;
+    }
+
+    public void setCompletedMemberIDS(ArrayList<String> completedMemberIDS) {
+        this.completedMemberIDS = completedMemberIDS;
+    }
+
+    public String getGroupCreatorEmail() {
+        return groupCreatorEmail;
+    }
+
+    public void setGroupCreatorEmail(String groupCreatorEmail) {
+        this.groupCreatorEmail = groupCreatorEmail;
+    }
+
+    public boolean isGroupCompletionStatus() {
+        return groupCompletionStatus;
+    }
+
+    public void setGroupCompletionStatus(boolean groupCompletionStatus) {
+        this.groupCompletionStatus = groupCompletionStatus;
+    }
+
+    public ArrayList<String> getCompletedMemeberIDS() {
+        return completedMemberIDS;
+    }
+
+    public void setCompletedMemeberIDS(ArrayList<String> completedMemeberIDS) {
+        this.completedMemberIDS = completedMemeberIDS;
+    }
 
     public String getGroupColor() {
         return groupColor;

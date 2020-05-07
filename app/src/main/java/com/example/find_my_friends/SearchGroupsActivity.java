@@ -11,7 +11,7 @@ import android.os.Bundle;
 
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.groupUtil.GroupSearchSuggestionProvider;
-import com.example.find_my_friends.recyclerAdapters.CurrentGroupAdapter;
+import com.example.find_my_friends.recyclerAdapters.GroupAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.TimePickerFragment;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -60,7 +60,7 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     private CollectionReference groupsRef = db.collection("Groups");
 
     //private GroupOverviewAdapter groupOverviewAdapter;
-    private CurrentGroupAdapter currentGroupAdapter;
+    private GroupAdapter groupAdapter;
     private RecyclerView recyclerView;
     private TextView dateSpinnerSG;
     private TextView timeSpinnerSG;
@@ -241,14 +241,14 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
                         groups.addAll(task.getResult().toObjects(Group.class));
                     }
                     //no catch required, if the group returns empty then just don't displaying anything.
-                    currentGroupAdapter.notifyDataSetChanged();
+                    groupAdapter.notifyDataSetChanged();
                 }
             }
         });
-        currentGroupAdapter = new CurrentGroupAdapter(groups);
-        currentGroupAdapter.notifyDataSetChanged();
+        groupAdapter = new GroupAdapter(groups);
+        groupAdapter.notifyDataSetChanged();
         recyclerView.setLayoutManager(new LinearLayoutManager(SearchGroupsActivity.this));
-        recyclerView.setAdapter(currentGroupAdapter);
+        recyclerView.setAdapter(groupAdapter);
         handleAdapterOnClick();
 
 
@@ -307,10 +307,10 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
 
     private void setupRecyclerView(){
         groups = new ArrayList<>();
-        currentGroupAdapter = new CurrentGroupAdapter(groups);
-        currentGroupAdapter.notifyDataSetChanged();
+        groupAdapter = new GroupAdapter(groups);
+        groupAdapter.notifyDataSetChanged();
         recyclerView.setLayoutManager(new LinearLayoutManager(SearchGroupsActivity.this));
-        recyclerView.setAdapter(currentGroupAdapter);
+        recyclerView.setAdapter(groupAdapter);
         handleAdapterOnClick();
 
 
@@ -318,7 +318,7 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
 
 
     private void handleAdapterOnClick(){
-        currentGroupAdapter.setOnItemClickListener(new CurrentGroupAdapter.OnItemClickListener() {
+        groupAdapter.setOnItemClickListener(new GroupAdapter.OnItemClickListener() {
             @Override
             public void onItemClick( int position) {
                 Intent intent = new Intent(getApplicationContext(), GroupDetailsActivity.class);

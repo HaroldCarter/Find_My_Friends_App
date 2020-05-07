@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
-public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapter.CurrentGroupHolder> {
+public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.CurrentGroupHolder> {
     public ArrayList<Group> groups;
-    private CurrentGroupAdapter.OnItemClickListener listener;
+    private GroupAdapter.OnItemClickListener listener;
 
     public ArrayList<Group> getGroups() {
         return groups;
@@ -67,7 +67,7 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
         }
     }
 
-    public CurrentGroupAdapter(ArrayList<Group> currentGroups) {
+    public GroupAdapter(ArrayList<Group> currentGroups) {
         groups = currentGroups;
     }
 
@@ -81,27 +81,28 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
     @Override
     public void onBindViewHolder(@NonNull CurrentGroupHolder holder, int position) {
         if(groups !=null && groups.size() != 0 && groups.get(position) != null) {
-            Group model = groups.get(position);
-            holder.groupTitle.setText(model.getGroupTitle());
-            holder.groupDesc.setText(model.getGroupDesc());
-            Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
-            Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
-            holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
-            holder.groupDate.setText(model.getGroupMeetDate());
-            holder.groupTime.setText(model.getGroupMeetTime());
-
-            int distance = (int) distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude());
-            if(distance <= 1){
-                holder.groupDistance.setText((distance + "Mile"));
-            }else{
-                holder.groupDistance.setText((distance + " Miles"));
-            }
-
-
-
+            attachDataToViewModel( holder,  position);
         }else{
             //else the list of groups is empty or the group referred too is deleted.
             holder.groupCreator.getRootView().setVisibility(View.GONE);
+        }
+    }
+
+    private void attachDataToViewModel(CurrentGroupHolder holder, int position){
+        Group model = groups.get(position);
+        holder.groupTitle.setText(model.getGroupTitle());
+        holder.groupDesc.setText(model.getGroupDesc());
+        Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
+        Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
+        holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
+        holder.groupDate.setText(model.getGroupMeetDate());
+        holder.groupTime.setText(model.getGroupMeetTime());
+
+        int distance = (int) distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude());
+        if(distance <= 1){
+            holder.groupDistance.setText((distance + "Mile"));
+        }else{
+            holder.groupDistance.setText((distance + " Miles"));
         }
     }
 
@@ -114,7 +115,7 @@ public class CurrentGroupAdapter extends RecyclerView.Adapter<CurrentGroupAdapte
         void onItemClick(int position);
     }
 
-    public void setOnItemClickListener(CurrentGroupAdapter.OnItemClickListener listenerInput){
+    public void setOnItemClickListener(GroupAdapter.OnItemClickListener listenerInput){
         listener = listenerInput;
     }
 }

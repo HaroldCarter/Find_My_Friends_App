@@ -76,6 +76,7 @@ import static com.example.find_my_friends.userUtil.UserUtil.getUserLocation;
 import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
+import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
 public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener,  RoutingListener{
 
@@ -192,13 +193,13 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         if (documentSnapshot != null) {
                             Group tempGroup = documentSnapshot.toObject(Group.class);
                             if (tempGroup != null) {
-                                Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(tempGroup.getGroupLatitude(), tempGroup.getGroupLongitude())).title(tempGroup.getGroupTitle()));
-                                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempGroup.getGroupID(), null, null, tempGroup.getGroupTitle(), tempGroup.getGroupCreatorUserPhotoURL(), tempGroup.getGroupCreatorDisplayName());
-                                marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_location_white), tempGroup.getGroupColor()));
-                                marker.setTag(groupInfoWindowData);
-                                GroupMarker groupMarker = new GroupMarker(marker, tempGroup);
-                                currentGroupMarkers.add(groupMarker);
-                                groupMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
+                                //if the group has no completed members but does have members then display it
+                                if((tempGroup.getCompletedMemeberIDS() == null && tempGroup.getMembersOfGroupIDS() != null))  {
+                                    createGroupMarker(tempGroup,googleMap);
+                                }else if (tempGroup.getCompletedMemeberIDS().size() != tempGroup.getMembersOfGroupIDS().size()){
+                                    //if the group is not complete.
+                                    createGroupMarker(tempGroup,googleMap);
+                                }
                             }
 
                         }
@@ -208,6 +209,16 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
             }
         }
+    }
+
+    private void createGroupMarker(Group groupToCreatorMarkerFor, GoogleMap googleMap){
+        Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(groupToCreatorMarkerFor.getGroupLatitude(), groupToCreatorMarkerFor.getGroupLongitude())).title(groupToCreatorMarkerFor.getGroupTitle()));
+        GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(groupToCreatorMarkerFor.getGroupID(), null, null, groupToCreatorMarkerFor.getGroupTitle(), groupToCreatorMarkerFor.getGroupCreatorUserPhotoURL(), groupToCreatorMarkerFor.getGroupCreatorDisplayName());
+        marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_location_white), groupToCreatorMarkerFor.getGroupColor()));
+        marker.setTag(groupInfoWindowData);
+        GroupMarker groupMarker = new GroupMarker(marker, groupToCreatorMarkerFor);
+        currentGroupMarkers.add(groupMarker);
+        groupMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
     }
 
     //hide all the user markers on the screen, and display all the group markers; because only one group can be selected at a time it may be an idea just to deselect just that items users.
@@ -274,7 +285,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     if (documentSnapshot != null) {
                         User tempUser = documentSnapshot.toObject(User.class);
-                        if(tempUser != null) {
+                        if(tempUser != null && currentGroupHighlighted != null && distanceBetweenTwoPointMiles(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude(), tempUser.getUserLat(), tempUser.getUserLong()) >= 0.5) {
                             Marker markerUser = mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()));
                             UserMarker userMarker = new UserMarker(markerUser, tempUser);
                             GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress());

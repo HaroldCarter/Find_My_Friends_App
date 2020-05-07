@@ -43,7 +43,12 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.Locale;
 
+import static com.example.find_my_friends.groupUtil.GroupUtil.appendCompletedMember;
 import static com.example.find_my_friends.groupUtil.GroupUtil.appendMemberRequest;
+import static com.example.find_my_friends.groupUtil.GroupUtil.canUserComplete;
+import static com.example.find_my_friends.groupUtil.GroupUtil.isUserAMember;
+import static com.example.find_my_friends.groupUtil.GroupUtil.isUserAlreadyCompleted;
+import static com.example.find_my_friends.groupUtil.GroupUtil.removeCompletedMember;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.removeMembershipCurrentUser;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.removeRequestedMembershipCurrentUser;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
@@ -72,6 +77,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference userRef = db.collection("Users");
     private Button requestToJoinBTN;
+    private Button requestCompletion;
     private Group group;
     private FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     private Boolean currentUserGroupMember = false;
@@ -97,6 +103,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         });
 
         requestToJoinBTN = findViewById(R.id.group_details_request_to_join);
+        requestCompletion = findViewById(R.id.ConfirmArrivalBTN);
 
 
         if (supportBar != null) {
@@ -130,7 +137,32 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
 
         handleRequestBTN();
         handleLoadingData();
+        handleConfirmBTN();
         //setupRecyclerView();
+    }
+
+
+    public void handleConfirmBTN(){
+        requestCompletion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(canUserComplete(group, currentUser)){
+                    //if true then allow the user to complete.
+                    appendCompletedMember(group, user);
+                    docRef.update("completedMemberIDS", FieldValue.arrayUnion(user.getUid()));
+                    requestCompletion.setText("completed");
+
+                }else{
+                    if(isUserAMember(group, currentUser)){
+                        Snackbar.make(requestCompletion, "you are not close enough to register arrival", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }else{
+                        Snackbar.make(requestCompletion, "you are not a member of this group", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                }
+            }
+        });
     }
 
 
@@ -160,7 +192,19 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         groupTitle.setText(group.getGroupTitle());
         groupDesc.setText(group.getGroupDesc());
         groupDate.setText(group.getGroupMeetDate());
+        if(group.getGroupCreatorEmail() == null){
+            groupCreatorEmail.setText(("no email registered"));
+        }else{
+            groupCreatorEmail.setText(group.getGroupCreatorEmail());
+        }
+        
 
+        if(isUserAMember(group, currentUser)){
+            requestCompletion.setVisibility(View.VISIBLE);
+            if(isUserAlreadyCompleted(group, currentUser)){
+                requestCompletion.setText("Completed");
+            }
+        }
 
 
         groupTime.setText(group.getGroupMeetTime());
@@ -250,9 +294,13 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
             Snackbar.make(requestToJoinBTN, "Group request cancelled", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
+        if(isUserAlreadyCompleted(group, currentUser)){
+            removeCompletedMember(group, user);
+        }
         //update the group so that user is sucessfully deregistered
         docRef.update("requestedMemberIDS", FieldValue.arrayRemove(user.getUid()));
         docRef.update("membersOfGroupIDS", FieldValue.arrayRemove(user.getUid()));
+        docRef.update("completedMemberIDS", FieldValue.arrayRemove(user.getUid()));
         //change the text of the button so that user knows that they can click to request to join the group.
         changeRequestBTN("Request To Join");
 
@@ -276,7 +324,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         Query searchQuery =  userRef.whereIn("uid",  group.getMembersOfGroupIDS());
         // Query query = userRef.whereIn("uid", group.getMembersOfGroupIDS());
         FirestoreRecyclerOptions<User> options = new FirestoreRecyclerOptions.Builder<User>().setQuery(searchQuery, User.class).build();
-        userAdapter = new UserAdapter(options);
+        userAdapter = new UserAdapter(options, group);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(userAdapter);
         userAdapter.startListening();
