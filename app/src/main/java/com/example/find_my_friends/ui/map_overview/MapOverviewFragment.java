@@ -110,6 +110,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private GroupMarker currentGroupHighlighted = null;
     private UserMarker currentUserHighlighted = null;
 
+
+
     private ArrayList<Polyline> routePolyLines = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -680,14 +682,25 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     void getPathToGroup(LatLng userLocation){
         if(currentGroupHighlighted != null) {
-            Routing routing = new Routing.Builder()
+
+            Routing.Builder routing = new Routing.Builder()
                     .key(getResources().getString(R.string.google_api_key))
-                    .travelMode(AbstractRouting.TravelMode.DRIVING)
                     .withListener(this)
                     .alternativeRoutes(false)
-                    .waypoints(userLocation, new LatLng(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude()) )
-                    .build();
-            routing.execute();
+                    .waypoints(userLocation, new LatLng(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude()) );
+                    //.build();
+            switch(currentUserHighlighted.getUserMarkerRepresents().getModeOfTransport()){
+                case "Car":
+                    routing.travelMode(AbstractRouting.TravelMode.DRIVING);
+                    break;
+                case "Bike":
+                    routing.travelMode(AbstractRouting.TravelMode.BIKING);
+                    break;
+                default:
+                    routing.travelMode(AbstractRouting.TravelMode.WALKING);
+
+            }
+            routing.build().execute();
         }
     }
 
