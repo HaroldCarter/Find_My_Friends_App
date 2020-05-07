@@ -4,12 +4,22 @@ import android.content.Intent;
 
 
 import android.graphics.Bitmap;
+import android.graphics.BlendMode;
+import android.graphics.BlendModeColorFilter;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -120,11 +130,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         handleAddGroupFAB();
         handleSearchFAB();
         handleModeTransportSelection();
+
+
         //check from the server the current mode of transport for the current user.
         checkStateOfTransport();
-
-
-        //listen out for changes to the user.
+        //listen out for changes to the user as in change in their location or mode of transportation, as this is critical to user interaction (other users can be updated at a delay period to save on resoureces.
         currentUserListener();
         //if the current user is loaded, then start the map services.
         if(CurrentUserLoaded){
@@ -145,7 +155,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 loadGpsState();
                 loadModeOfTransportSelection();
                 updateCurrentLocation();
-                loadIcon(currentLocationMarker ,currentUser.getModeOfTransport());
+                loadIcon(currentLocationMarker ,currentUser.getModeOfTransport(), currentUser.getUserColor());
             }
         });
     }
@@ -170,7 +180,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                             if (tempGroup != null) {
                                 Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(tempGroup.getGroupLatitude(), tempGroup.getGroupLongitude())).title(tempGroup.getGroupTitle()));
                                 GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempGroup.getGroupID(), null, null, tempGroup.getGroupTitle(), tempGroup.getGroupCreatorUserPhotoURL(), tempGroup.getGroupCreatorDisplayName());
-                                marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_location_white)));
+                                marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_location_white), tempGroup.getGroupColor()));
                                 marker.setTag(groupInfoWindowData);
                                 GroupMarker groupMarker = new GroupMarker(marker, tempGroup);
                                 currentGroupMarkers.add(groupMarker);
@@ -256,7 +266,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                             markerUser.setTag(groupInfoWindowData);
                             currentGroupMarkers.get(index).appendUser(userMarker);
                             userMarkerHashMaps.put(markerUser.getId(), currentGroupMarkers.get(index).getUserIndex(userMarker));
-                            loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport());
+                            loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport(), tempUser.getUserColor());
                         }
                     }
                 }
@@ -431,7 +441,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             LatLng userLocation = getUserLocation(currentUser);
             currentLocation = new MarkerOptions().position(userLocation).title("Current Location");
             currentLocationMarker = googleMap.addMarker(currentLocation);
-            loadIcon(currentLocationMarker ,currentUser.getModeOfTransport());
+            loadIcon(currentLocationMarker ,currentUser.getModeOfTransport(), currentUser.getUserColor());
             loadGroups(googleMap);
             googleMap.setOnInfoWindowClickListener(this);
             googleMap.setOnMarkerClickListener(this);
@@ -450,18 +460,18 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private void loadIcon(Marker marker, String modeOfTransport){
+    private void loadIcon(Marker marker, String modeOfTransport, String color){
         if(marker != null) {
             switch (modeOfTransport) {
                 case "Car":
 
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_car_white)));
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_car_white), color));
                     break;
                 case "Bike":
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_bike_white)));
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_bike_white), color));
                     break;
                 default:
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_person_white)));
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_person_white), color));
                     break;
 
             }
@@ -469,11 +479,16 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+    //it turns out the simplest way to change the bitmap's colour and apply a colour filter is to cast the bitmap to an imageview, apply the colour filter and then cast this back to a bitmap; google are a amazing.
+    //whats also amazing is if have to create a bitmap descriptor and even better im limited to a set of 15 colours.
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId, String colour) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        ImageView imageView = new ImageView(context);
+        imageView.setImageDrawable(vectorDrawable);
+        imageView.setColorFilter(Color.parseColor(colour));
+        vectorDrawable = imageView.getDrawable();
         if(vectorDrawable != null) {
             vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
-
             Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             vectorDrawable.draw(canvas);

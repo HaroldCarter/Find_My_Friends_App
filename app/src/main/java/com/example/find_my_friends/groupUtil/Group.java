@@ -20,7 +20,7 @@ public class Group {
     private double groupLongitude;
     private String groupCreatorUserID;
 
-
+    private String groupColor = GroupColors.randomColor().getStringValue();
 
     private String groupCreatorUserPhotoURL;
     private String groupCreatorDisplayName;
@@ -48,6 +48,15 @@ public class Group {
     }
 
     public Group(){
+    }
+
+
+    public String getGroupColor() {
+        return groupColor;
+    }
+
+    public void setGroupColor(String groupColor) {
+        this.groupColor = groupColor;
     }
 
     public ArrayList<String> getGroupTitleKeywords() {

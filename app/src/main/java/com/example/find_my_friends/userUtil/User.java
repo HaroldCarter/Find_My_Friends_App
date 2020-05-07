@@ -18,6 +18,8 @@ public class User {
     //maybe change this to false, and request location permission upon pressing the button.
     private Boolean UserLocationUpToDate = true;
 
+    private String UserColor = UserColors.randomColor().getStringValue();
+
     private ArrayList<String> usersMemberships;
     private ArrayList<String> usersRequestsMemberships;
     private String modeOfTransport = "Person";
@@ -45,6 +47,14 @@ public class User {
         this.usersRequestsMemberships = user.usersRequestsMemberships;
         this.modeOfTransport = user.modeOfTransport;
         notifyChangeListener();
+    }
+
+    public String getUserColor() {
+        return UserColor;
+    }
+
+    public void setUserColor(String userColor) {
+        UserColor = userColor;
     }
 
     //user details functions.
