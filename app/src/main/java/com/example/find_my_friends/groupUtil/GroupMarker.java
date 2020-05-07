@@ -34,6 +34,10 @@ public class GroupMarker {
         this.groupMarkerRepresents = groupMarkerRepresents;
     }
 
+    public UserMarker getUser(Integer index){
+        return this.users.get(index);
+    }
+
     public ArrayList<UserMarker> getUsers() {
         return users;
     }

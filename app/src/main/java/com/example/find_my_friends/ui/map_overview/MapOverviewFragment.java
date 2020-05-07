@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -27,6 +28,11 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.directions.route.AbstractRouting;
+import com.directions.route.Route;
+import com.directions.route.RouteException;
+import com.directions.route.Routing;
+import com.directions.route.RoutingListener;
 import com.example.find_my_friends.AddGroupActivity;
 import com.example.find_my_friends.GroupDetailsActivity;
 import com.example.find_my_friends.MainActivity;
@@ -40,6 +46,7 @@ import com.example.find_my_friends.userUtil.CurrentUserUtil;
 import com.example.find_my_friends.userUtil.User;
 
 import com.example.find_my_friends.userUtil.UserMarker;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -50,6 +57,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -68,7 +77,7 @@ import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
 
-public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
+public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener,  RoutingListener{
 
     private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
@@ -98,7 +107,10 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private HashMap<String, Integer> userMarkerHashMaps = new HashMap<>();
     private boolean groupInspected = false;
     private boolean groupHighlighted = false;
+    private GroupMarker currentGroupHighlighted = null;
+    private UserMarker currentUserHighlighted = null;
 
+    private ArrayList<Polyline> routePolyLines = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -227,6 +239,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 currentLocationMarker.setVisible(false);
                 hideAllGroupMarkersButCurrent(index);
                 groupInspected = true;
+                currentGroupHighlighted = this.currentGroupMarkers.get(index);
                 this.selectedMarker = marker;
                 navigationDrawFAB.setImageResource(R.drawable.svg_back_arrow_white);
                 generateUserMarkers(index);
@@ -283,6 +296,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         if(marker != null && userMarkerHashMaps !=null){
             Integer index = userMarkerHashMaps.get(marker.getId());
             if(index != null) {
+                currentUserHighlighted =  currentGroupHighlighted.getUser(index);
+                getPathToGroup(getUserLocation(currentUserHighlighted.getUserMarkerRepresents()));
                 groupInspected = true;
                 this.selectedMarker = marker;
                 navigationDrawFAB.setImageResource(R.drawable.svg_back_arrow_white);
@@ -368,6 +383,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                     }
                     groupInspected = false;
                     groupHighlighted = true;
+                    deletePolyLines();
 
                     //make all the group veiwable again.
                 }
@@ -378,11 +394,14 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         selectedMarker = null;
                     }
                     groupHighlighted = false;
+                    currentGroupHighlighted = null;
                     resumeGroupOverview();
                     currentLocationMarker.setVisible(true);
                 }
                 else {
-                    ((MainActivity) getActivity()).openDrawer();
+                    if(getActivity() != null) {
+                        ((MainActivity) getActivity()).openDrawer();
+                    }
                 }
             }
         });
@@ -405,7 +424,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void handleGPSToggleFAB() {
-
         gpsToggleFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -657,5 +675,77 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.dsg_textview_rounded_trans));
             modeTransportMenuVisibility = true;
         }
+    }
+
+
+    void getPathToGroup(LatLng userLocation){
+        if(currentGroupHighlighted != null) {
+            Routing routing = new Routing.Builder()
+                    .key(getResources().getString(R.string.google_api_key))
+                    .travelMode(AbstractRouting.TravelMode.DRIVING)
+                    .withListener(this)
+                    .alternativeRoutes(false)
+                    .waypoints(userLocation, new LatLng(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude()) )
+                    .build();
+            routing.execute();
+        }
+    }
+
+    void deletePolyLines(){
+        for (Polyline p: routePolyLines
+             ) {
+            //remove it from the map.
+            p.remove();
+        }
+        routePolyLines.clear();
+    }
+
+
+
+
+    @Override
+    public void onRoutingFailure(RouteException e) {
+        if(e != null) {
+            Toast.makeText(getContext(), "Error when routing: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }else {
+            Toast.makeText(getContext(), "Service not reachable", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRoutingStart() {
+
+    }
+
+    @Override
+    public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex) {
+        //could this be done on the background thread to stop slow down.
+        if(routePolyLines.size()>0) {
+            for (Polyline poly : routePolyLines) {
+                poly.remove();
+            }
+        }
+        routePolyLines = new ArrayList<>();
+        //add route(s) to the map.
+        for (int i = 0; i <route.size(); i++) {
+            PolylineOptions polyOptions = new PolylineOptions();
+            polyOptions.color(Color.parseColor(currentUserHighlighted.getUserMarkerRepresents().getUserColor()));
+            polyOptions.width(10 + i * 3);
+            polyOptions.addAll(route.get(i).getPoints());
+            Polyline polyline = mMap.addPolyline(polyOptions);
+            routePolyLines.add(polyline);
+            User currentUser = currentUserHighlighted.getUserMarkerRepresents();
+            if(currentUser != null){
+                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(currentUser.getUID(), getUserLocation(currentUser), currentUser.getModeOfTransport(), currentUser.getUsername(), currentUser.getUserPhotoURL(), currentUser.getUserEmailAddress());
+                groupInfoWindowData.setTravelDuration(route.get(i).getDurationValue());
+                currentUserHighlighted.getUserMarker().setTag(groupInfoWindowData);
+                currentUserHighlighted.getUserMarker().showInfoWindow();
+            }
+        }
+    }
+
+    @Override
+    public void onRoutingCancelled() {
+
     }
 }

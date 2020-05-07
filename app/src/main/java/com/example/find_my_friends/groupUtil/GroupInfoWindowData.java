@@ -3,6 +3,7 @@ package com.example.find_my_friends.groupUtil;
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.internal.InternalTokenProvider;
 
 public class GroupInfoWindowData {
     private String groupID;
@@ -14,6 +15,8 @@ public class GroupInfoWindowData {
 
     private String groupCreatorUserPhotoURL;
     private String groupCreatorDisplayName;
+
+    private Integer travelDuration = null;
 
 
     public GroupInfoWindowData(String groupID, LatLng userLocation , String modeOfTransportUser, @NonNull String groupTitle, @NonNull String groupCreatorUserPhotoURL, @NonNull String groupCreatorDisplayName) {
@@ -27,6 +30,14 @@ public class GroupInfoWindowData {
 
     public String getModeOfTransportUser() {
         return modeOfTransportUser;
+    }
+
+    public Integer getTravelDuration() {
+        return travelDuration;
+    }
+
+    public void setTravelDuration(Integer travelDuration) {
+        this.travelDuration = travelDuration;
     }
 
     public LatLng getUserLocation() {

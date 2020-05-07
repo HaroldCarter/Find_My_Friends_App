@@ -67,7 +67,7 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
             }).into(imageViewProfilePhoto);
 
 
-            if(infoWindowData.getUserLocation() != null && infoWindowData.getModeOfTransportUser() != null){
+            if(infoWindowData.getUserLocation() != null && infoWindowData.getModeOfTransportUser() != null && infoWindowData.getTravelDuration() != null){
                 hostNameTextView.setText(infoWindowData.getGroupCreatorDisplayName());
                 floatingActionButton.setVisibility(View.INVISIBLE);
                 textViewETAUser.setVisibility(View.VISIBLE);
@@ -76,17 +76,15 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
                     case "Car":
                         //doesn't actually load drawable to the screen
                         textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_car_primary,0 ,0 );
-                        textViewETAUser.setText("ETA: TBC");
                         break;
                     case "Bike":
                         textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_bike_primary,0 ,0 );
-                        textViewETAUser.setText("ETA: TBC");
                         break;
                     default:
                         textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_person_black,0 ,0 );
-                        textViewETAUser.setText("ETA: TBC");
                         //person;
                 }
+                textViewETAUser.setText(("ETA " + (infoWindowData.getTravelDuration()/60) + "Mins"));
 
             }
 
@@ -94,6 +92,9 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         }
         return null;
     }
+
+
+
 
     private void updateMarkerAdapter(Marker marker) {
         //if the marker is currently being viewed then update it.

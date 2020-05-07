@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="300dp"
+    android:layout_width="325dp"
     android:layout_height="wrap_content"
     android:background="@color/whiteTrans"
     card_view:layout_constraintBottom_toBottomOf="parent"
@@ -85,6 +85,7 @@
         android:id="@+id/ETA_textview_user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
         android:drawableStart="@drawable/svg_person_black"
         android:text="@string/group_window_info_adapter_eta_string"
         android:textColor="@color/colorPrimaryDark"
@@ -93,7 +94,7 @@
         card_view:layout_constraintBottom_toBottomOf="parent"
         card_view:layout_constraintEnd_toEndOf="@+id/FAB_info_adapter"
         card_view:layout_constraintHorizontal_bias="1.0"
-        card_view:layout_constraintStart_toStartOf="parent"
+        card_view:layout_constraintStart_toEndOf="@+id/HostedBy_map_overview"
         card_view:layout_constraintTop_toTopOf="parent" />
 
 
