@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -38,6 +39,7 @@ import static com.example.find_my_friends.userUtil.CurrentUserUtil.notifyChangeL
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.setLocationCurrentUser;
 import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.GPS_UPDATE_RATE;
+import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.Constants.currentUserDocument;
 import static com.example.find_my_friends.util.Constants.currentUserFirebase;
@@ -113,21 +115,26 @@ public class MainActivity extends AppCompatActivity {
 
     private Boolean handleRequestingPermissions(){
         boolean hasPermissionLocation = PermissionUtils.checkLocationPermission(this);
-        boolean hasPermissionBackground = PermissionUtils.checkLocationBackgroundPermission(this);
+        //boolean hasPermissionBackground = PermissionUtils.checkLocationBackgroundPermission(this);
 
-        if(hasPermissionLocation && hasPermissionBackground){
+        if(hasPermissionLocation){
             return true;
-        }
-        else{
-            if(!hasPermissionBackground){
-                PermissionUtils.requestLocationBackgroundPermission(this);
-            }
-            if(!hasPermissionLocation){
-                PermissionUtils.requestLocationPermission(this);
-            }
+        }else{
+            PermissionUtils.requestLocationPermission(this);
             return false;
         }
     }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+            return;
+        }
+        handleSettingUpLocationServices();
+
+    }
+
 
 
     private void setupLocationCallback(){
