@@ -15,6 +15,48 @@
         android:background="@color/white">
 
 
+        <TextView
+            android:id="@+id/titleChangeColor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:autofillHints=""
+            android:drawableStart="@drawable/svg_eye_primary"
+            android:ems="10"
+            android:fontFamily="@font/roboto"
+            android:hint="@string/add_group_change_group_color"
+            android:padding="5dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:textColorHint="@color/colorPrimaryDark"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/addTitleRelative" />
+
+        <ImageView
+            android:id="@+id/add_group_marker_icon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/dsg_textview_rounded_trans"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.05"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/titleChangeColor"
+            app:srcCompat="@drawable/svg_location_white" />
+
+        <Spinner
+            android:id="@+id/add_group_color_spinner"
+            android:layout_width="325dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/add_group_marker_icon"
+            app:layout_constraintTop_toBottomOf="@+id/titleChangeColor" />
+
         <RelativeLayout
             android:id="@+id/addTitleRelative"
             android:layout_width="match_parent"
@@ -23,7 +65,6 @@
             android:layout_marginTop="25dp"
             android:layout_marginEnd="5dp"
             android:orientation="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/dateAndTimeText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -37,7 +78,7 @@
                 android:layout_marginStart="0dp"
                 android:autofillHints=""
                 android:background="@drawable/dsg_square_entry_box_border"
-                android:drawableStart="@drawable/svg_person_black"
+                android:drawableStart="@drawable/svg_import_contacts_primary"
                 android:ems="10"
                 android:fontFamily="@font/roboto"
                 android:hint="@string/Add_title_suggestionAG"
@@ -64,7 +105,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/addTitleRelative" />
+            app:layout_constraintTop_toBottomOf="@+id/add_group_color_spinner" />
 
 
         <LinearLayout

@@ -325,7 +325,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/map_icon_color_spinner"
                     app:layout_constraintTop_toTopOf="@+id/map_icon_color_spinner"
-                    app:srcCompat="@drawable/svg_location_white" />
+                    app:srcCompat="@drawable/svg_person_white" />
 
                 <Button
                     android:id="@+id/setting_page_map_setting_saveBTN"

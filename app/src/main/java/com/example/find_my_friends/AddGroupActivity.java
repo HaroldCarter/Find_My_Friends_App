@@ -3,6 +3,7 @@ package com.example.find_my_friends;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.icu.util.Calendar;
 import android.location.Address;
 import android.location.Geocoder;
@@ -10,10 +11,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -24,6 +28,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.groupUtil.GroupColors;
 import com.example.find_my_friends.groupUtil.GroupUtil;
 import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
@@ -48,6 +53,7 @@ import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -59,9 +65,10 @@ import static com.example.find_my_friends.util.Constants.REQUEST_GALLERY_ACCESS;
 import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
 import static com.example.find_my_friends.util.Constants.RESULT_LOCATION_REQUEST;
 import static com.example.find_my_friends.util.Constants.TIMEPICKER_TAG_KEY;
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 //the class badly needs to have the oncreate and one destroy correctly implemented.
-public class AddGroupActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+public class AddGroupActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, AdapterView.OnItemSelectedListener {
     private static String TAG = "AddGroupActivity :";
     private Group groupToAdd;
     private TextView titleTextViewAG;
@@ -73,6 +80,11 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     private FloatingActionButton addBackFAB;
     private FloatingActionButton addGroupPhotoFAB;
     private ImageView groupPhoto;
+    private Spinner groupColorSpinner;
+    private ImageView markerIcon;
+
+    private ArrayList<String> groupColors;
+    private String selectedColor;
     private boolean uploadStatus = false;
     private ProgressBar progressBarGroupPhoto;
     private ProgressBar progressBarAddGroup;
@@ -97,6 +109,8 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         storageRef = FirebaseStorage.getInstance();
         mUser = FirebaseAuth.getInstance().getCurrentUser();
 
+        groupColors= new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.Group_colors)));
+
         //mCompressor = new FileCompressor(this);
         groupToAdd = new Group();
         if(mUser != null){
@@ -117,10 +131,13 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         addGroupPhotoFAB =  findViewById(R.id.AddGroupPhotoFABAG);
         titleTextViewAG = findViewById(R.id.TitleTextViewAG);
         desTextViewAG = findViewById(R.id.DescriptionOfGroupAG);
+        groupColorSpinner = findViewById(R.id.add_group_color_spinner);
+        markerIcon = findViewById(R.id.add_group_marker_icon);
 
         progressBarGroupPhoto = findViewById(R.id.progressBarGroupPhoto);
         progressBarAddGroup = findViewById(R.id.progressBarAddGroup);
 
+        groupColorSpinner.setOnItemSelectedListener(this);
 
         handleAddGroupPhotoFAB();
         handleBackBTN();
@@ -132,6 +149,36 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
     }
 
 
+
+    private void loadColorSettings(){
+        groupColorSpinner.setPrompt("Select One");
+        ArrayAdapter<CharSequence> colorAdapter = ArrayAdapter.createFromResource(AddGroupActivity.this,
+                R.array.Group_colors, android.R.layout.simple_spinner_item);
+        groupColorSpinner.setAdapter(colorAdapter);
+        if(currentUser.getUserColor() != null) {
+            Integer index = getColorIndex(group.getGroupColor());
+            if(index!= null) {
+                groupColorSpinner.setSelection(index);
+                markerIcon.setColorFilter(Color.parseColor(groupColors.get(index)));
+                selectedColor = groupColors.get(index);
+            }else{
+                groupColorSpinner.setSelection(0);
+            }
+        }else{
+            groupColorSpinner.setSelection(0);
+        }
+    }
+
+    private Integer getColorIndex(String colorToMatch){
+        int i =  groupColors.indexOf(colorToMatch);
+        if(i != -1){
+            return i;
+        }else{
+            return null;
+        }
+    }
+
+
     public void handleLoadingData(){
         String documentID =getIntent().getStringExtra("documentID");
         if (documentID!= null){
@@ -140,6 +187,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 @Override
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     group = documentSnapshot.toObject(Group.class);
+                    loadColorSettings();
                     updateUI();
                     uploadStatus = true;
                     progressBarGroupPhoto.setVisibility(View.INVISIBLE);
@@ -147,7 +195,36 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                 }
             });
         }else{
+            groupColorSpinner.setPrompt("Select One");
+            ArrayAdapter<CharSequence> colorAdapter = ArrayAdapter.createFromResource(AddGroupActivity.this,
+                    R.array.Group_colors, android.R.layout.simple_spinner_item);
+            groupColorSpinner.setAdapter(colorAdapter);
         }
+    }
+
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if(parent.equals(this.groupColorSpinner)) {
+
+            if(!groupColors.get(position).equals("random")) {
+                selectedColor = groupColors.get(position);
+                markerIcon.setColorFilter(Color.parseColor(selectedColor));
+                groupColorSpinner.setSelection(position);
+            }else{
+                String tempRandomColor = GroupColors.randomColor().getStringValue();
+                markerIcon.setColorFilter(Color.parseColor(tempRandomColor));
+                selectedColor =tempRandomColor;
+                groupColorSpinner.setSelection(position);
+                //maybe update the groups color to a random color.
+            }
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 
 
@@ -362,6 +439,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     groupToAdd.setGroupID(UUID.randomUUID().toString());
                     groupToAdd.setGroupTitle(titleTextViewAG.getText().toString());
                     groupToAdd.setGroupDesc(desTextViewAG.getText().toString());
+                    groupToAdd.setGroupColor(selectedColor);
                     generateKeywords(groupToAdd ,groupToAdd.getGroupTitle());
 
 
@@ -419,6 +497,7 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                         docRef.update("groupLongitude", group.getGroupLongitude());
                         docRef.update("groupMeetDate", group.getGroupMeetDate());
                         docRef.update("groupMeetTime", group.getGroupMeetTime());
+                        docRef.update("groupColor",selectedColor);
                         progressBarAddGroup.setVisibility(View.INVISIBLE);
                         finish();
                     }

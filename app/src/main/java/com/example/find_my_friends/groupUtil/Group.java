@@ -57,6 +57,9 @@ public class Group {
     public Group(){
     }
 
+
+
+
     public ArrayList<String> getCompletedMemberIDS() {
         return completedMemberIDS;
     }

@@ -119,7 +119,7 @@
     <string name="popup_deny_BTN_text">Cancel</string>
     <string name="popup_window_password_Title">Type in your new password</string>
     <string name="Register_forgot_password_BTN">Forgot Password?</string>
-
+    <string name="add_group_change_group_color">Select Group Icon Color</string>
 
 
     <string-array name="Group_colors">
