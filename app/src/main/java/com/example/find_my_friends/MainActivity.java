@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
                     currentUser = documentSnapshot.toObject(User.class);
                     if(currentUser != null) {
                         notifyChangeListener();
+                        updateNavDraw();
                         CurrentUserLoaded = true;
                     }else{
                         CurrentUserLoaded = false;
@@ -181,6 +182,18 @@ public class MainActivity extends AppCompatActivity {
         usernameTextview = navigationView.getHeaderView(0).findViewById(R.id.nav_draw_user_name);
         emailTextview = navigationView.getHeaderView(0).findViewById(R.id.nav_draw_user_email);
 
+        if(currentUserFirebase != null) {
+            String temp = currentUserFirebase.getEmail();
+            emailTextview.setText(temp);
+            usernameTextview.setText(currentUserFirebase.getDisplayName());
+            if(currentUserFirebase.getPhotoUrl()!= null) {
+                Glide.with(this).load(currentUserFirebase.getPhotoUrl()).into(profilePhoto);
+            }
+        }
+    }
+
+
+    private void updateNavDraw(){
         if(currentUserFirebase != null) {
             String temp = currentUserFirebase.getEmail();
             emailTextview.setText(temp);

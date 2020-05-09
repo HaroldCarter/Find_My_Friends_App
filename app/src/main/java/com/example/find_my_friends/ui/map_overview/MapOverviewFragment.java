@@ -213,7 +213,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     private void createGroupMarker(Group groupToCreatorMarkerFor, GoogleMap googleMap){
         Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(groupToCreatorMarkerFor.getGroupLatitude(), groupToCreatorMarkerFor.getGroupLongitude())).title(groupToCreatorMarkerFor.getGroupTitle()));
-        GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(groupToCreatorMarkerFor.getGroupID(), null, null, groupToCreatorMarkerFor.getGroupTitle(), groupToCreatorMarkerFor.getGroupCreatorUserPhotoURL(), groupToCreatorMarkerFor.getGroupCreatorDisplayName());
+        GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(groupToCreatorMarkerFor.getGroupID(), null, null, groupToCreatorMarkerFor.getGroupTitle(), groupToCreatorMarkerFor.getGroupCreatorUserPhotoURL(), groupToCreatorMarkerFor.getGroupCreatorDisplayName(), groupToCreatorMarkerFor.getGroupCreatorUserID());
         marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_location_white), groupToCreatorMarkerFor.getGroupColor()));
         marker.setTag(groupInfoWindowData);
         GroupMarker groupMarker = new GroupMarker(marker, groupToCreatorMarkerFor);
@@ -288,7 +288,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         if(tempUser != null && currentGroupHighlighted != null && distanceBetweenTwoPointMiles(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude(), tempUser.getUserLat(), tempUser.getUserLong()) >= 0.5) {
                             Marker markerUser = mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()));
                             UserMarker userMarker = new UserMarker(markerUser, tempUser);
-                            GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress());
+                            GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress(), tempUser.getUID());
                             markerUser.setTag(groupInfoWindowData);
                             currentGroupMarkers.get(index).appendUser(userMarker);
                             userMarkerHashMaps.put(markerUser.getId(), currentGroupMarkers.get(index).getUserIndex(userMarker));
@@ -760,7 +760,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             routePolyLines.add(polyline);
             User currentUser = currentUserHighlighted.getUserMarkerRepresents();
             if(currentUser != null){
-                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(currentUser.getUID(), getUserLocation(currentUser), currentUser.getModeOfTransport(), currentUser.getUsername(), currentUser.getUserPhotoURL(), currentUser.getUserEmailAddress());
+                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(currentUser.getUID(), getUserLocation(currentUser), currentUser.getModeOfTransport(), currentUser.getUsername(), currentUser.getUserPhotoURL(), currentUser.getUserEmailAddress(), currentUser.getUID());
                 groupInfoWindowData.setTravelDuration(route.get(i).getDurationValue());
                 currentUserHighlighted.getUserMarker().setTag(groupInfoWindowData);
                 currentUserHighlighted.getUserMarker().showInfoWindow();

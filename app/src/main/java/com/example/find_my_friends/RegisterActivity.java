@@ -113,9 +113,6 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void configureAddPhotoButton() {
-
-
-
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

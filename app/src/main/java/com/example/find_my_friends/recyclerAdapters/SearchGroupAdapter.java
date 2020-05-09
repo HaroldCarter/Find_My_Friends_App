@@ -15,9 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.userUtil.User;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -28,6 +32,7 @@ import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoP
 public class SearchGroupAdapter extends FirestoreRecyclerAdapter<Group, SearchGroupAdapter.GroupOverviewHolder> implements Filterable {
     //private User User = currentUser;
     private OnItemClickListener listener;
+    private FirebaseFirestore db =  FirebaseFirestore.getInstance();
     //private GroupOverviewHolder groupOverviewHolder;
     //private Group group;
 
@@ -42,6 +47,23 @@ public class SearchGroupAdapter extends FirestoreRecyclerAdapter<Group, SearchGr
         Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
         Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
         holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
+        db.collection("Users").document(model.getGroupCreatorUserID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                User temp = documentSnapshot.toObject(User.class);
+                if(temp != null) {
+                    Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                    holder.groupCreator.setText(("Hosted by " + temp.getUsername()));
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                //Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                holder.groupCreator.setText(("Hosted by " + "Deleted User"));
+            }
+        });
+
         holder.groupDate.setText(model.getGroupMeetDate());
         holder.groupTime.setText(model.getGroupMeetTime());
         BigDecimal distance = new BigDecimal(distanceBetweenTwoPointMiles(currentUser.getUserLat(), currentUser.getUserLong(), model.getGroupLatitude(), model.getGroupLongitude()));

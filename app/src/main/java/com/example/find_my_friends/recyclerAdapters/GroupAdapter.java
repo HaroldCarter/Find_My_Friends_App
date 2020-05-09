@@ -13,6 +13,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.userUtil.User;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
@@ -37,6 +43,8 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.CurrentGroup
         private TextView groupDistance;
         private TextView groupDate;
         private TextView groupTime;
+
+        private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         public CurrentGroupHolder(View itemView, final OnItemClickListener listener) {
             super(itemView);
@@ -93,6 +101,22 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.CurrentGroup
         holder.groupTitle.setText(model.getGroupTitle());
         holder.groupDesc.setText(model.getGroupDesc());
         Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
+        holder.db.collection("Users").document(model.getGroupCreatorUserID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                User temp = documentSnapshot.toObject(User.class);
+                if(temp != null) {
+                    Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                    holder.groupCreator.setText(("Hosted by " + temp.getUsername()));
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                //Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                holder.groupCreator.setText(("Hosted by " + "Deleted User"));
+            }
+        });
         Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
         holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
         holder.groupDate.setText(model.getGroupMeetDate());

@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
@@ -15,12 +16,20 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.find_my_friends.R;
+import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     private Context context;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public GroupInfoWindowAdapter(Context contextInput) {
         this.context = contextInput;
@@ -66,6 +75,50 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
                 }
             }).into(imageViewProfilePhoto);
 
+
+            //if we are not the creator because then
+            if(!infoWindowData.getGroupCreatorUID().equals(currentUser.getUID())) {
+                db.collection("Users").document(infoWindowData.getGroupCreatorUID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        User temp = documentSnapshot.toObject(User.class);
+                        if (temp != null) {
+                            Glide.with(context).load(temp.getUserPhotoURL()).listener(new RequestListener<Drawable>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                    updateMarkerAdapter(marker);
+                                    return false;
+                                }
+                            }).into(imageViewProfilePhoto);
+                            hostNameTextView.setText(("Hosted by " + temp.getUsername()));
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        //Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                        hostNameTextView.setText(("Hosted by " + "Deleted User"));
+                    }
+                });
+            }else{
+                Glide.with(context).load(currentUser.getUserPhotoURL()).listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        updateMarkerAdapter(marker);
+                        return false;
+                    }
+                }).into(imageViewProfilePhoto);
+            }
 
             if(infoWindowData.getUserLocation() != null && infoWindowData.getModeOfTransportUser() != null && infoWindowData.getTravelDuration() != null){
                 hostNameTextView.setText(infoWindowData.getGroupCreatorDisplayName());

@@ -13,8 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.groupUtil.Group;
+import com.example.find_my_friends.userUtil.User;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -36,6 +39,23 @@ public class GroupRequestsOverviewAdapter extends FirestoreRecyclerAdapter<Group
         Glide.with(holder.groupPhoto.getContext()).load(model.getGroupPhotoURI()).into(holder.groupPhoto);
         Glide.with(holder.groupCreatorPhoto.getContext()).load(model.getGroupCreatorUserPhotoURL()).into(holder.groupCreatorPhoto);
         holder.groupCreator.setText(("Hosted by " + model.getGroupCreatorDisplayName()));
+
+        db.collection("Users").document(model.getGroupCreatorUserID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                User temp = documentSnapshot.toObject(User.class);
+                if(temp != null) {
+                    Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                    holder.groupCreator.setText(("Hosted by " + temp.getUsername()));
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                //Glide.with(holder.groupCreatorPhoto.getContext()).load(temp.getUserPhotoURL()).into(holder.groupCreatorPhoto);
+                holder.groupCreator.setText(("Hosted by " + "Deleted User"));
+            }
+        });
 
         //might cause a crash because its an int, look at this line if there is a crash upon loading the group requests.
 

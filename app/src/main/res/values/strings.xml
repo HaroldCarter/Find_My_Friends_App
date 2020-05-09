@@ -103,6 +103,21 @@
     <string name="search_title">search groups</string>
     <string name="group_window_info_adapter_eta_string">ETA :</string>
     <string name="confirmArrivalBTNText">confirm arrival</string>
+    <string name="settings_page_userSettingsTitle"> Profile Settings : </string>
+    <string name="setting_page_user_settings_changeUsernameTitle">Username :</string>
+    <string name="setting_page_user_settings_change_usernameBTN">Change Username</string>
+    <string name="setting_page_user_settingsEmailTitle">Emaill :</string>
+    <string name="setting_page_user_settings_change_emailBTN">Change Email</string>
+
+    <string name="setting_page_user_settingsPasswordTitle">Password :</string>
+    <string name="setting_page_user_settings_change_PasswordBTN">Change Password</string>
+    <string name="setting_page_map_settingsTitle">Map Settings :</string>
+    <string name="setting_page_map_settings_updateRateTitle">Map Update Duration :</string>
+    <string name="setting_page_map_settings_markerColor">Map Icon Colour :</string>
+    <string name="setting_page_map_setting_saveBTN">Save Map Changes</string>
+    <string name="confirm_popup_BTN_text">Confrim</string>
+    <string name="popup_deny_BTN_text">Cancel</string>
+    <string name="popup_window_password_Title">Type in your new password</string>
 
 
 </resources>

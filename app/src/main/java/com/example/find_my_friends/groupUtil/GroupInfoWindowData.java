@@ -13,19 +13,26 @@ public class GroupInfoWindowData {
     private LatLng userLocation;
     private String modeOfTransportUser;
 
+    private String groupCreatorUID;
     private String groupCreatorUserPhotoURL;
     private String groupCreatorDisplayName;
 
     private Integer travelDuration = null;
 
 
-    public GroupInfoWindowData(String groupID, LatLng userLocation , String modeOfTransportUser, @NonNull String groupTitle, @NonNull String groupCreatorUserPhotoURL, @NonNull String groupCreatorDisplayName) {
+    public GroupInfoWindowData(String groupID, LatLng userLocation , String modeOfTransportUser, @NonNull String groupTitle, @NonNull String groupCreatorUserPhotoURL, @NonNull String groupCreatorDisplayName, @NonNull String groupCreatorUID) {
         this.groupID = groupID;
         this.groupTitle = groupTitle;
         this.userLocation = userLocation;
         this.modeOfTransportUser = modeOfTransportUser;
         this.groupCreatorUserPhotoURL = groupCreatorUserPhotoURL;
         this.groupCreatorDisplayName = groupCreatorDisplayName;
+        this.groupCreatorUID = groupCreatorUID;
+    }
+
+
+    public String getGroupCreatorUID() {
+        return groupCreatorUID;
     }
 
     public String getModeOfTransportUser() {
