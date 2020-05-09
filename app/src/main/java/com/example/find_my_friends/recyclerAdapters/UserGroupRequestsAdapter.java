@@ -31,7 +31,7 @@ public class UserGroupRequestsAdapter extends RecyclerView.Adapter<UserGroupRequ
         ImageView userProfilePhoto;
         ImageButton confirmBTN;
         ImageButton denyBTN;
-        //ImageView adminPhoto;
+        //ImageView arrivalIcon;
 
         public UserviewHolder(@NonNull final View itemView) {
             super(itemView);
@@ -40,7 +40,7 @@ public class UserGroupRequestsAdapter extends RecyclerView.Adapter<UserGroupRequ
             userProfilePhoto = itemView.findViewById(R.id.user_cardview_group_request_profile_photo);
             confirmBTN = itemView.findViewById(R.id.user_cardview_group_request_accept_requestBTN);
             denyBTN = itemView.findViewById(R.id.user_cardview_group_request_deny_requestBTN);
-            //adminPhoto = itemView.findViewById(R.id.ProfilePhotoCV);
+            //arrivalIcon = itemView.findViewById(R.id.ProfilePhotoCV);
             confirmBTN.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

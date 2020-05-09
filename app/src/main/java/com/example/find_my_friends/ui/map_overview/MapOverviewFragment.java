@@ -1,4 +1,5 @@
 package com.example.find_my_friends.ui.map_overview;
+
 import android.content.Context;
 import android.content.Intent;
 
@@ -23,11 +24,17 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.directions.route.AbstractRouting;
 import com.directions.route.Route;
 import com.directions.route.RouteException;
@@ -72,13 +79,14 @@ import java.util.HashMap;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.setCurrentUserListener;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.setLocationUpToDateCurrentUser;
 import static com.example.find_my_friends.userUtil.CurrentUserUtil.setModeOfTransportCurrentUser;
+import static com.example.find_my_friends.userUtil.UserUtil.composeEmail;
 import static com.example.find_my_friends.userUtil.UserUtil.getUserLocation;
 import static com.example.find_my_friends.util.Constants.CurrentUserLoaded;
 import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
-public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener,  RoutingListener{
+public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener, RoutingListener {
 
     private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
@@ -112,12 +120,10 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private UserMarker currentUserHighlighted = null;
 
 
-
     private ArrayList<Polyline> routePolyLines = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
 
 
         mapOverviewViewModel =
@@ -133,7 +139,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
         mapView.onCreate(mapViewBundle);
-
 
 
         //set to hide for the default and then override this later once data has been checked
@@ -152,7 +157,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         //listen out for changes to the user as in change in their location or mode of transportation, as this is critical to user interaction (other users can be updated at a delay period to save on resoureces.
         currentUserListener();
         //if the current user is loaded, then start the map services.
-        if(CurrentUserLoaded){
+        if (CurrentUserLoaded) {
             loadGpsState();
             loadModeOfTransportSelection();
             mapView.getMapAsync(MapOverviewFragment.this);
@@ -162,7 +167,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    private void currentUserListener(){
+    private void currentUserListener() {
         setCurrentUserListener(new CurrentUserUtil.ChangeListener() {
             @Override
             public void onChange() {
@@ -170,19 +175,19 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 loadGpsState();
                 loadModeOfTransportSelection();
                 updateCurrentLocation();
-                loadIcon(currentLocationMarker ,currentUser.getModeOfTransport(), currentUser.getUserColor());
+                loadIcon(currentLocationMarker, currentUser.getModeOfTransport(), currentUser.getUserColor());
             }
         });
     }
 
-    private void updateCurrentLocation(){
-        if(currentLocationMarker != null){
+    private void updateCurrentLocation() {
+        if (currentLocationMarker != null) {
             currentLocationMarker.setPosition(new LatLng(currentUser.getUserLat(), currentUser.getUserLong()));
         }
     }
 
-    private void loadGroups(GoogleMap googleMap){
-        if(currentUser.getUsersMemberships() != null) {
+    private void loadGroups(GoogleMap googleMap) {
+        if (currentUser.getUsersMemberships() != null) {
             currentGroupMarkers = new ArrayList<>();
             groupMarkersHashMaps.clear();
             for (String s : currentUser.getUsersMemberships()
@@ -194,11 +199,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                             Group tempGroup = documentSnapshot.toObject(Group.class);
                             if (tempGroup != null) {
                                 //if the group has no completed members but does have members then display it
-                                if((tempGroup.getCompletedMemeberIDS() == null && tempGroup.getMembersOfGroupIDS() != null))  {
-                                    createGroupMarker(tempGroup,googleMap);
-                                }else if (tempGroup.getCompletedMemeberIDS().size() != tempGroup.getMembersOfGroupIDS().size()){
+                                if ((tempGroup.getCompletedMemeberIDS() == null && tempGroup.getMembersOfGroupIDS() != null)) {
+                                    createGroupMarker(tempGroup, googleMap);
+                                } else if (tempGroup.getCompletedMemeberIDS().size() != tempGroup.getMembersOfGroupIDS().size()) {
                                     //if the group is not complete.
-                                    createGroupMarker(tempGroup,googleMap);
+                                    createGroupMarker(tempGroup, googleMap);
                                 }
                             }
 
@@ -211,23 +216,36 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private void createGroupMarker(Group groupToCreatorMarkerFor, GoogleMap googleMap){
+    private void createGroupMarker(Group groupToCreatorMarkerFor, GoogleMap googleMap) {
         Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(groupToCreatorMarkerFor.getGroupLatitude(), groupToCreatorMarkerFor.getGroupLongitude())).title(groupToCreatorMarkerFor.getGroupTitle()));
-        GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(groupToCreatorMarkerFor.getGroupID(), null, null, groupToCreatorMarkerFor.getGroupTitle(), groupToCreatorMarkerFor.getGroupCreatorUserPhotoURL(), groupToCreatorMarkerFor.getGroupCreatorDisplayName(), groupToCreatorMarkerFor.getGroupCreatorUserID());
-        marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_location_white), groupToCreatorMarkerFor.getGroupColor()));
-        marker.setTag(groupInfoWindowData);
-        GroupMarker groupMarker = new GroupMarker(marker, groupToCreatorMarkerFor);
-        currentGroupMarkers.add(groupMarker);
-        groupMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
+        marker.setVisible(false);
+        db.collection("Users").document(groupToCreatorMarkerFor.getGroupCreatorUserID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                User temp = documentSnapshot.toObject(User.class);
+                if (temp != null && getContext() != null) {
+                    marker.setVisible(true);
+                    GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(groupToCreatorMarkerFor.getGroupID(), null, null, groupToCreatorMarkerFor.getGroupTitle(), temp.getUserPhotoURL(), temp.getUsername(), groupToCreatorMarkerFor.getGroupCreatorUserID());
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_location_white), groupToCreatorMarkerFor.getGroupColor()));
+                    marker.setTag(groupInfoWindowData);
+                    GroupMarker groupMarker = new GroupMarker(marker, groupToCreatorMarkerFor);
+                    currentGroupMarkers.add(groupMarker);
+                    groupMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
+                }
+            }
+        });
+
+
+
     }
 
     //hide all the user markers on the screen, and display all the group markers; because only one group can be selected at a time it may be an idea just to deselect just that items users.
-    public void resumeGroupOverview(){
-        for (GroupMarker groupMarker: currentGroupMarkers
-             ) {
+    public void resumeGroupOverview() {
+        for (GroupMarker groupMarker : currentGroupMarkers
+        ) {
             groupMarker.getGroupMarker().setVisible(true);
-            for (UserMarker user: groupMarker.getUsers()
-                 ) {
+            for (UserMarker user : groupMarker.getUsers()
+            ) {
                 user.getUserMarker().setVisible(false);
             }
         }
@@ -237,12 +255,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     //whenever a marker is interacted with the callback is given to this function therefore allowing us to actively work out which marker was interacted with.
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if(!checkIfMakerGroupMarker(marker)){
+        if (!checkIfMakerGroupMarker(marker)) {
             checkIfMarkerUserMarker(marker);
         }
         return false;
     }
-
 
 
     private boolean checkIfMakerGroupMarker(Marker marker) {
@@ -263,7 +280,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    private void hideAllGroupMarkersButCurrent(Integer index){
+    private void hideAllGroupMarkersButCurrent(Integer index) {
         GroupMarker selectedMarker = currentGroupMarkers.get(index);
         //hide all the other group markers.
         for (GroupMarker cGM : currentGroupMarkers
@@ -275,7 +292,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    private void generateUserMarkers(Integer index){
+    private void generateUserMarkers(Integer index) {
         userMarkerHashMaps.clear();
         //load the group's users and display them in on the map.
         for (String s : currentGroupMarkers.get(index).getGroupMarkerRepresents().getMembersOfGroupIDS()
@@ -285,7 +302,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     if (documentSnapshot != null) {
                         User tempUser = documentSnapshot.toObject(User.class);
-                        if(tempUser != null && currentGroupHighlighted != null && distanceBetweenTwoPointMiles(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude(), tempUser.getUserLat(), tempUser.getUserLong()) >= 0.5) {
+                        if (tempUser != null && currentGroupHighlighted != null && distanceBetweenTwoPointMiles(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude(), tempUser.getUserLat(), tempUser.getUserLong()) >= 0.5) {
                             Marker markerUser = mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()));
                             UserMarker userMarker = new UserMarker(markerUser, tempUser);
                             GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress(), tempUser.getUID());
@@ -302,14 +319,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-
-
-
-    private boolean checkIfMarkerUserMarker(Marker marker){
-        if(marker != null && userMarkerHashMaps !=null){
+    private boolean checkIfMarkerUserMarker(Marker marker) {
+        if (marker != null && userMarkerHashMaps != null) {
             Integer index = userMarkerHashMaps.get(marker.getId());
-            if(index != null) {
-                currentUserHighlighted =  currentGroupHighlighted.getUser(index);
+            if (index != null) {
+                currentUserHighlighted = currentGroupHighlighted.getUser(index);
                 getPathToGroup(getUserLocation(currentUserHighlighted.getUserMarkerRepresents()));
                 groupInspected = true;
                 this.selectedMarker = marker;
@@ -322,15 +336,21 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Integer index =  groupMarkersHashMaps.get(marker.getId());
-        if(index != null){
+        Integer index = groupMarkersHashMaps.get(marker.getId());
+        if (index != null) {
             Intent intent = new Intent(this.getActivity(), GroupDetailsActivity.class);
-            intent.putExtra("documentID",currentGroupMarkers.get(index).getGroupMarkerRepresents().getGroupID());
+            intent.putExtra("documentID", currentGroupMarkers.get(index).getGroupMarkerRepresents().getGroupID());
             startActivity(intent);
+        }
+        if (currentGroupHighlighted != null && currentUserHighlighted != null) {
+            index = userMarkerHashMaps.get(marker.getId());
+            if (index != null && getContext() != null) {
+                composeEmail(getContext(), new String[]{currentUserHighlighted.getUserMarkerRepresents().getUserEmailAddress()}, "New Message From " + (currentUser.getUsername()));
+            }
         }
     }
 
-    private void locateResources(){
+    private void locateResources() {
         floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
         actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
         actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
@@ -338,15 +358,14 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         mapView = root.findViewById(R.id.map_view_overview);
 
         gpsToggleFAB = root.findViewById(R.id.location_toggle_map_overview);
-        addGroupPhotoFAB =  root.findViewById(R.id.add_group_fab_map_overview);
-        navigationDrawFAB =  root.findViewById(R.id.nav_draw_fab_map_overview);
-        modeTransportFAB =  root.findViewById(R.id.mode_of_transport_fab_map_overview);
+        addGroupPhotoFAB = root.findViewById(R.id.add_group_fab_map_overview);
+        navigationDrawFAB = root.findViewById(R.id.nav_draw_fab_map_overview);
+        modeTransportFAB = root.findViewById(R.id.mode_of_transport_fab_map_overview);
     }
 
 
-
-    private void loadGpsState(){
-        if(currentUser != null && currentUser.getUserLocationUpToDate() != null) {
+    private void loadGpsState() {
+        if (currentUser != null && currentUser.getUserLocationUpToDate() != null) {
             if (currentUser.getUserLocationUpToDate()) {
                 gpsToggleFAB.setImageAlpha(255);
                 gpsToggle = true;
@@ -357,24 +376,24 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private void loadModeOfTransportSelection(){
-        if(currentUser != null && currentUser.getModeOfTransport() != null) {
-           switch(currentUser.getModeOfTransport()){
-               case "Car":
-                   modeTransportState = 1;
-                   break;
-               case "Bike":
-                   modeTransportState = 2;
-                   break;
-               default:
-                   modeTransportState = 0;
-                   break;
-           }
-           updateMenu();
+    private void loadModeOfTransportSelection() {
+        if (currentUser != null && currentUser.getModeOfTransport() != null) {
+            switch (currentUser.getModeOfTransport()) {
+                case "Car":
+                    modeTransportState = 1;
+                    break;
+                case "Bike":
+                    modeTransportState = 2;
+                    break;
+                default:
+                    modeTransportState = 0;
+                    break;
+            }
+            updateMenu();
         }
     }
 
-    private void handleSearchFAB(){
+    private void handleSearchFAB() {
         searchFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -388,9 +407,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             @Override
             public void onClick(View view) {
 
-                if(groupInspected){
+                if (groupInspected) {
                     navigationDrawFAB.setImageResource(R.drawable.svg_cancel_white);
-                    if(selectedMarker != null) {
+                    if (selectedMarker != null) {
                         selectedMarker.hideInfoWindow();
                         selectedMarker = null;
                     }
@@ -399,10 +418,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                     deletePolyLines();
 
                     //make all the group veiwable again.
-                }
-                else if(groupHighlighted){
+                } else if (groupHighlighted) {
                     navigationDrawFAB.setImageResource(R.drawable.svg_menu_white);
-                    if(selectedMarker != null) {
+                    if (selectedMarker != null) {
                         selectedMarker.hideInfoWindow();
                         selectedMarker = null;
                     }
@@ -410,9 +428,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                     currentGroupHighlighted = null;
                     resumeGroupOverview();
                     currentLocationMarker.setVisible(true);
-                }
-                else {
-                    if(getActivity() != null) {
+                } else {
+                    if (getActivity() != null) {
                         ((MainActivity) getActivity()).openDrawer();
                     }
                 }
@@ -459,20 +476,17 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-
-
-
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
 
-        if(currentUser != null && getUserLocation(currentUser) != null) {
+        if (currentUser != null && getUserLocation(currentUser) != null) {
             GroupInfoWindowAdapter infoWindowAdapter = new GroupInfoWindowAdapter(getContext());
             googleMap.setInfoWindowAdapter(infoWindowAdapter);
             LatLng userLocation = getUserLocation(currentUser);
             currentLocation = new MarkerOptions().position(userLocation).title("Current Location");
             currentLocationMarker = googleMap.addMarker(currentLocation);
-            loadIcon(currentLocationMarker ,currentUser.getModeOfTransport(), currentUser.getUserColor());
+            loadIcon(currentLocationMarker, currentUser.getModeOfTransport(), currentUser.getUserColor());
             loadGroups(googleMap);
             googleMap.setOnInfoWindowClickListener(this);
             googleMap.setOnMarkerClickListener(this);
@@ -484,25 +498,25 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
         }
         //setting up the style of the map
-        if(getActivity()!= null && getActivity().getApplicationContext() != null) {
+        if (getActivity() != null && getActivity().getApplicationContext() != null) {
             //don't apply the style if the app is crashing, this shouldn't happen, but applying this can cause the application not just to crash but to complete halt (app not responding).
             MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
             googleMap.setMapStyle(style);
         }
     }
 
-    private void loadIcon(Marker marker, String modeOfTransport, String color){
-        if(marker != null) {
+    private void loadIcon(Marker marker, String modeOfTransport, String color) {
+        if (marker != null) {
             switch (modeOfTransport) {
                 case "Car":
 
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_car_white), color));
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_car_white), color));
                     break;
                 case "Bike":
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_bike_white), color));
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_bike_white), color));
                     break;
                 default:
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(),(R.drawable.svg_person_white), color));
+                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_person_white), color));
                     break;
 
             }
@@ -518,13 +532,13 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         imageView.setImageDrawable(vectorDrawable);
         imageView.setColorFilter(Color.parseColor(colour));
         vectorDrawable = imageView.getDrawable();
-        if(vectorDrawable != null) {
+        if (vectorDrawable != null) {
             vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
             Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             vectorDrawable.draw(canvas);
             return BitmapDescriptorFactory.fromBitmap(bitmap);
-        }else{
+        } else {
             return null;
         }
     }
@@ -673,7 +687,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void hideMenu() {
-        if(getContext() != null) {
+        if (getContext() != null) {
             actionMenuFAB1.hide();
             actionMenuFAB2.hide();
             floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.dsg_textview_rounded_fully_trans));
@@ -682,7 +696,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void showMenu() {
-        if(getContext() != null) {
+        if (getContext() != null) {
             actionMenuFAB1.show();
             actionMenuFAB2.show();
             floatingMenuBackground.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.dsg_textview_rounded_trans));
@@ -691,16 +705,16 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    void getPathToGroup(LatLng userLocation){
-        if(currentGroupHighlighted != null) {
+    void getPathToGroup(LatLng userLocation) {
+        if (currentGroupHighlighted != null) {
 
             Routing.Builder routing = new Routing.Builder()
                     .key(getResources().getString(R.string.google_api_key))
                     .withListener(this)
                     .alternativeRoutes(false)
-                    .waypoints(userLocation, new LatLng(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude()) );
-                    //.build();
-            switch(currentUserHighlighted.getUserMarkerRepresents().getModeOfTransport()){
+                    .waypoints(userLocation, new LatLng(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude()));
+            //.build();
+            switch (currentUserHighlighted.getUserMarkerRepresents().getModeOfTransport()) {
                 case "Car":
                     routing.travelMode(AbstractRouting.TravelMode.DRIVING);
                     break;
@@ -715,9 +729,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    void deletePolyLines(){
-        for (Polyline p: routePolyLines
-             ) {
+    void deletePolyLines() {
+        for (Polyline p : routePolyLines
+        ) {
             //remove it from the map.
             p.remove();
         }
@@ -725,13 +739,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-
-
     @Override
     public void onRoutingFailure(RouteException e) {
-        if(e != null) {
+        if (e != null) {
             Toast.makeText(getContext(), "Error when routing: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }else {
+        } else {
             Toast.makeText(getContext(), "Service not reachable", Toast.LENGTH_SHORT).show();
         }
     }
@@ -744,14 +756,14 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex) {
         //could this be done on the background thread to stop slow down.
-        if(routePolyLines.size()>0) {
+        if (routePolyLines.size() > 0) {
             for (Polyline poly : routePolyLines) {
                 poly.remove();
             }
         }
         routePolyLines = new ArrayList<>();
         //add route(s) to the map.
-        for (int i = 0; i <route.size(); i++) {
+        for (int i = 0; i < route.size(); i++) {
             PolylineOptions polyOptions = new PolylineOptions();
             polyOptions.color(Color.parseColor(currentUserHighlighted.getUserMarkerRepresents().getUserColor()));
             polyOptions.width(10 + i * 3);
@@ -759,7 +771,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             Polyline polyline = mMap.addPolyline(polyOptions);
             routePolyLines.add(polyline);
             User currentUser = currentUserHighlighted.getUserMarkerRepresents();
-            if(currentUser != null){
+            if (currentUser != null) {
                 GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(currentUser.getUID(), getUserLocation(currentUser), currentUser.getModeOfTransport(), currentUser.getUsername(), currentUser.getUserPhotoURL(), currentUser.getUserEmailAddress(), currentUser.getUID());
                 groupInfoWindowData.setTravelDuration(route.get(i).getDurationValue());
                 currentUserHighlighted.getUserMarker().setTag(groupInfoWindowData);

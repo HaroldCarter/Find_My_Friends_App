@@ -17,6 +17,8 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
 import static com.example.find_my_friends.groupUtil.GroupUtil.isUserAlreadyCompleted;
+import static com.example.find_my_friends.userUtil.UserUtil.composeEmail;
+import static com.example.find_my_friends.util.Constants.currentUser;
 
 public class UserAdapter extends FirestoreRecyclerAdapter<User, UserAdapter.UserviewHolder> {
     private Group group;
@@ -45,8 +47,18 @@ public class UserAdapter extends FirestoreRecyclerAdapter<User, UserAdapter.User
         holder.userEmailAddress.setText(model.getUserEmailAddress());
         Glide.with(holder.userProfilePhoto.getContext()).load(model.getUserPhotoURL()).into(holder.userProfilePhoto);
         if(group != null && isUserAlreadyCompleted(group, model)){
-            holder.adminPhoto.setVisibility(View.VISIBLE);
+            holder.arrivalIcon.setVisibility(View.VISIBLE);
+            holder.arrivalIcon.setImageResource(R.drawable.svg_star_primary);
         }
+        holder.sendEmailIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                composeEmail(holder.sendEmailIcon.getContext(), new String[]{model.getUserEmailAddress()}, ("New Message From " + currentUser.getUsername()));
+            }
+        });
+        holder.sendEmailIcon.setImageResource(R.drawable.svg_send_primary);
+
+
     }
 
     @NonNull
@@ -60,8 +72,8 @@ public class UserAdapter extends FirestoreRecyclerAdapter<User, UserAdapter.User
         TextView userDisplayName;
         TextView userEmailAddress;
         ImageView userProfilePhoto;
-        ImageView adminPhoto;
-
+        ImageView arrivalIcon;
+        ImageView sendEmailIcon;
 
 
 
@@ -71,7 +83,8 @@ public class UserAdapter extends FirestoreRecyclerAdapter<User, UserAdapter.User
             userDisplayName = itemView.findViewById(R.id.user_cardview_displayTextView);
             userEmailAddress = itemView.findViewById(R.id.user_cardview_display_email);
             userProfilePhoto = itemView.findViewById(R.id.user_cardview_profile_photo);
-            adminPhoto = itemView.findViewById(R.id.ProfilePhotoCV);
+            arrivalIcon = itemView.findViewById(R.id.user_cardview_adminPhoto);
+            sendEmailIcon = itemView.findViewById(R.id.user_cardview_emailUserIcon);
 
         }
     }
