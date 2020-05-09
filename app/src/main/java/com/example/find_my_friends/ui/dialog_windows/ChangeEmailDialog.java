@@ -25,6 +25,8 @@ public class ChangeEmailDialog extends AppCompatDialogFragment {
     private Button confrimBTN;
     private Button denyBTN;
 
+    private String titleText;
+
     private ChangeEmailDialogListener changeEmailDialogListener;
 
     @NonNull
@@ -41,12 +43,15 @@ public class ChangeEmailDialog extends AppCompatDialogFragment {
         confrimBTN = view.findViewById(R.id.popup_confirmBTN);
         denyBTN = view.findViewById(R.id.popup_denyBTN);
 
-
+        if(titleText != null){
+            popupTitleTextView.setText(titleText);
+        }else{
+            popupTitleTextView.setText(("Type In you new email address"));
+        }
 
         emailEditText.setHint(("Email"));
         confirmEmailEditText.setHint(("Confirm Email"));
 
-        popupTitleTextView.setText(("Type In you new email address"));
 
         AlertDialog dialog = builder.create();
 
@@ -71,7 +76,12 @@ public class ChangeEmailDialog extends AppCompatDialogFragment {
         return dialog;
     }
 
-
+    public void setTitleText(String titleText) {
+        this.titleText = titleText;
+        if(this.popupTitleTextView != null){
+            this.popupTitleTextView.setText(titleText);
+        }
+    }
 
     private boolean checkEmailIsValid() {
         boolean validData = true;

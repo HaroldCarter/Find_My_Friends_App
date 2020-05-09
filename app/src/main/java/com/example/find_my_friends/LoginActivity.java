@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.find_my_friends.ui.dialog_windows.ChangeEmailDialog;
 import com.example.find_my_friends.userUtil.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -42,6 +43,10 @@ public class LoginActivity extends AppCompatActivity {
     private boolean validInput = true;
     private ProgressBar progressBar;
 
+    private final String TAG = "Login Activity : ";
+
+
+    private Button forgotPasswordBTN;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         mAuth = FirebaseAuth.getInstance();
         progressBar = findViewById(R.id.progressBarLoginPage);
+        forgotPasswordBTN = findViewById(R.id.forgotPasswordBTN);
 
 
 
@@ -63,9 +69,47 @@ public class LoginActivity extends AppCompatActivity {
 
         configureRegisterButton();
         configureLoginButton();
-
+        handleForgotPasswordBTN();
 
     }
+
+
+    private void handleForgotPasswordBTN(){
+        forgotPasswordBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openForgotPasswordDialog();
+            }
+        });
+    }
+
+
+
+    private void openForgotPasswordDialog(){
+        ChangeEmailDialog changeEmailDialog = new ChangeEmailDialog();
+        changeEmailDialog.setTitleText("Forgot your Password? Please enter your email to reset it");
+        changeEmailDialog.setChangeEmailDialogListener(new ChangeEmailDialog.ChangeEmailDialogListener() {
+            @Override
+            public void returnResult(String Email) {
+                mAuth.sendPasswordResetEmail(Email)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(LoginActivity.this, "a reset link has been sent to your inbox",
+                                            Toast.LENGTH_SHORT).show();
+                                }else{
+                                    Toast.makeText(LoginActivity.this, "this email is not registered",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+            }
+        });
+        changeEmailDialog.show(LoginActivity.this.getSupportFragmentManager(), this.TAG);
+
+    }
+
 
     @Override
     protected void onDestroy() {

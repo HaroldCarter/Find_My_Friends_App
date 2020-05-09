@@ -16,7 +16,9 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -186,12 +188,33 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
 
 
     public void updateUI(){
-        groupCreatorTitle.setText(group.getGroupCreatorDisplayName());
+
         //need to add email to the groups so that the group works.
         //groupCreatorEmail.setText(gro)
         groupTitle.setText(group.getGroupTitle());
         groupDesc.setText(group.getGroupDesc());
         groupDate.setText(group.getGroupMeetDate());
+
+        db.collection("Users").document(group.getGroupCreatorUserID()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful() && task.getResult() != null){
+                    User tempUser = task.getResult().toObject(User.class);
+                    if(tempUser != null){
+                        Glide.with(GroupDetailsActivity.this).load(tempUser.getUserPhotoURL()).into(groupCreatorPhoto);
+                        groupCreatorEmail.setText(tempUser.getUserEmailAddress());
+                        groupCreatorTitle.setText(tempUser.getUsername());
+
+                    }else{
+                        groupCreatorEmail.setText(("no email registered"));
+                        groupCreatorTitle.setText(("no creator registered"));
+                    }
+
+                }
+            }
+        });
+
+        Glide.with(this).load(group.getGroupCreatorUserPhotoURL()).into(groupCreatorPhoto);
         if(group.getGroupCreatorEmail() == null){
             groupCreatorEmail.setText(("no email registered"));
         }else{
@@ -211,7 +234,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements OnMapRead
         groupLatLng = new LatLng(group.getGroupLatitude(), group.getGroupLongitude());
 
         Glide.with(this).load(group.getGroupPhotoURI()).into(groupPhoto);
-        Glide.with(this).load(group.getGroupCreatorUserPhotoURL()).into(groupCreatorPhoto);
+
 
         Address addresses ;
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
