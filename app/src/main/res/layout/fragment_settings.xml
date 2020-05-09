@@ -266,10 +266,12 @@
 
                 <Spinner
                     android:id="@+id/map_update_duration_spinner"
-                    android:layout_width="100dp"
+                    android:layout_width="150dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
                     android:layout_marginTop="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toEndOf="@+id/textView6"
                     app:layout_constraintTop_toBottomOf="@+id/divider9" />
 
@@ -308,12 +310,22 @@
 
                 <Spinner
                     android:id="@+id/map_icon_color_spinner"
-                    android:layout_width="100dp"
+                    android:layout_width="150dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
                     android:layout_marginTop="10dp"
-                    app:layout_constraintEnd_toEndOf="@+id/map_update_duration_spinner"
-                    app:layout_constraintStart_toStartOf="@+id/map_update_duration_spinner"
+                    app:layout_constraintStart_toEndOf="@+id/textView7"
                     app:layout_constraintTop_toBottomOf="@+id/divider10" />
+
+                <ImageView
+                    android:id="@+id/settings_page_map_settings_icon_preview_imageview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/dsg_textview_rounded_trans"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/map_icon_color_spinner"
+                    app:layout_constraintTop_toTopOf="@+id/map_icon_color_spinner"
+                    app:srcCompat="@drawable/svg_location_white" />
 
                 <Button
                     android:id="@+id/setting_page_map_setting_saveBTN"

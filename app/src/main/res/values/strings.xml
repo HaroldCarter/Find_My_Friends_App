@@ -121,4 +121,37 @@
     <string name="Register_forgot_password_BTN">Forgot Password?</string>
 
 
+
+    <string-array name="Group_colors">
+        <item>random</item>
+        <item>red</item>
+        <item>blue</item>
+        <item>green</item>
+        <item>black</item>
+        <item>white</item>
+        <item>gray</item>
+        <item>cyan</item>
+        <item>magenta</item>
+        <item>lightgray</item>
+        <item>darkgray</item>
+        <item>grey</item>
+        <item>lightgrey</item>
+        <item>darkgrey</item>
+        <item>aqua</item>
+        <item>fuchsia</item>
+        <item>lime</item>
+        <item>maroon</item>
+        <item>navy</item>
+        <item>olive</item>
+        <item>purple</item>
+        <item>silver</item>
+        <item>teal</item>
+    </string-array>
+
+    <string-array name="Update_Duration">
+        <item>15S</item>
+        <item>30S</item>
+        <item>60S</item>
+    </string-array>
+
 </resources>

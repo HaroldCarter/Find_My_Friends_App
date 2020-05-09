@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="325dp"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@color/whiteTrans"
     card_view:layout_constraintBottom_toBottomOf="parent"
@@ -16,15 +16,13 @@
         android:id="@+id/HostedBy_map_overview"
         android:layout_width="100dp"
         android:layout_height="30dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="10dp"
         android:layout_weight="1"
         android:fontFamily="@font/roboto"
         android:singleLine="false"
         android:text="Hosted by Brook Wood"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="8sp"
-        card_view:layout_constraintEnd_toStartOf="@+id/FAB_info_adapter"
         card_view:layout_constraintStart_toEndOf="@+id/ProfilePhoto_map_overview"
         card_view:layout_constraintTop_toBottomOf="@+id/GroupTitle_map_overview" />
 
@@ -32,9 +30,8 @@
         android:id="@+id/GroupTitle_map_overview"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
         android:layout_weight="1"
         android:fontFamily="@font/roboto_bold"
         android:singleLine="true"
@@ -42,7 +39,6 @@
         android:textColor="@color/colorPrimaryDark"
         android:textSize="12sp"
         card_view:layout_constraintBottom_toBottomOf="parent"
-        card_view:layout_constraintEnd_toStartOf="@+id/FAB_info_adapter"
         card_view:layout_constraintStart_toEndOf="@+id/ProfilePhoto_map_overview"
         card_view:layout_constraintTop_toTopOf="parent"
         card_view:layout_constraintVertical_bias="0.0" />
@@ -68,6 +64,7 @@
         android:id="@+id/FAB_info_adapter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
         android:clickable="true"
@@ -75,9 +72,7 @@
         card_view:backgroundTint="@color/colorPrimaryDark"
         card_view:fabSize="mini"
         card_view:layout_constraintBottom_toBottomOf="parent"
-        card_view:layout_constraintEnd_toEndOf="parent"
-        card_view:layout_constraintHorizontal_bias="1.0"
-        card_view:layout_constraintStart_toStartOf="parent"
+        card_view:layout_constraintStart_toEndOf="@+id/HostedBy_map_overview"
         card_view:layout_constraintTop_toTopOf="parent"
         card_view:srcCompat="@drawable/svg_back_arrow_white" />
 
@@ -92,10 +87,19 @@
         android:textSize="10sp"
         android:visibility="invisible"
         card_view:layout_constraintBottom_toBottomOf="parent"
-        card_view:layout_constraintEnd_toEndOf="@+id/FAB_info_adapter"
-        card_view:layout_constraintHorizontal_bias="1.0"
         card_view:layout_constraintStart_toEndOf="@+id/HostedBy_map_overview"
         card_view:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/sendEmail_map_overview_imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:visibility="gone"
+        card_view:layout_constraintBottom_toBottomOf="parent"
+        card_view:layout_constraintStart_toEndOf="@+id/ETA_textview_user"
+        card_view:layout_constraintTop_toTopOf="parent"
+        card_view:srcCompat="@drawable/svg_send_primary" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

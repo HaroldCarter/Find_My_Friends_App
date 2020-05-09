@@ -24,6 +24,8 @@ public class User {
     private ArrayList<String> usersRequestsMemberships;
     private String modeOfTransport = "Person";
 
+    private Integer UserUpdateRate;
+
 
     public User() {
     }
@@ -47,6 +49,14 @@ public class User {
         this.usersRequestsMemberships = user.usersRequestsMemberships;
         this.modeOfTransport = user.modeOfTransport;
         notifyChangeListener();
+    }
+
+    public Integer getUserUpdateRate() {
+        return UserUpdateRate;
+    }
+
+    public void setUserUpdateRate(Integer userUpdateRate) {
+        UserUpdateRate = userUpdateRate;
     }
 
     public String getUserColor() {

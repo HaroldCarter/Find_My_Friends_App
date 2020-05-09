@@ -2,6 +2,7 @@ package com.example.find_my_friends.ui.settings;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +10,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -23,7 +26,7 @@ import androidx.lifecycle.ViewModelProviders;
 import com.bumptech.glide.Glide;
 import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
-import com.example.find_my_friends.RegisterActivity;
+import com.example.find_my_friends.groupUtil.GroupColors;
 import com.example.find_my_friends.ui.dialog_windows.ChangeEmailDialog;
 import com.example.find_my_friends.ui.dialog_windows.ChangePasswordDialog;
 import com.example.find_my_friends.ui.dialog_windows.ChangeUsernameDialog;
@@ -40,13 +43,14 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 import static android.app.Activity.RESULT_OK;
@@ -56,7 +60,7 @@ import static com.example.find_my_friends.util.Constants.RESULT_LOADED_IMAGE;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.Constants.currentUserDocument;
 
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends Fragment implements AdapterView.OnItemSelectedListener {
 
     private Button changePasswordBTN;
     private Button changeUsernameBTN;
@@ -69,12 +73,18 @@ public class SettingsFragment extends Fragment {
     private FloatingActionButton addProfilePhotoFAB;
     private ImageView profilePhotoImageView;
     private ProgressBar progressBar;
+    private ImageView markerPreviewImageview;
 
     private final String TAG = "Settings_Fragment :";
 
     private boolean uploadStatus = true;
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+    private ArrayList<String> groupColors;
+    private ArrayList<String> updateRates;
+    private String selectedColor;
+    private String selectedUpdateRate;
 
 
 
@@ -97,7 +107,12 @@ public class SettingsFragment extends Fragment {
         mapSettingsSaveChangesBTN = root.findViewById(R.id.setting_page_map_setting_saveBTN);//
         mapSettingsMarkerColorSpinner = root.findViewById(R.id.map_icon_color_spinner);//
         mapSettingsMapUpdateDuration = root.findViewById(R.id.map_update_duration_spinner);
+        markerPreviewImageview = root.findViewById(R.id.settings_page_map_settings_icon_preview_imageview);
 
+
+        groupColors= new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.Group_colors)));
+
+        updateRates= new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.Update_Duration)));
 
         addProfilePhotoFAB = root.findViewById(R.id.setting_page_change_photoBTN);//
 
@@ -105,6 +120,7 @@ public class SettingsFragment extends Fragment {
         progressBar = root.findViewById(R.id.settings_page_progressBar_profilePhoto);
 
 
+        loadMapSettings();
 
 
         loadUsersPhoto(null);
@@ -134,6 +150,76 @@ public class SettingsFragment extends Fragment {
         });
         return root;
     }
+
+
+
+    private Integer getColorIndex(String colorToMatch){
+        int i =  groupColors.indexOf(colorToMatch);
+        if(i != -1){
+            return i;
+        }else{
+            return null;
+        }
+    }
+
+
+    private Integer getDurationIndex(String durationToMatch){
+        int i =  updateRates.indexOf(durationToMatch);
+        if(i != -1){
+            return i;
+        }else{
+            return null;
+        }
+    }
+
+
+    private void loadMapSettings(){
+        mapSettingsMarkerColorSpinner.setPrompt("Select One");
+        mapSettingsMapUpdateDuration.setPrompt("Select One");
+
+
+       if(getContext() != null) {
+           ArrayAdapter<CharSequence> colorAdapter = ArrayAdapter.createFromResource(getContext(),
+                   R.array.Group_colors, android.R.layout.simple_spinner_item);
+           mapSettingsMarkerColorSpinner.setAdapter(colorAdapter);
+
+           ArrayAdapter<CharSequence> durationAdapter = ArrayAdapter.createFromResource(getContext(),
+                   R.array.Update_Duration, android.R.layout.simple_spinner_item);
+           mapSettingsMapUpdateDuration.setAdapter(durationAdapter);
+
+       }
+
+
+        if(currentUser.getUserColor() != null) {
+            Integer index = getColorIndex(currentUser.getUserColor());
+            if(index!= null) {
+                mapSettingsMarkerColorSpinner.setSelection(index);
+                markerPreviewImageview.setColorFilter(Color.parseColor(groupColors.get(index)));
+            }else{
+                mapSettingsMarkerColorSpinner.setSelection(0);
+            }
+        }else{
+            mapSettingsMarkerColorSpinner.setSelection(0);
+        }
+
+        if(currentUser.getUserUpdateRate() != null) {
+            Integer index = getDurationIndex(currentUser.getUserUpdateRate().toString() + "S");
+            if (index != null) {
+                mapSettingsMapUpdateDuration.setSelection(index);
+            } else {
+                mapSettingsMapUpdateDuration.setSelection(0);
+            }
+        }else{
+            mapSettingsMapUpdateDuration.setSelection(0);
+        }
+
+        mapSettingsMarkerColorSpinner.setOnItemSelectedListener(this);
+        mapSettingsMapUpdateDuration.setOnItemSelectedListener(this);
+
+    }
+
+
+
 
     private void loadUsersPhoto(String Uri){
         if(getContext() != null) {
@@ -176,9 +262,61 @@ public class SettingsFragment extends Fragment {
         mapSettingsSaveChangesBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(selectedColor == null && selectedUpdateRate == null){
+                    Toast.makeText(getActivity(), "No changes made",
+                            Toast.LENGTH_LONG).show();
+
+                    return;
+                }
+                boolean updateColor = false;
+                boolean updateRate =false;
+                if(selectedColor != null){
+                    //update the color to the new color
+                    if(currentUser.getUserColor() != null && !(currentUser.getUserColor().equals(selectedColor))){
+                        //update to the new color, else
+                        updateUserColor(selectedColor);
+                        updateColor = true;
+                    }else if (currentUser.getUserColor() == null){
+                        //first time the user has updated their color.
+                        updateUserColor(selectedColor);
+                        updateColor = true;
+                    }
+                }
+                if(selectedUpdateRate != null){
+                    Integer updateRateInt = updateRateToInt(selectedUpdateRate);
+                    if(currentUser.getUserUpdateRate() != null && !(currentUser.getUserUpdateRate().equals(updateRateInt))){
+                        updateUserUpdateRate(updateRateToInt(selectedUpdateRate));
+                        updateRate = true;
+                    }else if(currentUser.getUserUpdateRate() == null){
+                        updateUserUpdateRate(updateRateToInt(selectedUpdateRate));
+                        updateRate = true;
+                    }
+                }
+
+
+
+                //display what was uppdated to the user.
+
+                if(updateColor && updateRate){
+                    Toast.makeText(getActivity(), "Color and Update rate changes saved",
+                            Toast.LENGTH_LONG).show();
+                }else if(updateColor){
+                    Toast.makeText(getActivity(), "Color change saved",
+                            Toast.LENGTH_LONG).show();
+                }else if(updateRate){
+                    Toast.makeText(getActivity(), "Update rate change saved",
+                            Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(getActivity(), "settings already configured, no save required",
+                            Toast.LENGTH_LONG).show();
+                }
 
             }
         });
+    }
+
+    private int updateRateToInt(String updateRate){
+        return Integer.valueOf(updateRate.substring(0, updateRate.length() - 1));
     }
 
     private void handleAddProfilePhotoFAB(){
@@ -522,4 +660,34 @@ public class SettingsFragment extends Fragment {
     }
 
 
+    private void updateUserColor(String colorToUpdateTO){
+        currentUserDocument.getReference().update("userColor", colorToUpdateTO);
+    }
+
+    private void updateUserUpdateRate(int newUpdateRate){
+        currentUserDocument.getReference().update("userUpdateRate", newUpdateRate);
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if(parent.equals(this.mapSettingsMarkerColorSpinner)) {
+
+            if(!groupColors.get(position).equals("random")) {
+                selectedColor = groupColors.get(position);
+                markerPreviewImageview.setColorFilter(Color.parseColor(selectedColor));
+            }else{
+                String tempRandomColor = GroupColors.randomColor().getStringValue();
+                markerPreviewImageview.setColorFilter(Color.parseColor(tempRandomColor));
+                selectedColor =tempRandomColor;
+                //maybe update the groups color to a random color.
+            }
+        }else if (parent.equals(this.mapSettingsMapUpdateDuration)){
+            selectedUpdateRate = updateRates.get(position);
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
 }

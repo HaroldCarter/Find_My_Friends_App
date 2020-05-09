@@ -46,7 +46,7 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
                 .inflate(R.layout.group_overview_map_overview, null);
 
         ImageView imageViewProfilePhoto = view.findViewById(R.id.ProfilePhoto_map_overview);
-        //ImageView imageViewGroupPhoto = view.findViewById(R.id.GroupPhoto_map_overview);
+        ImageView imageViewEmailIcon = view.findViewById(R.id.sendEmail_map_overview_imageView);
         TextView hostNameTextView = view.findViewById(R.id.HostedBy_map_overview);
         TextView groupTitleTextView = view.findViewById(R.id.GroupTitle_map_overview);
         TextView textViewETAUser = view.findViewById(R.id.ETA_textview_user);
@@ -75,6 +75,27 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
                 }
             }).into(imageViewProfilePhoto);
 
+            if(infoWindowData.getUserLocation() != null && infoWindowData.getModeOfTransportUser() != null && infoWindowData.getTravelDuration() != null){
+                hostNameTextView.setText(infoWindowData.getGroupCreatorDisplayName());
+                floatingActionButton.setVisibility(View.INVISIBLE);
+                textViewETAUser.setVisibility(View.VISIBLE);
+                imageViewEmailIcon.setVisibility(View.VISIBLE);
+
+                switch (infoWindowData.getModeOfTransportUser()){
+                    case "Car":
+                        //doesn't actually load drawable to the screen
+                        textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_car_primary,0 ,0 );
+                        break;
+                    case "Bike":
+                        textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_bike_primary,0 ,0 );
+                        break;
+                    default:
+                        textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_person_black,0 ,0 );
+                        //person;
+                }
+                textViewETAUser.setText(("ETA " + (infoWindowData.getTravelDuration()/60) + "Mins"));
+
+            }
 
             //if we are not the creator because then
             if(!infoWindowData.getGroupCreatorUID().equals(currentUser.getUID())) {
@@ -120,26 +141,7 @@ public class GroupInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
                 }).into(imageViewProfilePhoto);
             }
 
-            if(infoWindowData.getUserLocation() != null && infoWindowData.getModeOfTransportUser() != null && infoWindowData.getTravelDuration() != null){
-                hostNameTextView.setText(infoWindowData.getGroupCreatorDisplayName());
-                floatingActionButton.setVisibility(View.INVISIBLE);
-                textViewETAUser.setVisibility(View.VISIBLE);
 
-                switch (infoWindowData.getModeOfTransportUser()){
-                    case "Car":
-                        //doesn't actually load drawable to the screen
-                        textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_car_primary,0 ,0 );
-                        break;
-                    case "Bike":
-                        textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_bike_primary,0 ,0 );
-                        break;
-                    default:
-                        textViewETAUser.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.svg_person_black,0 ,0 );
-                        //person;
-                }
-                textViewETAUser.setText(("ETA " + (infoWindowData.getTravelDuration()/60) + "Mins"));
-
-            }
 
             return view;
         }
