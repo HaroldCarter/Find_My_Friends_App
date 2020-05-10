@@ -45,7 +45,7 @@
     <string name="Reg_string_title">Registration Page</string>
     <string name="Password_String">Password</string>
     <string name="Username_string">Username</string>
-    <string name="Username_suggestion_string">Username</string>
+    <string name="Email_suggestion_string">Email Address</string>
     <string name="Password_confirmation_string">Confirm Password</string>
     <string name="Already_registered_string">Already a Registered user? Click here to log in</string>
     <string name="Back_string">Back</string>

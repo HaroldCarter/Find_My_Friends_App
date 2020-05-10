@@ -57,6 +57,14 @@
         android:layout_marginBottom="35dp"
         app:srcCompat="@drawable/svg_add_white" />
 
+    <ProgressBar
+        android:id="@+id/map_overview_loading_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:visibility="invisible" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/floating_action_menu_map_overview"
         android:layout_width="80dp"

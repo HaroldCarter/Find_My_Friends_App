@@ -17,10 +17,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -88,6 +91,9 @@ import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoP
 
 public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener, RoutingListener {
 
+    private final int SECOND_IN_MILLI = 1000; /* milliseconds */
+
+
     private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
     private boolean modeTransportMenuVisibility = false;
@@ -97,6 +103,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private FloatingActionButton actionMenuFAB1;
     private FloatingActionButton actionMenuFAB2;
     private FloatingActionButton searchFAB;
+    private ProgressBar loadingBar;
     private View root;
     private MapView mapView;
     private GoogleMap mMap;
@@ -119,6 +126,46 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private GroupMarker currentGroupHighlighted = null;
     private UserMarker currentUserHighlighted = null;
 
+    private Handler mHandler = new Handler();
+    private boolean FragmentFocused = true;
+
+
+    //while creating a handler and running a task on the ui thread is typically bad practice because it can lead to leaks, the action of purging all messages(not in proccess, and checking if references in the runnable are dead before recalling a runnable from within)
+    //should mean that the leak is minmized, and the handler won't survive past the life cycle of the app.
+    private Runnable updateGroupMarkers = new Runnable() {
+        @Override
+        public void run() {
+            //do work here.
+            if(mMap != null && FragmentFocused){
+                if((!groupInspected && !groupHighlighted)) {
+                    loadingBar.setVisibility(View.VISIBLE);
+                    Toast toast = Toast.makeText(getContext(), "Map Updated", Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 50);
+                    toast.show();
+                    //remove all markers.
+                    deleteAllMarkers();
+                    //add all new markers in.
+                    loadGroups(mMap);
+
+                    loadingBar.setVisibility(View.INVISIBLE);
+                    if (currentUser != null && currentUser.getUserUpdateRate() != null) {
+                        mHandler.postDelayed(this, (currentUser.getUserUpdateRate() * SECOND_IN_MILLI));
+                    } else {
+                        mHandler.postDelayed(this, (15 * SECOND_IN_MILLI));
+                    }
+                }else {
+                    //check again in 15 seconds, to stop the runnable from deleting users while the user is inspecting them.
+                    mHandler.postDelayed(this, (15 * SECOND_IN_MILLI));
+                }
+            }
+        }
+    };
+
+
+
+
+
+
 
     private ArrayList<Polyline> routePolyLines = new ArrayList<>();
 
@@ -131,7 +178,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         root = inflater.inflate(R.layout.fragment_map_overview, container, false);
 
         locateResources();
-
+        loadingBar.setVisibility(View.VISIBLE);
 
         //mapview bundle key (restore the map state upon reopening the fragment).
         Bundle mapViewBundle = null;
@@ -162,6 +209,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             loadModeOfTransportSelection();
             mapView.getMapAsync(MapOverviewFragment.this);
         }
+
+        mHandler.postDelayed(updateGroupMarkers, 0);
 
         return root;
     }
@@ -327,6 +376,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             Integer index = userMarkerHashMaps.get(marker.getId());
             if (index != null) {
                 currentUserHighlighted = currentGroupHighlighted.getUser(index);
+                loadingBar.setVisibility(View.VISIBLE);
                 getPathToGroup(getUserLocation(currentUserHighlighted.getUserMarkerRepresents()));
                 groupInspected = true;
                 this.selectedMarker = marker;
@@ -359,6 +409,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         actionMenuFAB2 = root.findViewById(R.id.action_menu_FAB2);
         searchFAB = root.findViewById(R.id.search_group_fab_map_overview);
         mapView = root.findViewById(R.id.map_view_overview);
+        loadingBar = root.findViewById(R.id.map_overview_loading_bar);
 
         gpsToggleFAB = root.findViewById(R.id.location_toggle_map_overview);
         addGroupPhotoFAB = root.findViewById(R.id.add_group_fab_map_overview);
@@ -403,11 +454,12 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             g.getGroupMarker().remove();
             groupMarkersHashMaps.remove(g.getGroupMarker().getId());
             for(UserMarker u: g.getUsers()){
-                u.getUserMarker().remove();
                 userMarkerHashMaps.remove(u.getUserMarker().getId());
+                u.getUserMarker().remove();
             }
-            currentGroupMarkers.remove(g);
+            g.getUsers().clear();
         }
+        currentGroupMarkers.clear();
     }
 
 
@@ -520,6 +572,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             //don't apply the style if the app is crashing, this shouldn't happen, but applying this can cause the application not just to crash but to complete halt (app not responding).
             MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
             googleMap.setMapStyle(style);
+            loadingBar.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -564,30 +617,49 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onStart() {
+        FragmentFocused = true;
+        if(currentUser != null && currentUser.getUserUpdateRate() != null) {
+            mHandler.postDelayed(updateGroupMarkers, (currentUser.getUserUpdateRate() * SECOND_IN_MILLI));
+        }else{
+            mHandler.postDelayed(updateGroupMarkers, (15 * SECOND_IN_MILLI));
+        }
         mapView.onStart();
         super.onStart();
     }
 
     @Override
     public void onResume() {
+        FragmentFocused = true;
+        if(currentUser != null && currentUser.getUserUpdateRate() != null) {
+            mHandler.postDelayed(updateGroupMarkers, (currentUser.getUserUpdateRate() * SECOND_IN_MILLI));
+        }else{
+            mHandler.postDelayed(updateGroupMarkers, (15 * SECOND_IN_MILLI));
+        }
         mapView.onResume();
         super.onResume();
     }
 
     @Override
     public void onPause() {
+        mHandler.removeCallbacks(updateGroupMarkers);
+        FragmentFocused = false;
         mapView.onPause();
         super.onPause();
     }
 
     @Override
     public void onStop() {
+        mHandler.removeCallbacks(updateGroupMarkers);
+        FragmentFocused = false;
         mapView.onStop();
         super.onStop();
     }
 
     @Override
     public void onDestroy() {
+        mHandler.removeCallbacks(updateGroupMarkers);
+        FragmentFocused =false;
+        //quit the handler thread before we quit the mapview so there is no instances where the handler thread can interact with a map that doesn't exist.
         mapView.onDestroy();
         super.onDestroy();
     }
@@ -759,6 +831,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onRoutingFailure(RouteException e) {
+        loadingBar.setVisibility(View.INVISIBLE);
         if (e != null) {
             Toast.makeText(getContext(), "Error when routing: " + e.getMessage(), Toast.LENGTH_LONG).show();
         } else {
@@ -773,6 +846,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex) {
+        loadingBar.setVisibility(View.INVISIBLE);
         //could this be done on the background thread to stop slow down.
         if (routePolyLines.size() > 0) {
             for (Polyline poly : routePolyLines) {
@@ -800,6 +874,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onRoutingCancelled() {
+        loadingBar.setVisibility(View.INVISIBLE);
 
     }
 }
