@@ -219,6 +219,7 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     private void createGroupMarker(Group groupToCreatorMarkerFor, GoogleMap googleMap) {
         Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(groupToCreatorMarkerFor.getGroupLatitude(), groupToCreatorMarkerFor.getGroupLongitude())).title(groupToCreatorMarkerFor.getGroupTitle()));
         marker.setVisible(false);
+        //getting the most upto date information for the creator of the group, this could easily be the current user requesting the information..
         db.collection("Users").document(groupToCreatorMarkerFor.getGroupCreatorUserID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -304,12 +305,14 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         User tempUser = documentSnapshot.toObject(User.class);
                         if (tempUser != null && currentGroupHighlighted != null && distanceBetweenTwoPointMiles(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude(), tempUser.getUserLat(), tempUser.getUserLong()) >= 0.5) {
                             Marker markerUser = mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()));
+                            markerUser.setVisible(false);
                             UserMarker userMarker = new UserMarker(markerUser, tempUser);
                             GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress(), tempUser.getUID());
                             markerUser.setTag(groupInfoWindowData);
                             currentGroupMarkers.get(index).appendUser(userMarker);
                             userMarkerHashMaps.put(markerUser.getId(), currentGroupMarkers.get(index).getUserIndex(userMarker));
                             loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport(), tempUser.getUserColor());
+                            markerUser.setVisible(true);
                         }
                     }
                 }
@@ -392,6 +395,21 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             updateMenu();
         }
     }
+
+
+    private void deleteAllMarkers(){
+        for (GroupMarker g: currentGroupMarkers
+             ) {
+            g.getGroupMarker().remove();
+            groupMarkersHashMaps.remove(g.getGroupMarker().getId());
+            for(UserMarker u: g.getUsers()){
+                u.getUserMarker().remove();
+                userMarkerHashMaps.remove(u.getUserMarker().getId());
+            }
+            currentGroupMarkers.remove(g);
+        }
+    }
+
 
     private void handleSearchFAB() {
         searchFAB.setOnClickListener(new View.OnClickListener() {

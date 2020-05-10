@@ -30,7 +30,6 @@ import com.bumptech.glide.Glide;
 import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.groupUtil.GroupColors;
 import com.example.find_my_friends.groupUtil.GroupUtil;
-import com.example.find_my_friends.recyclerAdapters.GroupOverviewAdapter;
 import com.example.find_my_friends.util.DatePickerFragment;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.example.find_my_friends.util.TimePickerFragment;
@@ -329,7 +328,12 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
         if (resultCode == RESULT_OK && requestCode == RESULT_LOADED_IMAGE) {
             if (data.getData() != null) {
                 Uri imageURI = data.getData();
-                String uploadPath = "images/groups/groupPhoto" + groupToAdd.getGroupID();
+                String uploadPath;
+                if(group == null) {
+                    uploadPath = "images/groups/groupPhoto" + groupToAdd.getGroupID();
+                }else{
+                    uploadPath = "images/groups/groupPhoto" + group.getGroupID();
+                }
                 uploadPhoto(imageURI, uploadPath);
             } else {
                 Toast.makeText(this, "path to image is corrupt, or no path no longer exists",
@@ -349,8 +353,6 @@ public class AddGroupActivity extends AppCompatActivity implements DatePickerDia
                     group.setGroupLongitude(data.getDoubleExtra("Lng", 0.0));
 
                 }
-               // groupToAdd.setGroupLocation(new GeoPoint(lat, lng));
-                //maybe update the button text to show the nearest address?
                 Bundle args = data.getBundleExtra("BUNDLE");
                 ArrayList<Address> addresses = null;
                 if(args != null) {
