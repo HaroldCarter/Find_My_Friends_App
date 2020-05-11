@@ -66,6 +66,8 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     private TextView timeSpinnerSG;
     private TextView distanceText;
     private SeekBar distanceSeekBar;
+    private ImageView dateSelectionCancelBTN;
+    private ImageView timeSelectionCancelBTN;
     private Calendar calendar;
     private String filterGroupDate;
     private String filterGroupTime;
@@ -116,6 +118,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         dateSpinnerSG = findViewById(R.id.dateSpinnerSG);
         timeSpinnerSG = findViewById(R.id.timeSpinnerSG);
         distanceSeekBar = findViewById(R.id.SearchDistanceSeekBar);
+        dateSelectionCancelBTN = findViewById(R.id.dateSelectorCancelBTN);
+        timeSelectionCancelBTN = findViewById(R.id.timeSelectorCancelBTN);
+
         calendar = Calendar.getInstance();
         distanceText = findViewById(R.id.DistanceSearchTitle);
 
@@ -123,8 +128,34 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         setupRecyclerView();
         handleDateSpinnerSG();
         handleTimeSpinnerSG();
+        handleDateSelectionCancelBTN();
+        handleTimeSelectionCancelBTN();
     }
 
+
+    private void handleDateSelectionCancelBTN(){
+        dateSelectionCancelBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dateSelectionCancelBTN.setVisibility(View.INVISIBLE);
+                dateSpinnerSG.setText(("any"));
+                searchDate = "any";
+                updateSearch();
+            }
+        });
+    }
+
+    private void handleTimeSelectionCancelBTN(){
+        timeSelectionCancelBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timeSelectionCancelBTN.setVisibility(View.INVISIBLE);
+                timeSpinnerSG.setText(("any"));
+                searchTime = "any";
+                updateSearch();
+            }
+        });
+    }
 
 
 
@@ -288,6 +319,7 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         dateSpinnerSG.setText(setDate);
         searchDate = setDate;
         updateSearch();
+        dateSelectionCancelBTN.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -303,6 +335,7 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         timeSpinnerSG.setText(setTime);
         searchTime = setTime;
         updateSearch();
+        timeSelectionCancelBTN.setVisibility(View.VISIBLE);
     }
 
     private void setupRecyclerView(){
