@@ -29,7 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                app:srcCompat="@drawable/svg_back_arrow_primary" />
+                app:srcCompat="@drawable/svg_back_arrow_white" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/addUsersPhoto"

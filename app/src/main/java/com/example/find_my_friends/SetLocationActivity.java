@@ -13,8 +13,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
-import com.example.find_my_friends.groupUtil.Group;
 import com.example.find_my_friends.util.PermissionUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -27,7 +25,6 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,6 +33,12 @@ import java.util.Locale;
 
 import static com.example.find_my_friends.util.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 
+/**
+ * A class which handles the set location Activity functionality, activity opens up a map fragment and displays the user's current location from which the user can set a location for a group.
+ *
+ * @version v2.0
+ * @author Harold Carter
+ */
 public class SetLocationActivity extends FragmentActivity implements OnMapReadyCallback {
 
     final private String TAG = "SetLocationActivity : ";
@@ -48,6 +51,10 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
     private ImageView droppedPinIMG;
     private boolean addGroupMode = false;
 
+    /**
+     * overrides the onCreate callback, sets all the handlers for onscreen buttons, and requests the location permissions of the user.
+     * @param savedInstanceState default bundle for onsaved data, nothing is saved as nothing is influx at any point during lifecycle of this activity
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,12 +72,10 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
                 PermissionUtils.requestLocationPermission(this);
             }
         }else{
-            mapFragment.getMapAsync(SetLocationActivity.this);
+            if(mapFragment != null) {
+                mapFragment.getMapAsync(SetLocationActivity.this);
+            }
         }
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-
-
         droppedPinIMG = findViewById(R.id.set_location_dropped_pin);
         droppedPinIMG.setVisibility(View.INVISIBLE);
         backBTN = findViewById(R.id.set_location_back_button);
@@ -85,6 +90,10 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
 
     }
 
+
+    /**
+     * loads the data passed to the intent if the data exists regarding the users current location, and sets the current location internal variable equal to it. used for when resetting the location of a group, so that the dropped marker is set on the groups last location, not the users current location.
+     */
     public void handleLoadingData(){
         double Lat = getIntent().getDoubleExtra("Lat", 0.0d);
         double Lng = getIntent().getDoubleExtra("Lng", 0.0d);
@@ -98,8 +107,9 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
     }
 
 
-
-
+    /**
+     * upon the user clicking the set location button the callback listener inside this function is called, this function handles getting the coordinates of the central point on the map  (dropped marker) and returning this as a bundle as the result of the activity, this also passes the address of the location if it exists as an arraylist.
+     */
     private void handleSetLocationBTN(){
         setLocationBTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,6 +140,9 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
         });
     }
 
+    /**
+     * handles user interaction with the back button by setting the result to cancelled and the data to null, then finishes this activity.
+     */
     private void handleBackBTN(){
         backBTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -175,6 +188,13 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
         });
     }
 
+    /**
+     * onRequestPermissionsResult override callback for when the os has queried the user for permission to access certain resources (location in the case of this activity) this function should never be called because the main activity should've already requested location permission however if the user denies all requests for location and approves it within this activity then this will handle this.
+     * once permission is granted fetchlastknownlocation is called.
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
@@ -188,6 +208,9 @@ public class SetLocationActivity extends FragmentActivity implements OnMapReadyC
         }
     }
 
+    /**
+     * requests the users current or last known location (based if the user has the gps currently enabled), then returns this to the functions internal callback, upon this call back it prepares the map and sets the current location to that provided to the callback.
+     */
     private void fetchLastLocation(){
         if(!PermissionUtils.checkLocationPermission(this)){
             return;

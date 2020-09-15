@@ -3,19 +3,10 @@ package com.example.find_my_friends.ui.map_overview;
 import android.content.Context;
 import android.content.Intent;
 
-
 import android.graphics.Bitmap;
-import android.graphics.BlendMode;
-import android.graphics.BlendModeColorFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
@@ -27,17 +18,10 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.directions.route.AbstractRouting;
 import com.directions.route.Route;
 import com.directions.route.RouteException;
@@ -49,14 +33,13 @@ import com.example.find_my_friends.MainActivity;
 import com.example.find_my_friends.R;
 import com.example.find_my_friends.SearchGroupsActivity;
 import com.example.find_my_friends.groupUtil.Group;
-import com.example.find_my_friends.groupUtil.GroupInfoWindowAdapter;
-import com.example.find_my_friends.groupUtil.GroupInfoWindowData;
+import com.example.find_my_friends.groupUtil.InfoWindowAdapter;
+import com.example.find_my_friends.groupUtil.InfoWindowData;
 import com.example.find_my_friends.groupUtil.GroupMarker;
 import com.example.find_my_friends.userUtil.CurrentUserUtil;
 import com.example.find_my_friends.userUtil.User;
 
 import com.example.find_my_friends.userUtil.UserMarker;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -89,12 +72,14 @@ import static com.example.find_my_friends.util.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
 import static com.example.find_my_friends.util.LocationUtils.distanceBetweenTwoPointMiles;
 
+/**
+ * This class handles the functionally for the map overview fragment, handling the drawing of on map displays, marker interaction and drawing the shortest path to a group all occur within this class.
+ *
+ * @author Harold Carter
+ * @version 7.0
+ */
 public class MapOverviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener, RoutingListener {
-
     private final int SECOND_IN_MILLI = 1000; /* milliseconds */
-
-
-    private MapOverviewViewModel mapOverviewViewModel;
     private boolean gpsToggle = true;
     private boolean modeTransportMenuVisibility = false;
     private int modeTransportState = 0; //0 walking, 1 driving, 2 biking.
@@ -128,33 +113,31 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     private Handler mHandler = new Handler();
     private boolean FragmentFocused = true;
+    private ArrayList<Polyline> routePolyLines = new ArrayList<>();
 
-
-    //while creating a handler and running a task on the ui thread is typically bad practice because it can lead to leaks, the action of purging all messages(not in proccess, and checking if references in the runnable are dead before recalling a runnable from within)
-    //should mean that the leak is minmized, and the handler won't survive past the life cycle of the app.
+    /**
+     * a runnable for updating the current group markers on a map
+     * info - while creating a handler and running a task on the ui thread is typically bad practice because it can lead to leaks regarding activity lifecycle event, the action of purging all messages(not in process, and checking if references in the runnable are dead before recalling a runnable from within)
+     * should mean that the leak is minimized, and the handler won't survive past the life cycle of the activity/fragment activity.
+     */
     private Runnable updateGroupMarkers = new Runnable() {
         @Override
         public void run() {
-            //do work here.
-            if(mMap != null && FragmentFocused){
-                if((!groupInspected && !groupHighlighted)) {
+            if (mMap != null && FragmentFocused) {
+                if ((!groupInspected && !groupHighlighted)) {
                     loadingBar.setVisibility(View.VISIBLE);
                     Toast toast = Toast.makeText(getContext(), "Map Updated", Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 50);
                     toast.show();
-                    //remove all markers.
                     deleteAllMarkers();
-                    //add all new markers in.
                     loadGroups(mMap);
-
                     loadingBar.setVisibility(View.INVISIBLE);
                     if (currentUser != null && currentUser.getUserUpdateRate() != null) {
                         mHandler.postDelayed(this, (currentUser.getUserUpdateRate() * SECOND_IN_MILLI));
                     } else {
                         mHandler.postDelayed(this, (15 * SECOND_IN_MILLI));
                     }
-                }else {
-                    //check again in 15 seconds, to stop the runnable from deleting users while the user is inspecting them.
+                } else {
                     mHandler.postDelayed(this, (15 * SECOND_IN_MILLI));
                 }
             }
@@ -162,65 +145,48 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     };
 
 
-
-
-
-
-
-    private ArrayList<Polyline> routePolyLines = new ArrayList<>();
-
+    /**
+     * Called to have the fragment instantiate its user interface view. initializes all the internal variables which represent the onscreen variables within the view and handles their functionality
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate any views in the fragment
+     * @param container          If non-null, this is the parent view that the fragment's UI should be attached to. The fragment should not add the view itself, but this can be used to generate the LayoutParams of the view
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state as given here
+     * @return the View for the fragment's UI, or null.
+     */
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-
-        mapOverviewViewModel =
-                ViewModelProviders.of(this).get(MapOverviewViewModel.class);
         root = inflater.inflate(R.layout.fragment_map_overview, container, false);
-
         locateResources();
         loadingBar.setVisibility(View.VISIBLE);
-
-        //mapview bundle key (restore the map state upon reopening the fragment).
         Bundle mapViewBundle = null;
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
         mapView.onCreate(mapViewBundle);
-
-
-        //set to hide for the default and then override this later once data has been checked
         hideMenu();
-
-        //handle on screen interactions (onclick listeners)
         handleNavDrawFAB();
         handleGPSToggleFAB();
         handleAddGroupFAB();
         handleSearchFAB();
         handleModeTransportSelection();
-
-
-        //check from the server the current mode of transport for the current user.
         checkStateOfTransport();
-        //listen out for changes to the user as in change in their location or mode of transportation, as this is critical to user interaction (other users can be updated at a delay period to save on resoureces.
         currentUserListener();
-        //if the current user is loaded, then start the map services.
         if (CurrentUserLoaded) {
             loadGpsState();
             loadModeOfTransportSelection();
             mapView.getMapAsync(MapOverviewFragment.this);
         }
-
         mHandler.postDelayed(updateGroupMarkers, 0);
-
         return root;
     }
 
-
+    /**
+     * sets the listener for the current user, so upon change a snapshot listener within the main activity will notify this listener and therefore can update the map accordingly
+     */
     private void currentUserListener() {
         setCurrentUserListener(new CurrentUserUtil.ChangeListener() {
             @Override
             public void onChange() {
-                //update the ui
                 loadGpsState();
                 loadModeOfTransportSelection();
                 updateCurrentLocation();
@@ -229,12 +195,20 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
+    /**
+     * updates the position for the current location's marker on the map, if the marker exists. if the marker doesn't exist this function does nothing.
+     */
     private void updateCurrentLocation() {
         if (currentLocationMarker != null) {
             currentLocationMarker.setPosition(new LatLng(currentUser.getUserLat(), currentUser.getUserLong()));
         }
     }
 
+    /**
+     * indexes through the current user's collection of memberships to get each groups UID from the arraylist of usersMemberships and then index the corresponding documents on the FireStore database through means of asynchronous callback; upon success a maker for the group is created and an instance of the group saved through calling createGroupMaker
+     * if the document fails to be fetched from the server (group is deleted) then no action is taken as this group should not be displayed or attempted to be displayed.
+     * @param googleMap googleMap object, the map the markers will be appended to.
+     */
     private void loadGroups(GoogleMap googleMap) {
         if (currentUser.getUsersMemberships() != null) {
             currentGroupMarkers = new ArrayList<>();
@@ -247,11 +221,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         if (documentSnapshot != null) {
                             Group tempGroup = documentSnapshot.toObject(Group.class);
                             if (tempGroup != null) {
-                                //if the group has no completed members but does have members then display it
-                                if ((tempGroup.getCompletedMemeberIDS() == null && tempGroup.getMembersOfGroupIDS() != null)) {
+                                if ((tempGroup.getCompletedMemberIDS() == null && tempGroup.getMembersOfGroupIDS() != null)) {
                                     createGroupMarker(tempGroup, googleMap);
-                                } else if (tempGroup.getCompletedMemeberIDS().size() != tempGroup.getMembersOfGroupIDS().size()) {
-                                    //if the group is not complete.
+                                } else if (tempGroup.getCompletedMemberIDS().size() != tempGroup.getMembersOfGroupIDS().size()) {
                                     createGroupMarker(tempGroup, googleMap);
                                 }
                             }
@@ -265,19 +237,26 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     * CreateGroupMarker generates a marker for the group passed as a parameter and sets the infoWindowAdapters date to be that of the most uptodate from the server, re-requesting the creator's documents through means of an asynchronous callback; upon success the document is converted to an object and the photourl
+     * is passed to the infoWindowData object so that the user's most upto date photo and settings are displayed rather than that of the time of creation for the group, as creator details are not maintained within the group document.
+     *
+     * @param groupToCreatorMarkerFor Group that the marker is representing on the map
+     * @param googleMap GoogleMap Object, the map to append the marker too
+     *
+     */
     private void createGroupMarker(Group groupToCreatorMarkerFor, GoogleMap googleMap) {
         Marker marker = googleMap.addMarker(new MarkerOptions().position(new LatLng(groupToCreatorMarkerFor.getGroupLatitude(), groupToCreatorMarkerFor.getGroupLongitude())).title(groupToCreatorMarkerFor.getGroupTitle()));
         marker.setVisible(false);
-        //getting the most upto date information for the creator of the group, this could easily be the current user requesting the information..
         db.collection("Users").document(groupToCreatorMarkerFor.getGroupCreatorUserID()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 User temp = documentSnapshot.toObject(User.class);
                 if (temp != null && getContext() != null) {
                     marker.setVisible(true);
-                    GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(groupToCreatorMarkerFor.getGroupID(), null, null, groupToCreatorMarkerFor.getGroupTitle(), temp.getUserPhotoURL(), temp.getUsername(), groupToCreatorMarkerFor.getGroupCreatorUserID());
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_location_white), groupToCreatorMarkerFor.getGroupColor()));
-                    marker.setTag(groupInfoWindowData);
+                    InfoWindowData infoWindowData = new InfoWindowData(null, null, groupToCreatorMarkerFor.getGroupTitle(), groupToCreatorMarkerFor.getGroupPhotoURI(), temp.getUsername());
+                    marker.setIcon(vectorResourceToBitMapDescriptorConverter(MapOverviewFragment.this.getContext(), (R.drawable.svg_location_white), groupToCreatorMarkerFor.getGroupColor()));
+                    marker.setTag(infoWindowData);
                     GroupMarker groupMarker = new GroupMarker(marker, groupToCreatorMarkerFor);
                     currentGroupMarkers.add(groupMarker);
                     groupMarkersHashMaps.put(marker.getId(), currentGroupMarkers.indexOf(groupMarker));
@@ -286,10 +265,12 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         });
 
 
-
     }
 
-    //hide all the user markers on the screen, and display all the group markers; because only one group can be selected at a time it may be an idea just to deselect just that items users.
+    /**
+     * this function is used when the user navigates away from inspecting the members of a group, therefore this function hides all users and displays all groups markers from the marker Arraylists for the respectful types of markers
+     *
+     */
     public void resumeGroupOverview() {
         for (GroupMarker groupMarker : currentGroupMarkers
         ) {
@@ -302,7 +283,13 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    //whenever a marker is interacted with the callback is given to this function therefore allowing us to actively work out which marker was interacted with.
+    /**
+     * overrides the defaul onclickmarker callback, this fuction is called whenever a marker is clicked; within this function it checks if the marker is that of a group, and if so handles it accordingly(within checkIfMarkerGroupMarker) and then goes on to check if the marker is a user marker in the respective method checkIfMarkerUserMarker.
+     *
+     *
+     * @param marker Marker to check and act upon the click
+     * @return true if the listener has consumed the event (i.e., the default behavior should not occur); false otherwise (i.e., the default behavior should occur). (we do not want to consume the action but expand upon it therefore false is always returned)
+     */
     @Override
     public boolean onMarkerClick(Marker marker) {
         if (!checkIfMakerGroupMarker(marker)) {
@@ -311,7 +298,12 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         return false;
     }
 
-
+    /**
+     * checks if the marker is contained in the hashmap of group markers, if so then the group is inspected users for the group are displayed as markers on the map.
+     *
+     * @param marker Marker to check if the marker is contained in the hashmap of group markers
+     * @return status of the marker being a group marker as a boolean, true- if the marker passed as a parameter was a group or false if not.
+     */
     private boolean checkIfMakerGroupMarker(Marker marker) {
         if (marker != null && groupMarkersHashMaps != null && currentGroupMarkers != null) {
             Integer index = groupMarkersHashMaps.get(marker.getId());
@@ -329,10 +321,13 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         return false;
     }
 
-
+    /**
+     * hides all the markers for the other groups other than the currently selected marker
+     *
+     * @param index Int, for the index in the arraylist of groups for the selected group that is not hidden.
+     */
     private void hideAllGroupMarkersButCurrent(Integer index) {
         GroupMarker selectedMarker = currentGroupMarkers.get(index);
-        //hide all the other group markers.
         for (GroupMarker cGM : currentGroupMarkers
         ) {
             if (!cGM.getGroupMarker().getId().equals(selectedMarker.getGroupMarker().getId())) {
@@ -341,10 +336,13 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-
+    /**
+     * by indexing through the indexed groups members (indexed in the group arraylist using the parameter index) and then drawing their icons to the map; this is achieved by getting each document of each member of the group and then getting their last known location and preferred mode of transport
+     *
+     * @param index Int, index of the group selected in the ArrayList of groups.
+     */
     private void generateUserMarkers(Integer index) {
         userMarkerHashMaps.clear();
-        //load the group's users and display them in on the map.
         for (String s : currentGroupMarkers.get(index).getGroupMarkerRepresents().getMembersOfGroupIDS()
         ) {
             db.collection("Users").document(s).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -356,8 +354,8 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                             Marker markerUser = mMap.addMarker(new MarkerOptions().position(getUserLocation(tempUser)).title(tempUser.getUsername()));
                             markerUser.setVisible(false);
                             UserMarker userMarker = new UserMarker(markerUser, tempUser);
-                            GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(tempUser.getUID(), getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress(), tempUser.getUID());
-                            markerUser.setTag(groupInfoWindowData);
+                            InfoWindowData infoWindowData = new InfoWindowData(getUserLocation(tempUser), tempUser.getModeOfTransport(), tempUser.getUsername(), tempUser.getUserPhotoURL(), tempUser.getUserEmailAddress());
+                            markerUser.setTag(infoWindowData);
                             currentGroupMarkers.get(index).appendUser(userMarker);
                             userMarkerHashMaps.put(markerUser.getId(), currentGroupMarkers.get(index).getUserIndex(userMarker));
                             loadIcon(userMarker.getUserMarker(), userMarker.getUserMarkerRepresents().getModeOfTransport(), tempUser.getUserColor());
@@ -370,7 +368,12 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-
+    /**
+     * checks if the provided marker is contained within the userhashmap of markers, and if so this function will call other functions to draw a route through and display the users info window.
+     *
+     * @param marker marker to check if it was a user
+     * @return boolean for the status of if the marker was a user's marker or not, if it was then true; else false
+     */
     private boolean checkIfMarkerUserMarker(Marker marker) {
         if (marker != null && userMarkerHashMaps != null) {
             Integer index = userMarkerHashMaps.get(marker.getId());
@@ -387,6 +390,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         return false;
     }
 
+    /**
+     * default override callback for when a markers displayed information window is clicked, within this function the index of the marker is created from the hashmap, and assuming this index exists the value wil be checked, if null the index in the groups hashmap didn't exist and therefore must be a user marker
+     * the index for the userhashmap is then checked.
+     *
+     * if the index is for a groups marker then the group details activity is launched passing the documentID as an extra inside the intent bundle
+     * else if the index is for a user marker then an implicit intent for creating an email is sent, using the userUtil's function compose email
+     *
+     * @param marker Marker that had the info-window clicked.
+     */
     @Override
     public void onInfoWindowClick(Marker marker) {
         Integer index = groupMarkersHashMaps.get(marker.getId());
@@ -403,6 +415,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     * used in the oncreate to link the internal variables of the class to that of the onscreen variables in the view.
+     */
     private void locateResources() {
         floatingMenuBackground = root.findViewById(R.id.floating_action_menu_map_overview);
         actionMenuFAB1 = root.findViewById(R.id.action_menu_FAB1);
@@ -417,7 +432,11 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         modeTransportFAB = root.findViewById(R.id.mode_of_transport_fab_map_overview);
     }
 
-
+    /**
+     * loads from the current user if they have the gps tracking capability toggled on or off and shades the corresponding FAB accordingly
+     * low alpha - not toggled
+     * high alpha - toggled
+     */
     private void loadGpsState() {
         if (currentUser != null && currentUser.getUserLocationUpToDate() != null) {
             if (currentUser.getUserLocationUpToDate()) {
@@ -430,6 +449,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     *loads from the current user the mode of transport they have selected, the default is "Person" however this could be "Bike" or "Car" this is then loaded into the corresponding FAB menu through subfunctions
+     */
     private void loadModeOfTransportSelection() {
         if (currentUser != null && currentUser.getModeOfTransport() != null) {
             switch (currentUser.getModeOfTransport()) {
@@ -447,22 +469,30 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-
-    private void deleteAllMarkers(){
-        for (GroupMarker g: currentGroupMarkers
-             ) {
-            g.getGroupMarker().remove();
-            groupMarkersHashMaps.remove(g.getGroupMarker().getId());
-            for(UserMarker u: g.getUsers()){
-                userMarkerHashMaps.remove(u.getUserMarker().getId());
-                u.getUserMarker().remove();
+    /**
+     * deletes all current markers from the map and clears the hashmaps, used in updating of the map.
+     */
+    private void deleteAllMarkers() {
+        if(currentGroupMarkers != null) {
+            for (GroupMarker g : currentGroupMarkers
+            ) {
+                g.getGroupMarker().remove();
+                groupMarkersHashMaps.remove(g.getGroupMarker().getId());
+                if(g.getUsers() != null) {
+                    for (UserMarker u : g.getUsers()) {
+                        userMarkerHashMaps.remove(u.getUserMarker().getId());
+                        u.getUserMarker().remove();
+                    }
+                }
+                g.getUsers().clear();
             }
-            g.getUsers().clear();
+            currentGroupMarkers.clear();
         }
-        currentGroupMarkers.clear();
     }
 
-
+    /**
+     * handles the onclick functionality for the search FAB, when click this button starts an intent for the SearchActivity
+     */
     private void handleSearchFAB() {
         searchFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -472,6 +502,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
+    /**
+     * handles the functionaltiy for the nav draw FAB which due to the recycled nature of the FAB can have multiple states based of the state of the activity.
+     *
+     * if the user is inspecting a group then this FAB acts as a back button, and will remove them to a group overview, this is known as group highlighted state
+     * if the user has a group highlighted (viewing the group and its subsequent members) then this FAB will act as a back button and remove the user from highlighted mode, restoring the map overview mode (default)
+     * once in default this button will act a nav draw button (its original intended purpose) and make a request to the main activity to expand the navigation draw.
+     *
+     * the reason this FAB is recycled like so and not multiple FAB with each dedicated purpose is simple, adding more FAB obscures the information in the map overview making it difficult to navigate and not within keeping with the original design
+     */
     private void handleNavDrawFAB() {
         navigationDrawFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -486,8 +525,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                     groupInspected = false;
                     groupHighlighted = true;
                     deletePolyLines();
-
-                    //make all the group veiwable again.
                 } else if (groupHighlighted) {
                     navigationDrawFAB.setImageResource(R.drawable.svg_menu_white);
                     if (selectedMarker != null) {
@@ -507,7 +544,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
-
+    /**
+     * when the add group button is click the set onclick listener found within this function is trigger, and with this an intent for the AddGroupActivity is made, therefore giving the app the ability to add a group.
+     */
     private void handleAddGroupFAB() {
         addGroupPhotoFAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -517,24 +556,23 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                 } else {
                     Snackbar.make(view, "Main activity has terminated, app will crash.", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
-
                 }
             }
         });
     }
 
+    /**
+     *
+     */
     private void handleGPSToggleFAB() {
         gpsToggleFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
                 if (gpsToggle) {
-                    //if true then turn it off on this interaction
                     gpsToggleFAB.setImageAlpha(50);
                     setLocationUpToDateCurrentUser(false);
                     gpsToggle = false;
                 } else {
-                    //else false then turn on/
                     gpsToggleFAB.setImageAlpha(255);
                     setLocationUpToDateCurrentUser(true);
                     gpsToggle = true;
@@ -545,13 +583,17 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     }
 
-
+    /**
+     * overrides the Callback interface for when the map is ready to be used, and sets the style of the map to the custom json file for the map design.
+     * this function also calls to load all of the groups markers onto the map now that the map is ready to have markers appended.
+     * all ui settings are also disabled in this method.
+     * @param googleMap GoogleMap, the instance of the map that called this callback and therefore ready to be serviced.
+     */
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
-
-        if (currentUser != null && getUserLocation(currentUser) != null) {
-            GroupInfoWindowAdapter infoWindowAdapter = new GroupInfoWindowAdapter(getContext());
+        if (currentUser != null) {
+            InfoWindowAdapter infoWindowAdapter = new InfoWindowAdapter(getContext());
             googleMap.setInfoWindowAdapter(infoWindowAdapter);
             LatLng userLocation = getUserLocation(currentUser);
             currentLocation = new MarkerOptions().position(userLocation).title("Current Location");
@@ -567,27 +609,32 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 5));
 
         }
-        //setting up the style of the map
         if (getActivity() != null && getActivity().getApplicationContext() != null) {
-            //don't apply the style if the app is crashing, this shouldn't happen, but applying this can cause the application not just to crash but to complete halt (app not responding).
             MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(getActivity().getApplicationContext(), R.raw.map_style_json);
             googleMap.setMapStyle(style);
             loadingBar.setVisibility(View.INVISIBLE);
         }
     }
 
+    /**
+     * loads the correct icon resources for the mode of transport for a given usermarker
+     *
+     * @param marker the Usermarker that is having the icon loaded for
+     * @param modeOfTransport the mode of transport the user that marker represents
+     * @param color the color the user has selected their marker to be represented as a string
+     */
     private void loadIcon(Marker marker, String modeOfTransport, String color) {
         if (marker != null) {
             switch (modeOfTransport) {
                 case "Car":
 
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_car_white), color));
+                    marker.setIcon(vectorResourceToBitMapDescriptorConverter(MapOverviewFragment.this.getContext(), (R.drawable.svg_car_white), color));
                     break;
                 case "Bike":
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_bike_white), color));
+                    marker.setIcon(vectorResourceToBitMapDescriptorConverter(MapOverviewFragment.this.getContext(), (R.drawable.svg_bike_white), color));
                     break;
                 default:
-                    marker.setIcon(bitmapDescriptorFromVector(MapOverviewFragment.this.getContext(), (R.drawable.svg_person_white), color));
+                    marker.setIcon(vectorResourceToBitMapDescriptorConverter(MapOverviewFragment.this.getContext(), (R.drawable.svg_person_white), color));
                     break;
 
             }
@@ -595,50 +642,65 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    //it turns out the simplest way to change the bitmap's colour and apply a colour filter is to cast the bitmap to an imageview, apply the colour filter and then cast this back to a bitmap; google are a amazing.
-    //whats also amazing is if have to create a bitmap descriptor and even better im limited to a set of 15 colours.
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId, String colour) {
-        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+    /**
+     * loads and converts from a SVG resource file to a BitmapDescriptor required for loading the icon of a  marker, color is achieved through casting the drawable into an imageview and then applying the color filter to the imageview before extracting the drawable
+     * this is done through this means as it is actually the most efficient means of applying a color filter to a bitmap.
+     *
+     * @param context context of the application performing the conversion
+     * @param VectorResource the int value for the resource id
+     * @param shadingColor String for the color from usercolors enum for what color the user's marker should be shaded
+     * @return BitmapDescriptor the required type of object for setting the icon of a marker, containing the appropriately shaded vector resource with its intrinsic bounds.
+     */
+    private BitmapDescriptor vectorResourceToBitMapDescriptorConverter(Context context, int VectorResource, String shadingColor) {
+        Drawable vectorResourceDrawable = ContextCompat.getDrawable(context, VectorResource);
         ImageView imageView = new ImageView(context);
-        imageView.setImageDrawable(vectorDrawable);
-        imageView.setColorFilter(Color.parseColor(colour));
-        vectorDrawable = imageView.getDrawable();
-        if (vectorDrawable != null) {
-            vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
-            Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        imageView.setImageDrawable(vectorResourceDrawable);
+        imageView.setColorFilter(Color.parseColor(shadingColor));
+        vectorResourceDrawable = imageView.getDrawable();
+        if (vectorResourceDrawable != null) {
+            vectorResourceDrawable.setBounds(0, 0, vectorResourceDrawable.getIntrinsicWidth(), vectorResourceDrawable.getIntrinsicHeight());
+            Bitmap bitmap = Bitmap.createBitmap(vectorResourceDrawable.getIntrinsicWidth(), vectorResourceDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
-            vectorDrawable.draw(canvas);
+            vectorResourceDrawable.draw(canvas);
             return BitmapDescriptorFactory.fromBitmap(bitmap);
         } else {
             return null;
         }
     }
 
-
+    /**
+     * Overrides the onstart function to restart the group update handler and set the mapview's life cycle accordingly to prevent memoryleaks
+     */
     @Override
     public void onStart() {
         FragmentFocused = true;
-        if(currentUser != null && currentUser.getUserUpdateRate() != null) {
+        if (currentUser != null && currentUser.getUserUpdateRate() != null) {
             mHandler.postDelayed(updateGroupMarkers, (currentUser.getUserUpdateRate() * SECOND_IN_MILLI));
-        }else{
+        } else {
             mHandler.postDelayed(updateGroupMarkers, (15 * SECOND_IN_MILLI));
         }
         mapView.onStart();
         super.onStart();
     }
 
+    /**
+     * Overrides the onResume function to restart the group update handler and set the mapview's life cycle accordingly to prevent memoryleaks
+     */
     @Override
     public void onResume() {
         FragmentFocused = true;
-        if(currentUser != null && currentUser.getUserUpdateRate() != null) {
+        if (currentUser != null && currentUser.getUserUpdateRate() != null) {
             mHandler.postDelayed(updateGroupMarkers, (currentUser.getUserUpdateRate() * SECOND_IN_MILLI));
-        }else{
+        } else {
             mHandler.postDelayed(updateGroupMarkers, (15 * SECOND_IN_MILLI));
         }
         mapView.onResume();
         super.onResume();
     }
 
+    /**
+     *  Overrides the onPause function to stop the group update handler and set the mapview's life cycle accordingly to prevent memoryleaks
+     */
     @Override
     public void onPause() {
         mHandler.removeCallbacks(updateGroupMarkers);
@@ -647,6 +709,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         super.onPause();
     }
 
+    /**
+     *  Overrides the onStop function to stop the group update handler and set the mapview's life cycle accordingly to prevent memoryleaks
+     */
     @Override
     public void onStop() {
         mHandler.removeCallbacks(updateGroupMarkers);
@@ -655,15 +720,21 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         super.onStop();
     }
 
+    /**
+     *  Overrides the onDestroy function to stop the group update handler and set the mapview's life cycle accordingly to prevent memoryleaks
+     */
     @Override
     public void onDestroy() {
         mHandler.removeCallbacks(updateGroupMarkers);
-        FragmentFocused =false;
-        //quit the handler thread before we quit the mapview so there is no instances where the handler thread can interact with a map that doesn't exist.
+        FragmentFocused = false;
         mapView.onDestroy();
         super.onDestroy();
     }
 
+    /**
+     * Overrides the onsave instance state to save the instance of the map, so that upon device rotation or destruction of the fragment the settings for the map are maintained
+     * @param outState Bundle containg the mapviews onsaved state.
+     */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -676,17 +747,22 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         mapView.onSaveInstanceState(mapViewBundle);
     }
 
+    /**
+     * Overrides the onLowMemory function to set the mapview's life cycle accordingly to reduce memory usage.
+     */
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
     }
 
+    /**
+     *handles the modeoftransportFAB, this is used to reveal the full menu or hide the menu based on if the menu is already shown or not.
+     */
     private void handleModeTransportSelection() {
         modeTransportFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //change the GPS to grey & stop updating their location periodically (this will require realtime user database to implement this)
                 if (modeTransportMenuVisibility) {
                     hideMenu();
                 } else {
@@ -698,6 +774,10 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
 
     }
 
+    /**
+     * once the action menu is revealed the onclick listeners can have their reponses triggered, and depending on the state of the previously selected mode of transport predicts the FABs Functionality, as the two remaining options on the action menu change whenever the user selects an option.
+     *
+     */
     private void checkStateOfTransport() {
         actionMenuFAB1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -715,7 +795,6 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         //walking selected previously
                         modeTransportState = 2;
                         break;
-
                 }
                 updateMenu();
             }
@@ -736,13 +815,15 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
                         //walking selected previously
                         modeTransportState = 1;
                         break;
-
                 }
                 updateMenu();
             }
         });
     }
 
+    /**
+     * this function switches on the selected mode of transport and updates the FAB for the mode of transports icon and the icons in the FAB menu according to the state selected (only three possible combinations).
+     */
     private void updateMenu() {
         if (getActivity() != null) {
             switch (modeTransportState) {
@@ -776,6 +857,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     * hides the onscreen Floating Action menu for selecting a new mode of transport
+     */
     private void hideMenu() {
         if (getContext() != null) {
             actionMenuFAB1.hide();
@@ -785,6 +869,9 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     * displays the onscreen Floating Action menu for selecting a new mode of transport
+     */
     private void showMenu() {
         if (getContext() != null) {
             actionMenuFAB1.show();
@@ -794,16 +881,19 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-
+    /**
+     * using the jd-alexander Library for route planning which simple handles requesting the route to the directions api server (no point re-inventing the wheel) and returning a list of poly lines; this function gets the route between the users location (the user the marker represents) and the location of the group currently being inpsected.
+     * this route is then built on an asynchronous thread and callbacks are given to respond to the progress of the task.
+     *
+     * @param userLocation LatLng for the users location (the user the marker that was clicked represents)
+     */
     void getPathToGroup(LatLng userLocation) {
         if (currentGroupHighlighted != null) {
-
             Routing.Builder routing = new Routing.Builder()
                     .key(getResources().getString(R.string.google_api_key))
                     .withListener(this)
                     .alternativeRoutes(false)
                     .waypoints(userLocation, new LatLng(currentGroupHighlighted.getGroupMarkerRepresents().getGroupLatitude(), currentGroupHighlighted.getGroupMarkerRepresents().getGroupLongitude()));
-            //.build();
             switch (currentUserHighlighted.getUserMarkerRepresents().getModeOfTransport()) {
                 case "Car":
                     routing.travelMode(AbstractRouting.TravelMode.DRIVING);
@@ -819,16 +909,23 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    void deletePolyLines() {
+    /**
+     * deletes all the polylines of a route, done on the UI thread as each polyline needs to be removed from the map, this causes a small amount of slowdown however this action cannot be done of a separate thread without use of a weak reference; and even then slow down to the user is comparable as each action
+     * for p.remove interacts with the googlemaps thread thus slowing the maps thread down ultimately leading to the same experience in slow down.
+     */
+    private void deletePolyLines() {
         for (Polyline p : routePolyLines
         ) {
-            //remove it from the map.
             p.remove();
         }
         routePolyLines.clear();
     }
 
-
+    /**
+     * override callback for the route planning, this is called upon the route service failing to calculate a route between the user and the target group (can occur if group and user are on different continents).
+     *
+     * @param e RouteException e the error that is cause the routing to fail.
+     */
     @Override
     public void onRoutingFailure(RouteException e) {
         loadingBar.setVisibility(View.INVISIBLE);
@@ -839,22 +936,30 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+
+    /**
+     * blank override to satisfy the implemented methods.
+     */
     @Override
     public void onRoutingStart() {
-
     }
 
+    /**
+     * upon routing succcess this callback is triggered, within this callback the route is displayed to the map, because no alternative routes are being displayed in this iteration of the app, this has been experimented with previously therefore this function indexes through the array of routes and displays all of them ot the map in the users color.
+     * this also removes currently existing routes so that the routes cannot be drawn twice at the same time as this could lead to user confusion upon refreshing the page
+     *
+     * @param route the arraylist of routes that the user can take to get to the destination, by default this is one however numerous routes can be selected.
+     * @param shortestRouteIndex this is the index in the arraylist for the shortest path to the destination (the primary preferred route).
+     */
     @Override
     public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex) {
         loadingBar.setVisibility(View.INVISIBLE);
-        //could this be done on the background thread to stop slow down.
         if (routePolyLines.size() > 0) {
             for (Polyline poly : routePolyLines) {
                 poly.remove();
             }
         }
         routePolyLines = new ArrayList<>();
-        //add route(s) to the map.
         for (int i = 0; i < route.size(); i++) {
             PolylineOptions polyOptions = new PolylineOptions();
             polyOptions.color(Color.parseColor(currentUserHighlighted.getUserMarkerRepresents().getUserColor()));
@@ -864,17 +969,19 @@ public class MapOverviewFragment extends Fragment implements OnMapReadyCallback,
             routePolyLines.add(polyline);
             User currentUser = currentUserHighlighted.getUserMarkerRepresents();
             if (currentUser != null) {
-                GroupInfoWindowData groupInfoWindowData = new GroupInfoWindowData(currentUser.getUID(), getUserLocation(currentUser), currentUser.getModeOfTransport(), currentUser.getUsername(), currentUser.getUserPhotoURL(), currentUser.getUserEmailAddress(), currentUser.getUID());
-                groupInfoWindowData.setTravelDuration(route.get(i).getDurationValue());
-                currentUserHighlighted.getUserMarker().setTag(groupInfoWindowData);
+                InfoWindowData infoWindowData = new InfoWindowData(getUserLocation(currentUser), currentUser.getModeOfTransport(), currentUser.getUsername(), currentUser.getUserPhotoURL(), currentUser.getUserEmailAddress());
+                infoWindowData.setTravelDuration(route.get(i).getDurationValue());
+                currentUserHighlighted.getUserMarker().setTag(infoWindowData);
                 currentUserHighlighted.getUserMarker().showInfoWindow();
             }
         }
     }
 
+    /**
+     * upon the routing being cancelled (not possible client side on this app) the loading bar is made invisible.
+     */
     @Override
     public void onRoutingCancelled() {
         loadingBar.setVisibility(View.INVISIBLE);
-
     }
 }

@@ -10,6 +10,11 @@ import androidx.fragment.app.DialogFragment;
 
 import java.util.Calendar;
 
+/**
+ * a public class for the dialog picker for the date, this simply expands the existing class and allows the date picker to be initialized from the current date of the device with the current format
+ * @author Harold Carter
+ * @version 1.0
+ */
 public class DatePickerFragment extends DialogFragment {
 
     @NonNull

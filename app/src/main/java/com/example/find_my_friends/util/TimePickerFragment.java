@@ -10,6 +10,11 @@ import androidx.fragment.app.DialogFragment;
 
 import java.util.Calendar;
 
+/**
+ * a public class for the dialog picker for the time, this simply expands the existing class and allows the time picker to be initialized from the current time of the device with the current format
+ * @author Harold Carter
+ * @version 1.0
+ */
 public class TimePickerFragment extends DialogFragment {
 
     @NonNull
@@ -18,6 +23,6 @@ public class TimePickerFragment extends DialogFragment {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int min = calendar.get((Calendar.MINUTE));
-        return new TimePickerDialog(getActivity(), (TimePickerDialog.OnTimeSetListener)getActivity(), hour, min, android.text.format.DateFormat.is24HourFormat(getActivity()));
+        return new TimePickerDialog(getActivity(), (TimePickerDialog.OnTimeSetListener) getActivity(), hour, min, android.text.format.DateFormat.is24HourFormat(getActivity()));
     }
 }

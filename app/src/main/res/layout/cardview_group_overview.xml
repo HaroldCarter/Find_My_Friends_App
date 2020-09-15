@@ -14,7 +14,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
 
             <ImageView
@@ -24,8 +24,8 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_weight="3"
-                android:elevation="5dp"
                 android:background="@drawable/dsg_circular_shape"
+                android:elevation="5dp"
                 android:scaleType="centerCrop"
                 card_view:layout_constraintBottom_toTopOf="@+id/GroupPhotoCV"
                 card_view:layout_constraintStart_toStartOf="parent"
@@ -101,6 +101,7 @@
                 android:layout_marginStart="5dp"
                 android:drawableStart="@drawable/svg_import_contacts_primary"
                 android:fontFamily="@font/roboto"
+                android:gravity="center_vertical"
                 android:text="Description"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
@@ -111,9 +112,9 @@
             <TextView
                 android:id="@+id/GroupDescriptionCV"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
                 android:fontFamily="@font/roboto"
                 android:text="Pre-drinks bring your own stuff, don't set fire to the cat and don't throw up on the couch"
                 android:textColor="@color/colorPrimary"
@@ -132,8 +133,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
                 android:drawableStart="@drawable/svg_date_primary"
                 android:fontFamily="@font/roboto"
+                android:gravity="center_vertical"
                 android:text="Date &amp; Time"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
@@ -159,12 +162,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
                 android:fontFamily="@font/roboto"
                 android:prompt="@string/date_prompt_AG"
                 android:text="17/05/2020"
                 android:textAlignment="center"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
+                card_view:layout_constraintBottom_toBottomOf="parent"
                 card_view:layout_constraintStart_toStartOf="parent"
                 card_view:layout_constraintTop_toBottomOf="@+id/DateAndTimeCV" />
 
@@ -174,12 +179,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
                 android:fontFamily="@font/roboto"
                 android:prompt="@string/time_prompt_AG"
                 android:text="19:00"
                 android:textAlignment="center"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
+                card_view:layout_constraintBottom_toBottomOf="parent"
                 card_view:layout_constraintStart_toEndOf="@+id/DateGroupTextviewCV"
                 card_view:layout_constraintTop_toBottomOf="@+id/DateAndTimeCV" />
 

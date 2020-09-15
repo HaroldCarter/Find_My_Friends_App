@@ -2,8 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.github.dcendents.android-maven'
 
-//apply plugin: 'me.tatarka.retrolambda'
-
 group='com.github.HarryTheWeird'
 
 android {
@@ -45,11 +43,11 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'com.google.firebase:firebase-storage:19.1.1'
-    //changed from latest so that mgbramwell
+    //changed from latest so that mgbramwell 3rd party is compatible
     implementation 'com.google.firebase:firebase-analytics:16.3.0'
     implementation 'com.firebaseui:firebase-ui-firestore:6.2.1'
     implementation 'com.firebase:geofire-android:3.0.0'
-    //implementation 'com.github.imperiumlabs:GeoFirestore-Android:v1.5.0'
+
     implementation 'ch.hsr:geohash:1.4.0'
     implementation 'com.google.firebase:firebase-firestore:21.4.3'
     implementation 'com.google.firebase:firebase-auth:19.3.1'
@@ -57,6 +55,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 
+    //3rd party libs
     implementation 'uk.co.mgbramwell.geofire:geofire-android:0.0.2'
     implementation 'com.github.jd-alexander:library:1.1.0'
 }

@@ -101,6 +101,7 @@
                 android:layout_marginStart="5dp"
                 android:drawableStart="@drawable/svg_import_contacts_primary"
                 android:fontFamily="@font/roboto"
+                android:gravity="center_vertical"
                 android:text="Description"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
@@ -111,9 +112,10 @@
             <TextView
                 android:id="@+id/GroupDescription_my_groupCV"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="20dp"
                 android:fontFamily="@font/roboto"
                 android:text="Pre-drinks bring your own stuff, don't set fire to the cat and don't throw up on the couch"
                 android:textColor="@color/colorPrimary"
@@ -132,8 +134,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
+                android:layout_marginTop="10dp"
                 android:drawableStart="@drawable/svg_date_primary"
                 android:fontFamily="@font/roboto"
+                android:gravity="center_vertical"
                 android:text="Date &amp; Time"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
@@ -146,8 +150,6 @@
                 android:layout_width="150dp"
                 android:layout_height="40dp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
                 android:background="@drawable/dsg_textview_rounded_fill"
                 android:fontFamily="@font/roboto_bold"
                 android:text="@string/cardview_my_group_button_text"
@@ -157,7 +159,7 @@
                 card_view:layout_constraintEnd_toEndOf="parent"
                 card_view:layout_constraintHorizontal_bias="0.75"
                 card_view:layout_constraintStart_toEndOf="@+id/TimeGroupTextView_my_groupCV"
-                card_view:layout_constraintTop_toBottomOf="@+id/GroupDescription_my_groupCV" />
+                card_view:layout_constraintTop_toTopOf="@+id/DateAndTime_my_groupCV" />
 
             <TextView
                 android:id="@+id/DateGroupTextview_my_groupCV"
@@ -165,12 +167,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
                 android:fontFamily="@font/roboto"
                 android:prompt="@string/date_prompt_AG"
                 android:text="17/05/2020"
                 android:textAlignment="center"
                 android:textColor="@color/colorPrimary"
                 android:textSize="12sp"
+                card_view:layout_constraintBottom_toBottomOf="parent"
                 card_view:layout_constraintStart_toStartOf="parent"
                 card_view:layout_constraintTop_toBottomOf="@+id/DateAndTime_my_groupCV" />
 

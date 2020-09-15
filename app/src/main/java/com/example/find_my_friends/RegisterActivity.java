@@ -50,14 +50,10 @@ import static com.example.find_my_friends.util.Constants.currentUserFirebase;
 import java.util.UUID;
 
 /**
- * an example class to register users to a firebase database, this should be separated out into different classes, so that the code can be reused for the settings page later in the development
- * consider revising the massive if else tree at the bottom of the class, replace with a switch case to improve readabillity.
- * <p>
- * if a photo uploaded is to large then it will crash the application, this is an inherent issue with the bitmap datatype itself; this cannot be solved without manually checking each time the image is set.
- * requires fixing.
- * <p>
- * <p>
- * bundling the data is requried, so that a screen rotation change doesn't delete all the on screen data.
+ * The class responsible for the register activity, in which a user can sign up to the application, set a profile photo, user name and email.
+ *
+ * @author Harold Carter
+ * @version 4.0
  */
 public class RegisterActivity extends AppCompatActivity {
     EditText rUsername, rEmail, rPassword, rConfirmPassword, rConfirmEmail;
@@ -104,6 +100,9 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * creates an implicit intent for acquiring a profile photo for the user, called upon the user clicking the FAB to add a new photo.
+     */
     private void loadPhoto() {
         Intent mediaSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
         mediaSelectionIntent.setType("image/*");
@@ -112,6 +111,9 @@ public class RegisterActivity extends AppCompatActivity {
         startActivityForResult(mediaSelectionIntent, RESULT_LOADED_IMAGE);
     }
 
+    /**
+     * handles the callback triggered when the user clicks the add photo FAB, this calls the loadPhoto function to create an implicit intent for photo selection.
+     */
     private void configureAddPhotoButton() {
         addPhotoBTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,6 +129,14 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * onRequestPermissionsResult override callback for when the os has queried the user for permission to access certain resources (gallery access in the case of this activity)
+     * once permission is granted loading the photo can occur
+     *
+     * @param requestCode Code handed to the intent by the author of the intent used to clarify if it was our intent that has called this callback listener.
+     * @param permissions the string arraylist of stacked requested permissions (this app only requests one permission at a time)
+     * @param grantResults Int Array which gives the status of whether the corresponding permission was granted or denied by the user.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -145,6 +155,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * a function which extracts the URI from an intents data (only applicable to file selection intents), this then uploads this as a users profile photo to the firebase server, by calling upload photo function.
+     *
+     * @param data Intent containing a URI to a file or resource location
+     */
     private void handleGettingURIFromData(Intent data) {
         if (data.getData() != null) { //&& mAuth.getCurrentUser() != null) {
             ImageDecoder.Source source = ImageDecoder.createSource(this.getContentResolver(), data.getData());
@@ -154,6 +169,14 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * upon creating an implicit intent to get an image resource from the users device, the intent will call an activity result which we must then check the result code for to check it was our activity that authored this request and that the request was valid and a success
+     * after this check has been completed, the photo's URI is then extracted using the handlegettingURIfromdata function, if the task is not successful then then this function will display a toast message explaining the error to the user.
+     *
+     * @param requestCode Code handed to the intent by the author of the intent used to clarify if it was our intent that has called this callback listener.
+     * @param resultCode  an Int representing if the intent was successful.
+     * @param data        the data returned by the activity (Intent object).
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -169,13 +192,11 @@ public class RegisterActivity extends AppCompatActivity {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(RegisterActivity.this,  "server error, new users are no possible to be created at this time",
+                        Toast.makeText(RegisterActivity.this, "server error, new users are no possible to be created at this time",
                                 Toast.LENGTH_LONG).show();
                     }
                 });
             } else {
-                //the user is already logged in, this could be annon or still logged in somehow, we cannot assume ether so must allow them to attempt to continue making an accoutn
-                //later lines catch this error and tell the user they're trying to sign up with an account already in use.
                 handleGettingURIFromData(data);
             }
 
@@ -187,10 +208,11 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-
+    /**
+     * hanldes the user clicking on the back button by closing this activity.
+     */
     private void configureBackButton() {
         mAuth.signOut();
-        //incase they are anon signed in, otherwise when they load the page it will automatically sign them in to a non-existant account (allows for rogue groups to be made).
         backBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -199,6 +221,12 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * uploadPhoto will take the image uri path and upload this to the database, this function also contains listeners for the success or failure of this transaction. upon success the function will call the get the download URI function, so that the photo can then be referenced from the server.
+     *
+     * @param imageURI   the URI of the Image on the local device
+     * @param uploadPath the string of where we want to put the file on the server
+     */
     private void uploadPhoto(Uri imageURI, String uploadPath) {
         if (imageURI != null && imageURI.getPath() != null) {
             final StorageReference storageReference = FirebaseStorage.getInstance().getReference().child(uploadPath);
@@ -214,13 +242,18 @@ public class RegisterActivity extends AppCompatActivity {
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    //get the download Uri and set it to the groups
                     getDownloadURI(storageReference);
                 }
             });
         }
     }
 
+    /**
+     * as the name suggest this function will get the download the download uri link from the server so that the resource can be access by referencing the user.
+     * upon success this function will then load the download URI into the profile photo imageview through calling the loadGroupPhoto function. upon failure an error message is displayed to the user.
+     *
+     * @param storageReference reference to the file which we want to get the download URI for.
+     */
     private void getDownloadURI(StorageReference storageReference) {
         storageReference.getDownloadUrl()
                 .addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -246,6 +279,9 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * uses glide to load the download uri into the imageview, if the local variable for the photoURI is not null
+     */
     private void loadGroupPhoto() {
         if (photoURI != null) {
             Glide.with(this).load(photoURI).into(rProfilePhoto);
@@ -254,31 +290,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-    private void setUserProfileUri(Uri profilePhotoUri) {
-        //update the profile to contain the profile photo
-        UserProfileChangeRequest updateRequest = new UserProfileChangeRequest.Builder().setPhotoUri(profilePhotoUri).build();
-        if (mAuth.getCurrentUser() != null) {
-            mAuth.getCurrentUser().updateProfile(updateRequest).addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Toast.makeText(RegisterActivity.this, "profile Photo linked to user",
-                            Toast.LENGTH_LONG).show();
-                    storeUserInfoOnFireStore(mAuth.getCurrentUser());
-                    launchMainActivity();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e(TAG, "new profile Photo Failed to link to user + " + e.toString());
-                    Toast.makeText(RegisterActivity.this, "new profile Photo Failed to link to user",
-                            Toast.LENGTH_LONG).show();
-                }
-            });
-
-        }
-    }
-
-
+    /**
+     * upon the user clicking the register button this function is called to check if the entered data is valid input for the creation of a new user, all appropriate warning and info settings are then returned to the ui based of the validity of their entry within this function, the function will also return if the users input was valid as a boolean.
+     *
+     * @return a boolean representing if the users input was valid or not.
+     */
     private boolean checkUserData() {
         rProgressBar.setVisibility(View.VISIBLE);
         boolean validData = true;
@@ -323,9 +339,11 @@ public class RegisterActivity extends AppCompatActivity {
         return validData;
     }
 
-    //function needs revising, left in current state till functionaltiy is completed, then refactor.
+
+    /**
+     * within this function, so long as the authentication layer of the application is not null (so long as firebase has initialized) then a listener callback is applied to the register button, upon the user clicking this button, the validity of input is checked and then the user is signed up to authentication layer of the firebase database server.
+     */
     private void configureRegButton() {
-        //found that if you clicked quick enough  this function could somehow be toggled before mAuth was set up, strange error that isn't logical from the perspective of my code, assuming its an async task.
         if (mAuth != null) {
             regBTN.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -343,6 +361,13 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * within this function the authentication layer of the database is requested to append a new member to the list of users through registering their basic information, upon failure (user already registered) a message will be displayed to the user, else on success the function will then update the user info through calling the function, updateUserInfo():
+     *
+     * @param email    email the user wishes to signup with (String)
+     * @param password password the user wishes to sighup with (String)
+     * @param username Username the user wishes to sighup with (String)
+     */
     private void signUpUser(final String email, final String password, final String username) {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -362,19 +387,24 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * hides the progress bar and will load the current users into the constants (so reference doesn't need to be constantly passed) and then finish this current activity.
+     */
     private void launchMainActivity() {
         rProgressBar.setVisibility(View.INVISIBLE);
         loadCurrentUser();
         finish();
     }
 
+    /**
+     * updates the user information to append the users uri to their profile photo
+     *
+     * @param username takes the users Username (their email) as a parameter from which it will request to update their profile on the auth layer.
+     */
     private void updateUserInfo(final String username) {
-        //set the username in the authentication panel.
         UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                 .setDisplayName(username)
                 .build();
-
-        //apply the update.
         if (mAuth.getCurrentUser() != null) {
             mAuth.getCurrentUser().updateProfile(profileUpdate)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -393,24 +423,54 @@ public class RegisterActivity extends AppCompatActivity {
                     });
         } else {
             rProgressBar.setVisibility(View.INVISIBLE);
-            //registering failed the user should be deleted, however this is not possible and should only be added once the delete function has been written.
         }
     }
 
 
+    /**
+     * upon the user info being acquired from the database a userprofilerequest is made in which this function sets the URI of the users account to that uploaded to the database (the download URI) the data is then stored onto the firestore database through the storeUserInforOnFireStore function if the request is a sucess, if the request is a failure an appropriate message is displayed to the user.
+     *
+     * @param profilePhotoUri
+     */
+    private void setUserProfileUri(Uri profilePhotoUri) {
+        //update the profile to contain the profile photo
+        UserProfileChangeRequest updateRequest = new UserProfileChangeRequest.Builder().setPhotoUri(profilePhotoUri).build();
+        if (mAuth.getCurrentUser() != null) {
+            mAuth.getCurrentUser().updateProfile(updateRequest).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Toast.makeText(RegisterActivity.this, "profile Photo linked to user",
+                            Toast.LENGTH_LONG).show();
+                    storeUserInfoOnFireStore(mAuth.getCurrentUser());
+                    launchMainActivity();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "new profile Photo Failed to link to user + " + e.toString());
+                    Toast.makeText(RegisterActivity.this, "new profile Photo Failed to link to user",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+
+        }
+    }
+
+
+    /**
+     * upon successful authentication of the user, the users data is then appended to the firestore database, the authentication layer cannot be user to store information about the user and is simply just for authentication (storing FireabaseUsers is mal-practice as it leave apps open to malicious attacks)
+     * this is then
+     *
+     * @param firebaseUser
+     */
     private void storeUserInfoOnFireStore(FirebaseUser firebaseUser) {
-        //asimilated this data into a user object.
         User user = new User();
         user.setUID(firebaseUser.getUid());
         user.setUserEmailAddress(firebaseUser.getEmail());
-        //this should never occur but just to catch the null anyway.
-        if(firebaseUser.getPhotoUrl() != null) {
+        if (firebaseUser.getPhotoUrl() != null) {
             user.setUserPhotoURL(firebaseUser.getPhotoUrl().toString());
         }
         user.setUsername(firebaseUser.getDisplayName());
-
-        //upload this as a document to the firestore database.
-        //experiencing issues with this function not actually uploading the user to the documents. however this function has not been changed.
         db.collection("Users").document(firebaseUser.getUid())
                 .set(user, SetOptions.merge())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -430,15 +490,16 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-
-
-    private void loadCurrentUser(){
+    /**
+     * will request the current users database collection and then load this into the constant current user object then launch the main activity (authentication success)
+     */
+    private void loadCurrentUser() {
         currentUserFirebase = FirebaseAuth.getInstance().getCurrentUser();
         db.collection("Users").document(currentUserFirebase.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 currentUserDocument = task.getResult();
-                if(currentUserDocument != null) {
+                if (currentUserDocument != null) {
                     currentUser = currentUserDocument.toObject(User.class);
                     CurrentUserLoaded = true;
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));

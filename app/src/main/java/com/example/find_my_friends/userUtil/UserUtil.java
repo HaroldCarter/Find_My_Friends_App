@@ -8,18 +8,35 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 
-
+/**
+ * A class containing the set of utilities responsible for handling the functionality required to complete the feature list of the application, note this set of utils only applies other users, not the current user.
+ *
+ * @author Harold Carter
+ * @version 3.0
+ */
 public class UserUtil {
 
-    static public LatLng getUserLocation(User user){
+    /**
+     * get the user's last known location
+     *
+     * @param user User, the user who's location is being requested
+     * @return LatLng containing the users GPS coordinates
+     */
+    static public LatLng getUserLocation(User user) {
         return new LatLng(user.getUserLat(), user.getUserLong());
     }
 
 
-
+    /**
+     * compose an email to a specific target addresses through means of an implicit intent
+     *
+     * @param context   context of the activity/app calling this function so that the intent can be made
+     * @param addresses list of string's representing the email addresses of the target mailboxes
+     * @param subject   the subject of the message (not the message itself)
+     */
     static public void composeEmail(Context context, String[] addresses, String subject) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.setData(Uri.parse("mailto:"));
         intent.putExtra(Intent.EXTRA_EMAIL, addresses);
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         if (intent.resolveActivity(context.getPackageManager()) != null) {
@@ -27,38 +44,27 @@ public class UserUtil {
         }
     }
 
-
-    /*special functions for when the user is not known*/
-
-
-    static public void appendMembership( String groupUID, DocumentSnapshot userSnap) {
-        if(userSnap != null && userSnap.exists()){
+    /**
+     * append a membership to the user
+     *
+     * @param groupUID group that is being appended to the user's current memberships
+     * @param userSnap the snapshot of the user that is having the group appended to it's current membership's
+     */
+    static public void appendMembership(String groupUID, DocumentSnapshot userSnap) {
+        if (userSnap != null && userSnap.exists()) {
             userSnap.getReference().update("usersMemberships", FieldValue.arrayUnion(groupUID));
         }
-        /*
-        originally how the function was working,  simplfied above/
-        if(tempUser != null && tempUser.getUsersMemberships() != null) {
-            tempUser.getUsersMemberships().add(groupUID);
-            userSnap.getReference().update("usersMemberships", tempUser.getUsersMemberships());
-        }if(tempUser != null ){
-            tempUser.setUsersMemberships(new ArrayList<String>());
-            tempUser.getUsersMemberships().add(groupUID);
-
-        }
-
-         */
     }
 
-
-    static public void removeMembership( String groupUID, DocumentSnapshot userSnap) {
-        if(userSnap != null && userSnap.exists()) {
-            userSnap.getReference().update("usersMemberships", FieldValue.arrayRemove(groupUID));
-        }
-    }
-
-    static public void removeMembershipRequest( String groupUID, DocumentSnapshot userSnap) {
-        if(userSnap != null && userSnap.exists()) {
-            userSnap.getReference().update("usersRequestsMemberships",FieldValue.arrayRemove(groupUID));
+    /**
+     * remove a membership request -to the user
+     *
+     * @param groupUID group that is being remove to the user's requested memberships
+     * @param userSnap the snapshot of the user that is having the group removed to it's requested membership's
+     */
+    static public void removeMembershipRequest(String groupUID, DocumentSnapshot userSnap) {
+        if (userSnap != null && userSnap.exists()) {
+            userSnap.getReference().update("usersRequestsMemberships", FieldValue.arrayRemove(groupUID));
         }
     }
 }

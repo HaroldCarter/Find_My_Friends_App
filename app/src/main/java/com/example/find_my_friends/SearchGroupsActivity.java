@@ -55,11 +55,16 @@ import static com.example.find_my_friends.util.Constants.DATEPICKER_TAG_KEY;
 import static com.example.find_my_friends.util.Constants.TIMEPICKER_TAG_KEY;
 import static com.example.find_my_friends.util.Constants.currentUser;
 
+/**
+ * A class which handles the search activity in its completeness, this class enables the app to search via GPS distance, text and date & time bounds.
+ *
+ * @author Harold Carter
+ * @version V3.0
+ */
 public class SearchGroupsActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference groupsRef = db.collection("Groups");
 
-    //private GroupOverviewAdapter groupOverviewAdapter;
     private GroupAdapter groupAdapter;
     private RecyclerView recyclerView;
     private TextView dateSpinnerSG;
@@ -71,7 +76,6 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     private Calendar calendar;
     private String filterGroupDate;
     private String filterGroupTime;
-    private Query query;
 
 
     private SearchView searchView;
@@ -87,7 +91,10 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
 
     private ArrayList<Group> groups = new ArrayList<>();
 
-    //because the activity is running in single top mode, each new launch request is managed by this F.
+    /**
+     * because this activity is running in single top, each new search request doesn't call another oncreate, instead this overriden callback for onNewIntent is called, this prevents memory leaks from occuring and confusion if the user is to try and navigate away from this page(numerous versions of the same actvity would all be open)
+     * @param intent the intent which called the new instance
+     */
     @Override
     protected void onNewIntent(Intent intent) {
 
@@ -104,6 +111,10 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         super.onNewIntent(intent);
     }
 
+    /**
+     * overrides the super oncreate callback and locates all resources in the inflated view, this also calls all functions that handle the onscreen interactions.
+     * @param savedInstanceState bundle saved previously is not used in this oncreate
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,6 +144,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     }
 
 
+    /**
+     * an onscreen imageview is representing a button (to avoid odd stylistic choices on buttons or textviews), within this function the onclick function of that imageview is handled, this function cancels the search for the date filter and therefore updates the results by updating the search through the means of the update search function.
+     */
     private void handleDateSelectionCancelBTN(){
         dateSelectionCancelBTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,6 +159,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         });
     }
 
+    /**
+     * an onscreen imageview is representing a button (to avoid odd stylistic choices on buttons or textviews), within this function the onclick function of that imageview is handled, this function cancels the search for the time filter and therefore updates the results by updating the search through the means of the update search function.
+     */
     private void handleTimeSelectionCancelBTN(){
         timeSelectionCancelBTN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -158,7 +175,12 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     }
 
 
-
+    /**
+     * overrides the callback for when the options menu for this activity is created, upon this changes to the menubar are made (as it is obscenely complicated to style a toolbar before the menubar is created)
+     * after styling listeners are applied to the toolbar for when the user completes a text entry and when they complete a voice search, so that the user interface can be updated.
+     * @param menu (menu) the menu representing the contents the action bar contents
+     * @return boolean
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.search_bar, menu);
@@ -174,7 +196,6 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
             }
         });
         //search view cannot by styled by an XML document but need to be manually styled in code.
-        //therefore best to style everything here rather than fragement styling.
         if(searchView != null) {
             searchView.setBackgroundResource(R.drawable.dsg_textview_rounded_borded);
 
@@ -194,20 +215,17 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         }
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        //if the system has an error just make the search menu un-reactive rather than crash.
         if(searchManager != null && searchView != null) {
             searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(getApplicationContext(), SearchGroupsActivity.class)));
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
-                    //once the user has submitted the text
                     SearchRecentSuggestions suggestions = new SearchRecentSuggestions(SearchGroupsActivity.this,GroupSearchSuggestionProvider.AUTHORITY, GroupSearchSuggestionProvider.MODE);
                     suggestions.saveRecentQuery(query, null);
                     Snackbar.make(distanceText.getRootView(), query, Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                     searchText = query;
                     updateSearch();
-                    //this works but need to figure out a way to custom style the suggestion, and to make it actually search once an option is clicked.
                     return false;
                 }
 
@@ -223,6 +241,10 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     }
 
 
+    /**
+     * when the user interacts with the seek progress bar, this function's contents (onprogresschanged callback) will be called and change the internal variables to represent the distance indicated by the user, it will also update the textview to feedback the distance to the user in order to not obscurate
+     * the update search function is also called within this function to update the search results based off the users interaction.
+     */
     private void handleDistanceSeekBar(){
         distanceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -244,6 +266,10 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         });
     }
 
+    /**
+     * this function re-requests documents from the firebase firestore database, this is based off a combination of teh filterable settings imposed in the ui (saved locally as variables) each search is indexed on the firebase database as this is required to preform complex compound quereries therefore importing this to a new database will cause error till this index is generated.
+     * the function also gets the results and will update the ui if the request was a success.
+     */
     private void updateSearch(){
         GeoFireQuery geoFireQuery;
         Distance searchDistance = new Distance(distance, DistanceUnit.MILES);
@@ -285,7 +311,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
 
     }
 
-
+    /**
+     * handles the user interacting with the textbox representing the date spinner ( spinners can't be interacted with in this manner, however a button looks out of place); this will pass the current date to the dialog provided by the android os of the users device, so that the selection is made from the current date.
+     */
     private void handleDateSpinnerSG(){
         dateSpinnerSG.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -297,6 +325,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
 
     }
 
+    /**
+     * handles the user interacting with the textbox representing the time spinner (spinners can't be interacted with in this manner, however a button looks out of place); this will pass the current time to the time dialog provided by the android os of the users device, so that the selection is made from the current time and time zone format.
+     */
     private void handleTimeSpinnerSG(){
         timeSpinnerSG.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -307,7 +338,13 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         });
     }
 
-
+    /**
+     * handles the callback provided by the UI interface for setting a date, only called if the user actually confirms a date, within this function it handles saving the date to the local variables of this class to be use in the update search function (called within this one)
+     * @param view the view which called this callback upon user submission
+     * @param year the year of the date they selected
+     * @param month the month that year
+     * @param dayOfMonth the day of that month.
+     */
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         Calendar calendar = Calendar.getInstance();
@@ -322,6 +359,12 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         dateSelectionCancelBTN.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * handles the callback provided by the ui interface for setting the time, only called if the user actually confirms a time. withiin this function it handles saving the time to the local variables of this class to be used in the update search function which is also called within this function)
+     * @param view the view which called this callback (origin)
+     * @param hourOfDay the hour of the time selected
+     * @param minute the minute of that hour.
+     */
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         String setTime;
@@ -338,6 +381,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         timeSelectionCancelBTN.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * setting up the recycler view of the groups, by providing the adapter class with an array list of groups to represent and an adapter class to the view to display within the view.
+     */
     private void setupRecyclerView(){
         groups = new ArrayList<>();
         groupAdapter = new GroupAdapter(groups);
@@ -350,6 +396,9 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
     }
 
 
+    /**
+     * A Function which encapsulates the onclick function of the adapter, this is called upon the user interacting with any item in the list view through means of a listener, this will handle the action of launching the details activity.
+     */
     private void handleAdapterOnClick(){
         groupAdapter.setOnItemClickListener(new GroupAdapter.OnItemClickListener() {
             @Override
@@ -361,12 +410,17 @@ public class SearchGroupsActivity extends AppCompatActivity implements DatePicke
         });
     }
 
+    /**
+     * onstart override, empty override for future refinement.
+     */
     @Override
     protected void onStart() {
         super.onStart();
     }
 
-
+    /**
+     * empty override for future refinement.
+     */
     @Override
     protected void onStop() {
         super.onStop();
